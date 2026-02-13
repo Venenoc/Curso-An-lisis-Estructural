@@ -1,0 +1,22 @@
+.heroSection {
+  background-image: url('/images/hero.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+
+.coursesSection {
+  background-image: url('/images/courses-section.jpg');
+  background-size: cover;
+  background-position: right;
+  position: relative;
+}
+
+.ctaSection {
+  background-image: url('/images/cta-section.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
