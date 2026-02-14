@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animate-border-glow {
+    position: relative;
+  }
+  .gradient-border {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 1rem;
+  }
+  .gradient-border-top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 25%, #3b82f6 45%, #3b82f6 45%, transparent 80%);
+    border-radius: 1rem 1rem 0 0;
+  }
+  .gradient-border-bottom {
+    top: 510px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 25%, #3b82f6 45%, #3b82f6 45%, transparent 80%);
+    border-radius: 0;
+  }
+  .gradient-border-right {
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 25%, #3b82f6 45%, #3b82f6 55%, transparent 80%);
+    border-radius: 0;
+    display: block;
+  }  .gradient-border-left {
+    top: 0;
+    left: 445px;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 25%, #3b82f6 45%, #3b82f6 55%, transparent 80%);
+    border-radius: 0;
+    display: block;
+  }
+}

@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="w-full py-6 md:py-8 px-60">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 w-full text-center">
           <div>
-            <h3 className="font-semibold mb-2 text-white text-sm">Plataforma</h3>
+            <h3 className="font-semibold mb-2 text-blue-400 text-sm">Plataforma</h3>
             <ul className="space-y-1">
               <li>
                 <Link href="/courses" className="text-xs text-blue-100 hover:text-white transition-colors">
@@ -26,7 +26,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-2 text-white text-sm">Empresa</h3>
+            <h3 className="font-semibold mb-2 text-blue-400 text-sm">Empresa</h3>
             <ul className="space-y-1">
               <li>
                 <Link href="/about" className="text-xs text-blue-100 hover:text-white transition-colors">
@@ -41,7 +41,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-2 text-white text-sm">Legal</h3>
+            <h3 className="font-semibold mb-2 text-blue-400 text-sm">Legal</h3>
             <ul className="space-y-1">
               <li>
                 <Link href="/privacy" className="text-xs text-blue-100 hover:text-white transition-colors">
@@ -56,7 +56,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-2 text-white text-sm">Síguenos</h3>
+            <h3 className="font-semibold mb-2 text-blue-400 text-sm">Síguenos</h3>
             <ul className="space-y-1">
               <li>
                 <a href="#" className="text-xs text-blue-100 hover:text-white transition-colors">
