@@ -2,8 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
 import { courseSchema } from "@/lib/schemas";
+import { coursesCatalog } from "@/data/courses-catalog";
 
 export async function createCourse(formData: FormData) {
   try {
@@ -126,5 +128,88 @@ export async function deleteCourse(courseId: string) {
     return { success: true };
   } catch (error: any) {
     return { error: "Error inesperado" };
+  }
+}
+
+export async function purchaseCourse(slug: string) {
+  try {
+    const user = await getUser();
+    if (!user) return { error: "Debes iniciar sesión para comprar un curso" };
+
+    const catalogCourse = coursesCatalog.find((c) => c.slug === slug);
+    if (!catalogCourse) return { error: "Curso no encontrado" };
+
+    const supabase = await createClient();
+
+    // Obtener perfil del usuario
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) return { error: "Perfil no encontrado" };
+
+    // Buscar si el curso ya existe en la base de datos (por título)
+    let { data: existingCourse } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("title", catalogCourse.title)
+      .single();
+
+    let courseId: string;
+
+    if (existingCourse) {
+      courseId = existingCourse.id;
+    } else {
+      // Crear el curso en la base de datos
+      const { data: newCourse, error: createError } = await supabase
+        .from("courses")
+        .insert({
+          title: catalogCourse.title,
+          description: catalogCourse.description,
+          price: catalogCourse.price,
+          instructor_id: profile.id,
+          status: "published",
+        })
+        .select("id")
+        .single();
+
+      if (createError || !newCourse) {
+        return { error: "Error al registrar el curso" };
+      }
+
+      courseId = newCourse.id;
+    }
+
+    // Verificar que no exista enrollment duplicado
+    const { data: existingEnrollment } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", profile.id)
+      .eq("course_id", courseId)
+      .single();
+
+    if (existingEnrollment) {
+      return { error: "Ya tienes este curso" };
+    }
+
+    // Crear enrollment
+    const { error: enrollError } = await supabase.from("enrollments").insert({
+      user_id: profile.id,
+      course_id: courseId,
+      payment_type: "one_time",
+    });
+
+    if (enrollError) {
+      return { error: "Error al procesar la compra" };
+    }
+
+    revalidatePath("/cursos");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: "Error inesperado al procesar la compra" };
   }
 }

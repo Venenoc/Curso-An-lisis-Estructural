@@ -37,10 +37,10 @@ export default function Navbar() {
             >
               Inicio
             </Link>
-            <Link 
-              href="/courses" 
+            <Link
+              href="/cursos"
               className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/courses') ? 'border-blue-500 text-white' : 'border-transparent'
+                isActive('/cursos') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
               Cursos
