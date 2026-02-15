@@ -37,7 +37,10 @@ export default function RegisterForm() {
     const result = await signup(formData);
     if (result?.error) {
       setError(result.error);
+      return;
     }
+
+    window.location.href = "/login";
   }
 
   return (

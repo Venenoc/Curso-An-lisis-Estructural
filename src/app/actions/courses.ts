@@ -157,30 +157,10 @@ export async function purchaseCourse(slug: string) {
       .eq("title", catalogCourse.title)
       .single();
 
-    let courseId: string;
-
-    if (existingCourse) {
-      courseId = existingCourse.id;
-    } else {
-      // Crear el curso en la base de datos
-      const { data: newCourse, error: createError } = await supabase
-        .from("courses")
-        .insert({
-          title: catalogCourse.title,
-          description: catalogCourse.description,
-          price: catalogCourse.price,
-          instructor_id: profile.id,
-          status: "published",
-        })
-        .select("id")
-        .single();
-
-      if (createError || !newCourse) {
-        return { error: "Error al registrar el curso" };
-      }
-
-      courseId = newCourse.id;
+    if (!existingCourse) {
+      return { error: "El curso no está disponible para compra. Contacta al administrador." };
     }
+    const courseId = existingCourse.id;
 
     // Verificar que no exista enrollment duplicado
     const { data: existingEnrollment } = await supabase
@@ -205,7 +185,8 @@ export async function purchaseCourse(slug: string) {
       return { error: "Error al procesar la compra" };
     }
 
-    revalidatePath("/cursos");
+    revalidatePath("/courses");
+    revalidatePath("/cursos_m");
     revalidatePath("/dashboard");
 
     return { success: true };

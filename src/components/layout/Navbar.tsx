@@ -24,7 +24,7 @@ export default function Navbar({ user }: NavbarProps) {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo and Brand */}
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="bg-blue-500 p-2 rounded-lg">
               <Building2 className="w-6 h-6 text-white" />
             </div>
@@ -32,7 +32,7 @@ export default function Navbar({ user }: NavbarProps) {
               <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
               <span className="text-blue-400 font-bold text-lg">PRO</span>
             </div>
-          </div>
+          </Link>
           {/* Navigation Menu */}
           <div className="hidden md:flex items-center gap-8">
             <Link 
@@ -104,13 +104,13 @@ export default function Navbar({ user }: NavbarProps) {
               <PopoverContent align="end" className="p-0 w-56">
                 <nav className="flex flex-col divide-y divide-white/10 bg-black/90 rounded-lg shadow-lg overflow-hidden">
                   <Link href="/dashboard" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Dashboard</Link>
-                  <Link href="/cursos_m" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Cursos</Link>
-                  <Link href="/community_m" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Comunidad</Link>
-                  <Link href="/tools_m" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Herramientas</Link>
+                  <Link href="/cursos" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Cursos</Link>
+                  <Link href="/community" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Comunidad</Link>
+                  <Link href="/tools" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Herramientas</Link>
                   <Link href="/profile" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Perfil</Link>
                   <Link href="/settings" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Configuración</Link>
                   <button className="px-6 py-3 text-left hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Apariencia</button>
-                  <form action={signout} method="post">
+                  <form action={signout}>
                     <Button variant="ghost" type="submit" className="w-full justify-start px-6 py-3 text-red-500 hover:bg-red-100/10">Cerrar sesión</Button>
                   </form>
                 </nav>
@@ -120,7 +120,7 @@ export default function Navbar({ user }: NavbarProps) {
             <>
               <Link href="/login" className="hidden md:block">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-semibold">
-                  Acceso a la Plataforma
+                  Iniciar sesión
                 </Button>
               </Link>
               <div className="md:hidden">

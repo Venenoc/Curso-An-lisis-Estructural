@@ -49,10 +49,13 @@ export async function updateSession(request: NextRequest) {
   if (!user && (
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/admin') ||
-    request.nextUrl.pathname.startsWith('/courses')
+    request.nextUrl.pathname.startsWith('/courses') ||
+    request.nextUrl.pathname.startsWith('/checkout')
   )) {
     const url = request.nextUrl.clone()
+    const redirectTo = request.nextUrl.pathname
     url.pathname = '/login'
+    url.searchParams.set('redirectTo', redirectTo)
     return NextResponse.redirect(url)
   }
 

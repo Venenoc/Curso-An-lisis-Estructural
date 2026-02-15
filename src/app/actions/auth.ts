@@ -13,6 +13,8 @@ export async function login(formData: FormData) {
     password: formData.get("password") as string,
   };
 
+  const redirectTo = formData.get("redirectTo") as string | null;
+
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
@@ -27,7 +29,11 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  if (redirectTo && redirectTo.startsWith("/")) {
+    redirect(redirectTo);
+  } else {
+    redirect("/dashboard");
+  }
 }
 
 export async function signup(formData: FormData) {
@@ -117,6 +123,10 @@ export async function signup(formData: FormData) {
     revalidatePath("/", "layout");
     redirect("/dashboard");
   } catch (error: any) {
+    // redirect() throws a NEXT_REDIRECT error internally — let it propagate
+    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
     return { error: "Ocurrió un error inesperado. Intenta de nuevo." };
   }
 }

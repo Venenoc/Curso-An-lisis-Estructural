@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -14,6 +15,8 @@ import "./loginform-glow.css";
 
 export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -27,7 +30,10 @@ export default function LoginForm() {
     const formData = new FormData();
     formData.append("email", data.email);
     formData.append("password", data.password);
-
+    const redirectTo = searchParams.get("redirectTo");
+    if (redirectTo) {
+      formData.append("redirectTo", redirectTo);
+    }
     const result = await login(formData);
     if (result?.error) {
       setError(result.error);

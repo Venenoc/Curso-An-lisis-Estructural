@@ -4,6 +4,7 @@ import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { coursesCatalog } from "@/data/courses-catalog";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 import {
   BookOpen,
   Clock,
@@ -16,7 +17,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-export default async function CourseDetailPage({
+export default async function CursoDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -27,27 +28,27 @@ export default async function CourseDetailPage({
   if (!course) notFound();
 
   const user = await getUser();
+  if (!user) redirect(`/login?redirectTo=/cursos/${slug}`);
+
   let isPurchased = false;
 
-  if (user) {
-    const supabase = await createClient();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
 
-    if (profile) {
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id, courses(title)")
-        .eq("user_id", profile.id);
+  if (profile) {
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("course_id, courses(title)")
+      .eq("user_id", profile.id);
 
-      if (enrollments) {
-        isPurchased = enrollments.some(
-          (e: any) => e.courses?.title === course.title
-        );
-      }
+    if (enrollments) {
+      isPurchased = enrollments.some(
+        (e: any) => e.courses?.title === course.title
+      );
     }
   }
 

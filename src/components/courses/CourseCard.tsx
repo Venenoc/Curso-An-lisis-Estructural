@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Clock, Signal, ShoppingCart, CheckCircle2, Eye } from "lucide-react";
+import { BookOpen, Clock, Signal, CheckCircle2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CatalogCourse } from "@/data/courses-catalog";
 
@@ -11,9 +11,12 @@ interface CourseCardProps {
   isAuthenticated: boolean;
 }
 
-export default function CourseCard({ course, purchased }: CourseCardProps) {
+export default function CourseCard({ course, purchased, isAuthenticated }: CourseCardProps) {
+  const link = isAuthenticated
+    ? `/cursos/${course.slug}`
+    : `/login?redirectTo=/cursos/${course.slug}`;
   return (
-    <Link href={`/cursos/${course.slug}`} className="block">
+    <Link href={link} className="block">
       <div className="group bg-slate-800/60 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col h-full">
         {/* Gradient Header */}
         <div className={`h-44 bg-gradient-to-br ${course.gradient} relative flex items-center justify-center p-6`}>

@@ -179,7 +179,7 @@ export default async function DashboardPage() {
                         <p className="text-sm text-muted-foreground mt-1">
                           {enrollment.courses?.description}
                         </p>
-                        <Link href={`/courses/${enrollment.course_id}`}>
+                        <Link href={`/cursos/${enrollment.course_id}`}>
                           <Button variant="outline" size="sm" className="mt-3">
                             Continuar aprendiendo
                           </Button>
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
                     <p className="text-muted-foreground mb-4">
                       Aún no estás inscrito en ningún curso
                     </p>
-                    <Link href="/courses">
+                    <Link href="/cursos">
                       <Button>Explorar Cursos</Button>
                     </Link>
                   </div>
@@ -289,7 +289,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {!isInstructor && (
-                <Link href="/courses" className="block">
+                <Link href="/cursos" className="block">
                   <Button variant="outline" className="w-full justify-start">
                     <BookOpen className="h-4 w-4 mr-2" />
                     Explorar Cursos

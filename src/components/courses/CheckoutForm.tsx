@@ -87,7 +87,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
             Ir al Dashboard
           </Button>
           <Button
-            onClick={() => router.push("/cursos")}
+            onClick={() => router.push("/courses")}
             variant="outline"
             className="w-full border-slate-600 text-slate-300 hover:bg-slate-800 h-12"
           >

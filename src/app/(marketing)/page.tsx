@@ -44,7 +44,7 @@ export default function Home() {
                   Comenzar Ahora
                 </Button>
               </Link>
-              <Link href="/courses">
+              <Link href="/cursos_m">
                 <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
                   Ver Cursos
                 </Button>
@@ -172,7 +172,7 @@ export default function Home() {
                   Registrarse Gratis
                 </Button>
               </Link>
-              <Link href="/courses">
+              <Link href="/cursos_m">
                 <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
                   Ver Todos los Cursos
                 </Button>

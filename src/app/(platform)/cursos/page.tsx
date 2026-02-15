@@ -3,37 +3,41 @@ import { createClient } from "@/lib/supabase/server";
 import { coursesCatalog } from "@/data/courses-catalog";
 import CourseCard from "@/components/courses/CourseCard";
 import { BookOpen, GraduationCap, Clock, Award } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function CursosPage() {
   const user = await getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   let purchasedSlugs: string[] = [];
 
-  if (user) {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    // Obtener perfil
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+  // Obtener perfil
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
 
-    if (profile) {
-      // Obtener cursos comprados
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id, courses(title)")
-        .eq("user_id", profile.id);
+  if (profile) {
+    // Obtener cursos comprados
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("course_id, courses(title)")
+      .eq("user_id", profile.id);
 
-      if (enrollments) {
-        const purchasedTitles = enrollments
-          .map((e: any) => e.courses?.title)
-          .filter(Boolean);
+    if (enrollments) {
+      const purchasedTitles = enrollments
+        .map((e: any) => e.courses?.title)
+        .filter(Boolean);
 
-        purchasedSlugs = coursesCatalog
-          .filter((c) => purchasedTitles.includes(c.title))
-          .map((c) => c.slug);
-      }
+      purchasedSlugs = coursesCatalog
+        .filter((c) => purchasedTitles.includes(c.title))
+        .map((c) => c.slug);
     }
   }
 
@@ -57,7 +61,6 @@ export default async function CursosPage() {
               Domina el análisis estructural con cursos creados por ingenieros
               expertos. Desde los fundamentos hasta técnicas avanzadas de modelado.
             </p>
-
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
@@ -94,42 +97,9 @@ export default async function CursosPage() {
                 key={course.slug}
                 course={course}
                 purchased={purchasedSlugs.includes(course.slug)}
-                isAuthenticated={!!user}
+                isAuthenticated={true}
               />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 lg:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/20 rounded-2xl p-10">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Invierte en tu carrera profesional
-            </h2>
-            <p className="text-slate-400 mb-6">
-              Cada curso incluye acceso de por vida, certificado de finalización
-              y actualizaciones gratuitas del contenido.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-300">
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Acceso de por vida
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Certificado incluido
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Soporte del instructor
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Actualizaciones gratis
-              </span>
-            </div>
           </div>
         </div>
       </section>
