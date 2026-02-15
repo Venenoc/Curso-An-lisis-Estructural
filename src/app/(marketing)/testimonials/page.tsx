@@ -1,8 +1,10 @@
+import { getUser } from "@/app/actions/auth";
 import Navbar from "@/components/layout/Navbar";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 
-export default function TestimonialsPage() {
+export default async function TestimonialsPage() {
+  const user = await getUser();
   const testimonials = [
     {
       name: "Carlos Mendoza",
@@ -50,8 +52,7 @@ export default function TestimonialsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-      <Navbar />
-      
+      <Navbar user={user} />
       <main className="pt-32 pb-20 px-4">
         <div className="container mx-auto">
           {/* Header */}

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Building2 } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { signout } from "@/app/actions/auth";
 import type { User } from "@supabase/supabase-js";
 
@@ -10,72 +12,117 @@ interface PlatformNavbarProps {
   user: User;
 }
 
-export default function PlatformNavbar({ user }: PlatformNavbarProps) {
+const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(path + "/");
+    return pathname === path;
   };
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex gap-6 md:gap-10">
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="font-bold text-xl">IngeCivil Academy</span>
-          </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link
+    <nav className="fixed w-full top-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-white/30">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo y marca */}
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-500 p-2 rounded-lg">
+              <Building2 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
+              <span className="text-blue-400 font-bold text-lg">PRO</span>
+            </div>
+          </div>
+
+          {/* Menú de navegación */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link 
               href="/dashboard"
-              className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/dashboard")
-                  ? "text-primary"
-                  : "text-muted-foreground"
+              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+                isActive('/dashboard') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
               Dashboard
             </Link>
-            <Link
+            <Link 
               href="/courses"
-              className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/courses")
-                  ? "text-primary"
-                  : "text-muted-foreground"
+              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+                isActive('/courses') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
               Cursos
             </Link>
-            <Link
-              href="/tools"
-              className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/tools") ? "text-primary" : "text-muted-foreground"
+            <Link 
+              href="/community" 
+              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+                isActive('/community') ? 'border-blue-500 text-white' : 'border-transparent'
+              }`}
+            >
+              Comunidad
+            </Link>
+            <Link 
+              href="/tools" 
+              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+                isActive('/tools') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
               Herramientas
             </Link>
-            <Link
-              href="/profile"
-              className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
-                isActive("/profile")
-                  ? "text-primary"
-                  : "text-muted-foreground"
+            <Link 
+              href="/profile" 
+              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+                isActive('/profile') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
               Perfil
             </Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-sm text-muted-foreground">
-            {user.email}
-          </span>
-          <form action={signout}>
-            <Button variant="outline" type="submit">
-              Cerrar Sesión
-            </Button>
-          </form>
+          </div>
+
+          {/* Perfil o botón de acceso */}
+          <div className="flex items-center gap-4">
+            {user && user.user_metadata ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 focus:outline-none">
+                    <span className="hidden sm:inline text-sm text-white font-semibold">
+                      {user.user_metadata.full_name
+                        ? user.user_metadata.full_name.split(" ")[0]
+                        : user.email}
+                    </span>
+                    <img
+                      src={user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                      alt="Foto de perfil"
+                      className="w-8 h-8 rounded-full object-cover border"
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="p-0 w-56">
+                  <nav className="flex flex-col divide-y divide-white/10 bg-black/90 rounded-lg shadow-lg overflow-hidden">
+                    <Link href="/dashboard" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Dashboard</Link>
+                    <Link href="/courses" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Cursos</Link>
+                    <Link href="/community" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Comunidad</Link>
+                    <Link href="/tools" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Herramientas</Link>
+                    <Link href="/profile" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Perfil</Link>
+                    <Link href="/settings" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Configuración</Link>
+                    <button className="px-6 py-3 text-left hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Apariencia</button>
+                    <form action={signout} method="post">
+                      <Button variant="ghost" type="submit" className="w-full justify-start px-6 py-3 text-red-500 hover:bg-red-100/10">Cerrar sesión</Button>
+                    </form>
+                  </nav>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Link href="/login" className="hidden md:block">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-semibold">
+                  Acceso a la Plataforma
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </nav>
   );
-}
+};
+
+export default PlatformNavbar;
