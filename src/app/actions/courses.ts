@@ -136,9 +136,7 @@ export async function purchaseCourse(slug: string) {
     const user = await getUser();
     if (!user) return { error: "Debes iniciar sesión para comprar un curso" };
 
-    const catalogCourse = coursesCatalog.find((c) => c.slug === slug);
-    if (!catalogCourse) return { error: "Curso no encontrado" };
-
+    // Buscar curso por slug directamente en la base de datos
     const supabase = await createClient();
 
     // Obtener perfil del usuario
@@ -150,11 +148,11 @@ export async function purchaseCourse(slug: string) {
 
     if (!profile) return { error: "Perfil no encontrado" };
 
-    // Buscar si el curso ya existe en la base de datos (por título)
+    // Buscar el curso por slug
     let { data: existingCourse } = await supabase
       .from("courses")
       .select("id")
-      .eq("title", catalogCourse.title)
+      .eq("slug", slug)
       .single();
 
     if (!existingCourse) {

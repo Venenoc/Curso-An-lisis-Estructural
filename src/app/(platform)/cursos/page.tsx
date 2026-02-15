@@ -13,7 +13,6 @@ export default async function CursosPage() {
   }
 
   let purchasedSlugs: string[] = [];
-
   const supabase = await createClient();
 
   // Obtener perfil
@@ -100,6 +99,39 @@ export default async function CursosPage() {
                 isAuthenticated={true}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 lg:py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/20 rounded-2xl p-10">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Invierte en tu carrera profesional
+            </h2>
+            <p className="text-slate-400 mb-6">
+              Cada curso incluye acceso de por vida, certificado de finalización
+              y actualizaciones gratuitas del contenido.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-300">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                Acceso de por vida
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                Certificado incluido
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                Soporte del instructor
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                Actualizaciones gratis
+              </span>
+            </div>
           </div>
         </div>
       </section>
