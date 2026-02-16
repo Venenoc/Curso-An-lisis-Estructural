@@ -1,17 +1,71 @@
-"use client";
+import { getUser } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import CommunityPageClient from "@/components/community/CommunityPageClient";
 
-import { Alert } from "@/components/ui/alert";
-import { MessageCircle } from "lucide-react";
+export default async function CommunityPage() {
+  const user = await getUser();
+  if (!user) redirect("/login");
 
-export default function CommunityPage() {
+  const supabase = await createClient();
+
+  // Get profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile) redirect("/login");
+
+  // Get posts with author profiles
+  const { data: rawPosts } = await supabase
+    .from("community_posts")
+    .select("id, user_id, content, created_at, profiles(full_name, avatar_url, role)")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  // Normalize profiles from array to object (Supabase returns array for joins)
+  const posts = (rawPosts || []).map((p: any) => ({
+    ...p,
+    profiles: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles,
+  }));
+
+  // Get replies with author profiles
+  const postIds = posts.map((p: any) => p.id);
+  let replies: any[] = [];
+  if (postIds.length > 0) {
+    const { data } = await supabase
+      .from("community_replies")
+      .select("id, post_id, user_id, content, created_at, profiles(full_name, avatar_url, role)")
+      .in("post_id", postIds)
+      .order("created_at", { ascending: true });
+    replies = (data || []).map((r: any) => ({
+      ...r,
+      profiles: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles,
+    }));
+  }
+
+  // Get all users for messaging
+  const { data: allUsers } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, role")
+    .order("full_name");
+
+  // Get direct messages involving this user
+  const { data: messages } = await supabase
+    .from("direct_messages")
+    .select("*")
+    .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
+    .order("created_at", { ascending: true });
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black items-center justify-center">
-      <Alert className="max-w-lg mx-auto bg-slate-800/80 border-cyan-500/30 text-white text-center shadow-lg">
-        <MessageCircle className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-        <h2 className="text-2xl font-bold mb-2">¡Comunidad en desarrollo!</h2>
-        <p className="text-slate-300 mb-2">Estamos trabajando para ofrecerte un espacio de interacción y colaboración entre ingenieros y estudiantes.</p>
-        <span className="text-cyan-400 font-semibold">Próximamente disponible</span>
-      </Alert>
-    </div>
+    <CommunityPageClient
+      currentUserId={profile.id}
+      posts={posts || []}
+      replies={replies}
+      allUsers={allUsers || []}
+      messages={messages || []}
+    />
   );
 }

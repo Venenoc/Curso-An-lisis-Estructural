@@ -48,6 +48,6 @@ export const contactSchema = z.object({
 // Types
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
-export type CourseInput = z.infer<typeof courseSchema>;
+export type CourseInput = z.input<typeof courseSchema>;
 export type LessonInput = z.infer<typeof lessonSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;

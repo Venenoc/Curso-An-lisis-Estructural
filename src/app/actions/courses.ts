@@ -36,7 +36,7 @@ export async function createCourse(formData: FormData) {
 
     const validation = courseSchema.safeParse(data);
     if (!validation.success) {
-      return { error: validation.error.errors[0].message };
+      return { error: validation.error.issues[0].message };
     }
 
     // Crear curso
@@ -75,7 +75,7 @@ export async function updateCourse(courseId: string, formData: FormData) {
 
     const validation = courseSchema.safeParse(data);
     if (!validation.success) {
-      return { error: validation.error.errors[0].message };
+      return { error: validation.error.issues[0].message };
     }
 
     // Actualizar curso

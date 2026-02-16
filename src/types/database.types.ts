@@ -52,3 +52,30 @@ export interface Progress {
   watched_duration: number;
   last_watched_at: string;
 }
+
+export interface CommunityPost {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: Pick<Profile, 'full_name' | 'avatar_url' | 'role'>;
+  reply_count?: number;
+}
+
+export interface CommunityReply {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: Pick<Profile, 'full_name' | 'avatar_url' | 'role'>;
+}
+
+export interface DirectMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  read: boolean;
+  created_at: string;
+}

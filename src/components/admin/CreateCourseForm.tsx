@@ -31,7 +31,7 @@ export default function CreateCourseForm() {
     formData.append("title", data.title);
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
-    formData.append("subscriptionOnly", data.subscriptionOnly.toString());
+    formData.append("subscriptionOnly", (data.subscriptionOnly ?? false).toString());
 
     const result = await createCourse(formData);
 
@@ -114,7 +114,7 @@ export default function CreateCourseForm() {
                 id="subscriptionOnly"
                 className="w-full px-3 py-2 border rounded-md bg-background"
                 disabled={isSubmitting}
-                {...register("subscriptionOnly", { valueAsBoolean: true })}
+                {...register("subscriptionOnly", { setValueAs: (v: string) => v === "true" })}
               >
                 <option value="false">Compra Única</option>
                 <option value="true">Solo Suscripción</option>

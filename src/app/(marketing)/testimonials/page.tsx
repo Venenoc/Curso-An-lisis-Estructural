@@ -87,7 +87,7 @@ export default async function TestimonialsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-300">"{testimonial.content}"</p>
+                  <p className="text-slate-300">&ldquo;{testimonial.content}&rdquo;</p>
                 </CardContent>
               </Card>
             ))}

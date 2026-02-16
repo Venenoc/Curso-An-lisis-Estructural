@@ -9,8 +9,9 @@ import { redirect } from "next/navigation";
 export default async function CourseDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const user = await getUser();
 
   if (!user) {
@@ -34,7 +35,7 @@ export default async function CourseDetailPage({
   const { data: course } = await supabase
     .from("courses")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("instructor_id", profile.id)
     .single();
 
@@ -46,7 +47,7 @@ export default async function CourseDetailPage({
   const { data: lessons } = await supabase
     .from("lessons")
     .select("*")
-    .eq("course_id", params.id)
+    .eq("course_id", id)
     .order("order");
 
   return (
