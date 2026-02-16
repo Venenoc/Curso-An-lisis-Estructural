@@ -115,22 +115,17 @@ export default async function CursosPage() {
               y actualizaciones gratuitas del contenido.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-300">
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Acceso de por vida
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Certificado incluido
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Soporte del instructor
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full" />
-                Actualizaciones gratis
-              </span>
+              {[
+                "Acceso de por vida",
+                "Certificado incluido",
+                "Soporte del instructor",
+                "Actualizaciones gratis"
+              ].map((text, idx) => (
+                <span key={idx} className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full" />
+                  {text}
+                </span>
+              ))}
             </div>
           </div>
         </div>

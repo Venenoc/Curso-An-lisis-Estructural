@@ -348,9 +348,9 @@ export default async function DashboardPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   {enrolledCourses.length > 0 && enrolledCourses.length < 8 && (
                     enrolledCourses.length < 8 && (
-                      enrolledCourses.slice(0, 2).map((course: any) => (
+                      enrolledCourses.slice(0, 2).map((course: any, idx: number) => (
                         <Link
-                          key={course.slug}
+                          key={course.slug || course.id || idx}
                           href={`/cursos/${course.slug}`}
                           className="block"
                         >

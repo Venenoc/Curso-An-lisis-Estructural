@@ -18,7 +18,7 @@ async function getProfile() {
   const supabase = getAdmin();
   const { data } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, role")
     .eq("user_id", user.id)
     .single();
   return data;
@@ -26,15 +26,21 @@ async function getProfile() {
 
 // ── Posts ──
 
-export async function createPost(content: string) {
+export async function createPost(title: string, content: string, imageUrl?: string) {
   const profile = await getProfile();
   if (!profile) return { error: "No autenticado" };
+  if (!title.trim()) return { error: "El título no puede estar vacío" };
   if (!content.trim()) return { error: "El contenido no puede estar vacío" };
 
   const supabase = getAdmin();
-  const { error } = await supabase
-    .from("community_posts")
-    .insert({ user_id: profile.id, content: content.trim() });
+  const insertData: any = {
+    user_id: profile.id,
+    title: title.trim(),
+    content: content.trim(),
+  };
+  if (imageUrl) insertData.image_url = imageUrl;
+
+  const { error } = await supabase.from("community_posts").insert(insertData);
 
   if (error) return { error: "Error al crear publicación" };
   revalidatePath("/community");
@@ -47,7 +53,6 @@ export async function deletePost(postId: string) {
 
   const supabase = getAdmin();
 
-  // Verify ownership
   const { data: post } = await supabase
     .from("community_posts")
     .select("user_id")
@@ -64,6 +69,64 @@ export async function deletePost(postId: string) {
   if (error) return { error: "Error al eliminar" };
   revalidatePath("/community");
   return { success: true };
+}
+
+// ── Pin ──
+
+export async function togglePin(postId: string) {
+  const profile = await getProfile();
+  if (!profile) return { error: "No autenticado" };
+  if (profile.role !== "instructor" && profile.role !== "admin") {
+    return { error: "Solo instructores pueden fijar publicaciones" };
+  }
+
+  const supabase = getAdmin();
+  const { data: post } = await supabase
+    .from("community_posts")
+    .select("pinned")
+    .eq("id", postId)
+    .single();
+
+  if (!post) return { error: "Publicación no encontrada" };
+
+  const { error } = await supabase
+    .from("community_posts")
+    .update({ pinned: !post.pinned })
+    .eq("id", postId);
+
+  if (error) return { error: "Error al fijar publicación" };
+  revalidatePath("/community");
+  return { success: true, pinned: !post.pinned };
+}
+
+// ── Likes ──
+
+export async function toggleLike(postId: string) {
+  const profile = await getProfile();
+  if (!profile) return { error: "No autenticado" };
+
+  const supabase = getAdmin();
+
+  // Check if already liked
+  const { data: existing } = await supabase
+    .from("community_likes")
+    .select("id")
+    .eq("post_id", postId)
+    .eq("user_id", profile.id)
+    .single();
+
+  if (existing) {
+    // Unlike
+    await supabase.from("community_likes").delete().eq("id", existing.id);
+  } else {
+    // Like
+    await supabase
+      .from("community_likes")
+      .insert({ post_id: postId, user_id: profile.id });
+  }
+
+  revalidatePath("/community");
+  return { success: true, liked: !existing };
 }
 
 // ── Replies ──
@@ -142,4 +205,39 @@ export async function markMessagesRead(otherUserId: string) {
 
   revalidatePath("/community");
   return { success: true };
+}
+
+// ── Image Upload ──
+
+export async function uploadPostImage(formData: FormData) {
+  const profile = await getProfile();
+  if (!profile) return { error: "No autenticado" };
+
+  const file = formData.get("file") as File;
+  if (!file) return { error: "No se seleccionó archivo" };
+
+  // Validate file type and size
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!allowedTypes.includes(file.type)) {
+    return { error: "Formato no soportado. Usa JPG, PNG, WebP o GIF" };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "La imagen no debe superar 5MB" };
+  }
+
+  const supabase = getAdmin();
+  const ext = file.name.split(".").pop();
+  const fileName = `${profile.id}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("community-images")
+    .upload(fileName, file);
+
+  if (error) return { error: "Error al subir imagen" };
+
+  const { data: urlData } = supabase.storage
+    .from("community-images")
+    .getPublicUrl(fileName);
+
+  return { success: true, url: urlData.publicUrl };
 }

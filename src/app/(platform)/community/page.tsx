@@ -21,15 +21,33 @@ export default async function CommunityPage() {
   // Get posts with author profiles
   const { data: rawPosts } = await supabase
     .from("community_posts")
-    .select("id, user_id, content, created_at, profiles(full_name, avatar_url, role)")
+    .select("id, user_id, title, content, image_url, pinned, created_at, profiles(full_name, avatar_url, role)")
     .order("created_at", { ascending: false })
     .limit(50);
 
-  // Normalize profiles from array to object (Supabase returns array for joins)
+  // Normalize profiles from array to object
   const posts = (rawPosts || []).map((p: any) => ({
     ...p,
     profiles: Array.isArray(p.profiles) ? p.profiles[0] : p.profiles,
   }));
+
+  // Get likes for all posts
+  const { data: allLikes } = await supabase
+    .from("community_likes")
+    .select("id, post_id, user_id")
+    .in("post_id", posts.map((p: any) => p.id));
+
+  // Build likes map: { postId: { count, likedByMe } }
+  const likesMap: Record<string, { count: number; likedByMe: boolean }> = {};
+  (allLikes || []).forEach((like: any) => {
+    if (!likesMap[like.post_id]) {
+      likesMap[like.post_id] = { count: 0, likedByMe: false };
+    }
+    likesMap[like.post_id].count++;
+    if (like.user_id === profile.id) {
+      likesMap[like.post_id].likedByMe = true;
+    }
+  });
 
   // Get replies with author profiles
   const postIds = posts.map((p: any) => p.id);
@@ -62,8 +80,10 @@ export default async function CommunityPage() {
   return (
     <CommunityPageClient
       currentUserId={profile.id}
+      currentUserRole={profile.role}
       posts={posts || []}
       replies={replies}
+      likesMap={likesMap}
       allUsers={allUsers || []}
       messages={messages || []}
     />

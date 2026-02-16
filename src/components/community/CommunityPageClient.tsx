@@ -14,7 +14,10 @@ interface PostAuthor {
 interface Post {
   id: string;
   user_id: string;
+  title: string;
   content: string;
+  image_url: string | null;
+  pinned: boolean;
   created_at: string;
   profiles: PostAuthor;
 }
@@ -46,8 +49,10 @@ interface Message {
 
 interface CommunityPageClientProps {
   currentUserId: string;
+  currentUserRole: string;
   posts: Post[];
   replies: Reply[];
+  likesMap: Record<string, { count: number; likedByMe: boolean }>;
   allUsers: ChatUser[];
   messages: Message[];
 }
@@ -56,8 +61,10 @@ type Tab = "feed" | "messages";
 
 export default function CommunityPageClient({
   currentUserId,
+  currentUserRole,
   posts,
   replies,
+  likesMap,
   allUsers,
   messages,
 }: CommunityPageClientProps) {
@@ -121,7 +128,9 @@ export default function CommunityPageClient({
             <CommunityFeed
               posts={posts}
               replies={replies}
+              likesMap={likesMap}
               currentUserId={currentUserId}
+              currentUserRole={currentUserRole}
             />
           ) : (
             <DirectMessages
