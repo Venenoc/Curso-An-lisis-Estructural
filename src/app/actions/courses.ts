@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
@@ -190,5 +191,106 @@ export async function purchaseCourse(slug: string) {
     return { success: true };
   } catch (error: any) {
     return { error: "Error inesperado al procesar la compra" };
+  }
+}
+
+export async function markLessonComplete(courseSlug: string, lessonId: number) {
+  try {
+    const user = await getUser();
+    if (!user) return { error: "No autenticado" };
+
+    // Admin client to bypass RLS for lesson creation and progress upsert
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) return { error: "Perfil no encontrado" };
+
+    // Find the course in catalog to get its title
+    const catalogCourse = coursesCatalog.find((c) => c.slug === courseSlug);
+    if (!catalogCourse) return { error: "Curso no encontrado en catálogo" };
+
+    // Find the course in DB — try by slug first, then by title
+    let { data: dbCourse } = await supabaseAdmin
+      .from("courses")
+      .select("id")
+      .eq("slug", courseSlug)
+      .single();
+
+    if (!dbCourse) {
+      const { data: byTitle } = await supabaseAdmin
+        .from("courses")
+        .select("id")
+        .eq("title", catalogCourse.title)
+        .single();
+      dbCourse = byTitle;
+    }
+
+    if (!dbCourse) return { error: `Curso no encontrado en BD (slug: ${courseSlug})` };
+
+    // Find or create the lesson in DB
+    const lessonTitle = catalogCourse.modules
+      ?.flatMap((m) => m.lessons || [])
+      .find((l) => l.id === lessonId)?.title;
+
+    if (!lessonTitle) return { error: "Lección no encontrada" };
+
+    let { data: dbLesson } = await supabaseAdmin
+      .from("lessons")
+      .select("id")
+      .eq("course_id", dbCourse.id)
+      .eq("title", lessonTitle)
+      .single();
+
+    if (!dbLesson) {
+      const { data: newLesson, error: lessonError } = await supabaseAdmin
+        .from("lessons")
+        .insert({
+          course_id: dbCourse.id,
+          title: lessonTitle,
+          order: lessonId,
+        })
+        .select("id")
+        .single();
+
+      if (lessonError || !newLesson) return { error: `Error al registrar lección: ${lessonError?.message}` };
+      dbLesson = newLesson;
+    }
+
+    // Upsert progress
+    const { error: progressError } = await supabaseAdmin
+      .from("progress")
+      .upsert(
+        {
+          user_id: profile.id,
+          lesson_id: dbLesson.id,
+          completed: true,
+          watched_duration: 0,
+          last_watched_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,lesson_id" }
+      );
+
+    if (progressError) return { error: `Error al guardar progreso: ${progressError.message}` };
+
+    revalidatePath(`/classroom/${courseSlug}`);
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: "Error inesperado" };
   }
 }

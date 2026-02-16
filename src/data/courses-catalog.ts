@@ -1,9 +1,17 @@
+export interface CourseLesson {
+  id: number;
+  title: string;
+  duration: string;
+  videoUrl: string;
+}
+
 export interface CourseModule {
   id: number;
   title: string;
   description: string;
   lessonsCount: number;
   duration: string;
+  lessons?: CourseLesson[];
 }
 
 export interface CatalogCourse {
@@ -36,6 +44,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Conceptos fundamentales, tipos de estructuras, clasificación de cargas y el rol del ingeniero estructural en proyectos civiles.",
         lessonsCount: 2,
         duration: "45 min",
+        lessons: [
+          { id: 101, title: "¿Qué es el Análisis Estructural?", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+          { id: 102, title: "Tipos de Estructuras y Clasificación de Cargas", duration: "23 min", videoUrl: "" },
+        ],
       },
       {
         id: 2,
@@ -43,6 +55,11 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Repaso de estática: fuerzas, momentos, resultantes, condiciones de equilibrio y principio de superposición.",
         lessonsCount: 3,
         duration: "1h 20min",
+        lessons: [
+          { id: 201, title: "Fuerzas, Momentos y Resultantes", duration: "28 min", videoUrl: "" },
+          { id: 202, title: "Condiciones de Equilibrio", duration: "26 min", videoUrl: "" },
+          { id: 203, title: "Principio de Superposición", duration: "26 min", videoUrl: "" },
+        ],
       },
       {
         id: 3,
@@ -50,6 +67,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Apoyos fijos, móviles, empotramientos y articulaciones. Cálculo de reacciones en estructuras isostáticas.",
         lessonsCount: 2,
         duration: "1h 10min",
+        lessons: [
+          { id: 301, title: "Apoyos Fijos, Móviles y Empotramientos", duration: "35 min", videoUrl: "" },
+          { id: 302, title: "Cálculo de Reacciones en Estructuras Isostáticas", duration: "35 min", videoUrl: "" },
+        ],
       },
       {
         id: 4,
@@ -57,6 +78,11 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Construcción de DCL para vigas, marcos y armaduras. Identificación de fuerzas internas y externas.",
         lessonsCount: 3,
         duration: "1h 30min",
+        lessons: [
+          { id: 401, title: "Construcción de DCL para Vigas", duration: "30 min", videoUrl: "" },
+          { id: 402, title: "DCL para Marcos y Armaduras", duration: "30 min", videoUrl: "" },
+          { id: 403, title: "Fuerzas Internas y Externas", duration: "30 min", videoUrl: "" },
+        ],
       },
       {
         id: 5,
@@ -64,6 +90,11 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Cálculo de reacciones, fuerzas cortantes y momentos flectores en vigas simplemente apoyadas y en voladizo.",
         lessonsCount: 3,
         duration: "1h 45min",
+        lessons: [
+          { id: 501, title: "Vigas Simplemente Apoyadas", duration: "35 min", videoUrl: "" },
+          { id: 502, title: "Vigas en Voladizo", duration: "35 min", videoUrl: "" },
+          { id: 503, title: "Ejercicios de Reacciones y Fuerzas Cortantes", duration: "35 min", videoUrl: "" },
+        ],
       },
       {
         id: 6,
@@ -71,6 +102,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Construcción e interpretación de diagramas V y M. Relaciones entre carga, cortante y momento. Puntos de inflexión.",
         lessonsCount: 2,
         duration: "1h 15min",
+        lessons: [
+          { id: 601, title: "Construcción de Diagramas V y M", duration: "38 min", videoUrl: "" },
+          { id: 602, title: "Relaciones Carga-Cortante-Momento y Puntos de Inflexión", duration: "37 min", videoUrl: "" },
+        ],
       },
       {
         id: 7,
@@ -78,6 +113,11 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Método de los nodos y método de las secciones para armaduras planas. Identificación de barras de fuerza cero.",
         lessonsCount: 3,
         duration: "1h 30min",
+        lessons: [
+          { id: 701, title: "Método de los Nodos", duration: "30 min", videoUrl: "" },
+          { id: 702, title: "Método de las Secciones", duration: "30 min", videoUrl: "" },
+          { id: 703, title: "Barras de Fuerza Cero", duration: "30 min", videoUrl: "" },
+        ],
       },
       {
         id: 8,
@@ -85,6 +125,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Cálculo de fuerzas internas en marcos de dos y tres articulaciones. Diagramas de fuerza axial, cortante y momento.",
         lessonsCount: 2,
         duration: "1h 20min",
+        lessons: [
+          { id: 801, title: "Marcos de Dos y Tres Articulaciones", duration: "40 min", videoUrl: "" },
+          { id: 802, title: "Diagramas de Fuerza Axial, Cortante y Momento", duration: "40 min", videoUrl: "" },
+        ],
       },
       {
         id: 9,
@@ -92,6 +136,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Cálculo de deflexiones en vigas mediante integración directa de la ecuación diferencial de la elástica.",
         lessonsCount: 2,
         duration: "1h 10min",
+        lessons: [
+          { id: 901, title: "Ecuación Diferencial de la Elástica", duration: "35 min", videoUrl: "" },
+          { id: 902, title: "Cálculo de Deflexiones por Doble Integración", duration: "35 min", videoUrl: "" },
+        ],
       },
       {
         id: 10,
@@ -99,6 +147,10 @@ export const coursesCatalog: CatalogCourse[] = [
         description: "Aplicación integral de todos los conceptos. Análisis de una estructura real con cálculo de reacciones, diagramas y deflexiones.",
         lessonsCount: 2,
         duration: "1h 15min",
+        lessons: [
+          { id: 1001, title: "Planteamiento y Modelado de la Estructura", duration: "38 min", videoUrl: "" },
+          { id: 1002, title: "Resolución Completa y Presentación de Resultados", duration: "37 min", videoUrl: "" },
+        ],
       },
     ],
   },

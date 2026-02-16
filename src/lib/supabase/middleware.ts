@@ -50,7 +50,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/admin') ||
     request.nextUrl.pathname.startsWith('/courses') ||
-    request.nextUrl.pathname.startsWith('/checkout')
+    request.nextUrl.pathname.startsWith('/checkout') ||
+    request.nextUrl.pathname.startsWith('/classroom')
   )) {
     const url = request.nextUrl.clone()
     const redirectTo = request.nextUrl.pathname

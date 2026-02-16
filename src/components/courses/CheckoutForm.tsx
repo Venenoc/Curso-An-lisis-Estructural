@@ -82,9 +82,12 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
         <div className="flex flex-col gap-3">
           <Button
             onClick={() => router.push("/dashboard")}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-base"
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-cyan-600 hover:to-blue-700 text-white h-12 text-base font-bold shadow-lg border-2 border-cyan-400/40 hover:border-cyan-500/80 transition-all"
           >
-            Ir al Dashboard
+            <span className="flex items-center gap-2 justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m0 0H7m6 0h6" /></svg>
+              Ir al Dashboard
+            </span>
           </Button>
           <Button
             onClick={() => router.push("/courses")}

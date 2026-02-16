@@ -5,13 +5,47 @@ import { FileText } from "lucide-react";
 
 export default function TerminosPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black items-center justify-center">
-      <Alert className="max-w-lg mx-auto bg-slate-800/80 border-cyan-500/30 text-white text-center shadow-lg">
-        <FileText className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-        <h2 className="text-2xl font-bold mb-2">¡Página de Términos en desarrollo!</h2>
-        <p className="text-slate-300 mb-2">Estamos trabajando para ofrecerte información clara sobre términos y condiciones de uso.</p>
-        <span className="text-cyan-400 font-semibold">Próximamente disponible</span>
-      </Alert>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black py-40">
+      <div className="mx-auto max-w-3xl bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
+        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent text-center">
+          Términos y Condiciones
+        </h1>
+        <div className="prose prose-gray max-w-none text-slate-300">
+          <p className="mb-4">
+            Estos términos y condiciones regulan el uso de la plataforma y los servicios ofrecidos. Al acceder o utilizar la plataforma, aceptas cumplir con estos términos.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">1. Uso de la plataforma</h2>
+          <ul>
+            <li>Debes proporcionar información veraz y mantener la confidencialidad de tus credenciales.</li>
+            <li>No está permitido compartir tu cuenta ni realizar actividades fraudulentas.</li>
+            <li>El uso de los contenidos es solo para fines educativos y personales.</li>
+          </ul>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">2. Propiedad intelectual</h2>
+          <p>
+            Todos los materiales, cursos y recursos son propiedad de la plataforma o de sus respectivos autores. No está permitida su reproducción o distribución sin autorización.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">3. Pagos y devoluciones</h2>
+          <ul>
+            <li>Los pagos realizados por cursos o servicios no son reembolsables, salvo indicación expresa.</li>
+            <li>La plataforma se reserva el derecho de modificar precios y condiciones en cualquier momento.</li>
+          </ul>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">4. Responsabilidad</h2>
+          <p>
+            No nos hacemos responsables por daños derivados del uso indebido de la plataforma o por interrupciones del servicio ajenas a nuestro control.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">5. Modificaciones</h2>
+          <p>
+            Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados a través de la plataforma.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">6. Contacto</h2>
+          <p>
+            Para cualquier consulta sobre estos términos, puedes contactarnos a través del formulario de contacto.
+          </p>
+          <p className="mt-8 text-xs text-slate-400 text-center">
+            Última actualización: 15 de febrero de 2026
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

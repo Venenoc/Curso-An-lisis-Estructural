@@ -14,11 +14,11 @@ export default async function PlatformLayout({
   }
 
   return (
-      <div className="flex min-h-screen flex-col pt-20">
+    <div className="flex min-h-screen flex-col pt-20 overflow-hidden">
       <PlatformNavbar user={user} />
-        <main className="flex-1">
-          {children}
-        </main>
+      <main className="flex-1 overflow-hidden">
+        {children}
+      </main>
     </div>
   );
 }

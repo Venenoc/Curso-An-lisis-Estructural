@@ -9,7 +9,7 @@ export default function Footer() {
             <h3 className="font-semibold mb-2 text-blue-400 text-sm">Plataforma</h3>
             <ul className="space-y-1">
               <li>
-                <Link href="/courses" className="text-xs text-blue-100 hover:text-white transition-colors">
+                <Link href="/cursos" className="text-xs text-blue-100 hover:text-white transition-colors">
                   Cursos
                 </Link>
               </li>

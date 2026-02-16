@@ -125,19 +125,19 @@ export default async function CursoDetailPage({
 
                 {isPurchased ? (
                   <div className="space-y-3">
-                    <Button
-                      className="w-full bg-green-600 text-white cursor-default h-12 text-base"
-                      disabled
-                    >
-                      <CheckCircle2 className="w-5 h-5 mr-2" />
-                      Curso Adquirido
-                    </Button>
+                    <Link href={`/classroom/${course.slug}`} className="block">
+                      <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-base">
+                        <PlayCircle className="w-5 h-5 mr-2" />
+                        Ir al Classroom
+                      </Button>
+                    </Link>
                     <Link href="/dashboard" className="block">
                       <Button
-                        variant="outline"
-                        className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 h-12"
-                      >
-                        Ir al Dashboard
+                        className="w-full  bg-cyan-600 hover:bg-cyan-700 text-white h-12 text-base">
+                        <span className="flex items-center gap-2 justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m0 0H7m6 0h6" /></svg>
+                          Ir al Dashboard
+                        </span>
                       </Button>
                     </Link>
                   </div>

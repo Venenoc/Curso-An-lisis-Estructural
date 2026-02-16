@@ -46,7 +46,7 @@ export default async function DashboardPage() {
 
   const { data: progress } = await supabase
     .from("progress")
-    .select("*, lessons(title)")
+    .select("*, lessons(title, course_id)")
     .eq("user_id", profile?.id)
     .eq("completed", true);
 
@@ -54,16 +54,30 @@ export default async function DashboardPage() {
   const completedLessons = progress?.length || 0;
   const firstName = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0];
 
-  // Match enrollments with catalog data for gradients/slugs
-  // Usar datos de la base de datos directamente
-  // Match enrollments with catalog data for gradients/slugs
+  // Build a set of completed lesson titles grouped by course_id
+  const completedByTitle = new Set(
+    (progress || []).map((p: any) => p.lessons?.title).filter(Boolean)
+  );
+
+  // Match enrollments with catalog data for gradients/slugs and calculate progress
   const enrolledCourses = (enrollments || []).map((enrollment: any) => {
     const catalogMatch = coursesCatalog.find(
       (c) => c.title === enrollment.courses?.title
     );
+
+    // Calculate progress for this course
+    let courseProgress = 0;
+    if (catalogMatch) {
+      const allLessons = catalogMatch.modules?.flatMap((m) => m.lessons || []) || [];
+      const totalLessons = allLessons.length;
+      const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
+      courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+    }
+
     return {
       ...enrollment,
       catalog: catalogMatch,
+      progress: courseProgress,
     };
   });
 
@@ -108,28 +122,97 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
             <BookOpen className="w-6 h-6 text-cyan-400 mb-3" />
-            <div className="text-3xl font-bold text-white">{enrolledCount}</div>
+            <div className="text-3xl font-bold"><span className="text-slate-400">{enrolledCount}</span><span className="text-white"> / {coursesCatalog.length}</span></div>
             <div className="text-xs text-slate-400 mt-1">
               {enrolledCount === 1 ? "Curso inscrito" : "Cursos inscritos"}
             </div>
           </div>
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
             <Trophy className="w-6 h-6 text-amber-400 mb-3" />
-            <div className="text-3xl font-bold text-white">{completedLessons}</div>
+            {
+              // Calcular el total de lecciones solo de los cursos inscritos
+              (() => {
+                const totalLessonsEnrolled = enrolledCourses.reduce((acc: number, enrollment: any) => {
+                  if (enrollment.catalog && enrollment.catalog.modules) {
+                    return acc + enrollment.catalog.modules.reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0);
+                  }
+                  return acc;
+                }, 0);
+                return (
+                  <div className="text-3xl font-bold">
+                    <span className="text-slate-400">{completedLessons}</span>
+                    <span className="text-white"> / {totalLessonsEnrolled}</span>
+                  </div>
+                );
+              })()
+            }
             <div className="text-xs text-slate-400 mt-1">
               {completedLessons === 1 ? "Lección completada" : "Lecciones completadas"}
             </div>
           </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
-            <Clock className="w-6 h-6 text-purple-400 mb-3" />
-            <div className="text-3xl font-bold text-white">0h</div>
-            <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
-          </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
-            <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
-            <div className="text-3xl font-bold text-white">0</div>
-            <div className="text-xs text-slate-400 mt-1">Certificados</div>
-          </div>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+              <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
+              {(() => {
+                // Certificados: completados sobre cursos inscritos
+                const certificados = 0; // Aquí puedes poner la lógica real si la tienes
+                return (
+                  <div className="text-3xl font-bold">
+                    <span className="text-slate-400">{certificados}</span>
+                    <span className="text-white"> / {enrolledCourses.length}</span>
+                  </div>
+                );
+              })()}
+              <div className="text-xs text-slate-400 mt-1">Certificados</div>
+            </div>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+              <Clock className="w-6 h-6 text-purple-400 mb-3" />
+              {(() => {
+                // Sumar la duración de las lecciones completadas de los cursos inscritos
+                function parseMin(str: string) {
+                  if (!str) return 0;
+                  const h = /([0-9]+)\s*h/.exec(str);
+                  const m = /([0-9]+)\s*min/.exec(str);
+                  return (h ? parseInt(h[1], 10) * 60 : 0) + (m ? parseInt(m[1], 10) : 0);
+                }
+                // Total minutos completados
+                let minutosCompletados = 0;
+                let minutosTotales = 0;
+                enrolledCourses.forEach((enrollment: any) => {
+                  if (enrollment.catalog) {
+                    // Si el curso tiene duration a nivel de curso, úsalo para el total
+                    if (enrollment.catalog.duration) {
+                      const match = enrollment.catalog.duration.match(/(\d+)\s*h/);
+                      if (match) {
+                        minutosTotales += parseInt(match[1], 10) * 60;
+                      }
+                    }
+                    // Sumar minutos completados igual que antes
+                    if (enrollment.catalog.modules) {
+                      enrollment.catalog.modules.forEach((mod: any) => {
+                        (mod.lessons || []).forEach((lesson: any) => {
+                          const min = parseMin(lesson.duration);
+                          if (completedByTitle.has(lesson.title)) {
+                            minutosCompletados += min;
+                          }
+                        });
+                      });
+                    }
+                  }
+                });
+                const horasCompletadas = Math.floor(minutosCompletados / 60);
+                const minCompletados = minutosCompletados % 60;
+                const horasTotales = Math.floor(minutosTotales / 60);
+                const minTotales = minutosTotales % 60;
+                const format = (h: number, m: number) => m > 0 ? `${h}h ${m}min` : `${h}h`;
+                return (
+                  <div className="text-3xl font-bold">
+                    <span className="text-slate-400">{format(horasCompletadas, minCompletados)}</span>
+                    <span className="text-white"> / {format(horasTotales, minTotales)}</span>
+                  </div>
+                );
+              })()}
+              <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
+            </div>
         </div>
       </section>
 
@@ -197,16 +280,19 @@ export default async function DashboardPage() {
                                 <div className="mt-3">
                                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                                     <span>Progreso</span>
-                                    <span>0%</span>
+                                    <span>{enrollment.progress}%</span>
                                   </div>
                                   <div className="w-full bg-slate-700 rounded-full h-1.5">
-                                    <div className="bg-cyan-500 h-1.5 rounded-full w-0" />
+                                    <div
+                                      className={`h-1.5 rounded-full ${enrollment.progress === 100 ? "bg-green-500" : "bg-cyan-500"}`}
+                                      style={{ width: `${enrollment.progress}%` }}
+                                    />
                                   </div>
                                 </div>
                               </div>
                               <div className="shrink-0">
                                 {slug ? (
-                                  <Link href={`/cursos/${slug}`}>
+                                  <Link href={`/classroom/${slug}`}>
                                     <Button
                                       size="sm"
                                       className="bg-cyan-600 hover:bg-cyan-700 text-white"

@@ -5,13 +5,50 @@ import { Shield } from "lucide-react";
 
 export default function PrivacidadPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black items-center justify-center">
-      <Alert className="max-w-lg mx-auto bg-slate-800/80 border-cyan-500/30 text-white text-center shadow-lg">
-        <Shield className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-        <h2 className="text-2xl font-bold mb-2">¡Página de Privacidad en desarrollo!</h2>
-        <p className="text-slate-300 mb-2">Estamos trabajando para ofrecerte información clara sobre privacidad y protección de datos.</p>
-        <span className="text-cyan-400 font-semibold">Próximamente disponible</span>
-      </Alert>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black py-40">
+      <div className="mx-auto max-w-3xl bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
+        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent text-center">
+          Política de Privacidad
+        </h1>
+        <div className="prose prose-gray max-w-none text-slate-300">
+          <p className="mb-4">
+            En nuestra plataforma nos tomamos muy en serio la privacidad y protección de tus datos personales. Esta política explica cómo recopilamos, usamos y protegemos tu información.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">1. Información que recopilamos</h2>
+          <ul>
+            <li>Datos de registro: nombre, correo electrónico y contraseña.</li>
+            <li>Información de uso: cursos inscritos, progreso, mensajes y actividad en la plataforma.</li>
+            <li>Datos de contacto: mensajes enviados a través de formularios.</li>
+          </ul>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">2. Uso de la información</h2>
+          <ul>
+            <li>Gestionar tu cuenta y acceso a los cursos.</li>
+            <li>Mejorar la experiencia y personalización de la plataforma.</li>
+            <li>Comunicaciones relacionadas con el servicio y soporte.</li>
+          </ul>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">3. Protección de datos</h2>
+          <p>
+            Utilizamos medidas de seguridad técnicas y organizativas para proteger tus datos contra accesos no autorizados, pérdida o alteración.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">4. Compartir información</h2>
+          <p>
+            No compartimos tu información personal con terceros, salvo obligación legal o para la prestación de servicios esenciales para la plataforma.
+          </p>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">5. Derechos del usuario</h2>
+          <ul>
+            <li>Acceder, rectificar o eliminar tus datos personales.</li>
+            <li>Solicitar la portabilidad de tus datos.</li>
+            <li>Retirar tu consentimiento en cualquier momento.</li>
+          </ul>
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-400">6. Cambios en la política</h2>
+          <p>
+            Nos reservamos el derecho de modificar esta política de privacidad. Notificaremos cualquier cambio relevante a través de la plataforma.
+          </p>
+          <p className="mt-8 text-xs text-slate-400 text-center">
+            Última actualización: 15 de febrero de 2026
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
