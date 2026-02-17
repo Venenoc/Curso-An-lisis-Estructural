@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   PlayCircle,
   Clock,
+  Lock,
   X,
 } from "lucide-react";
 import type { CatalogCourse, CourseModule, CourseLesson } from "@/data/courses-catalog";
@@ -15,6 +16,9 @@ interface ClassroomSidebarProps {
   modules: CourseModule[];
   currentLessonId: number;
   completedLessonIds: string[];
+  unlockedLessonIds: Set<number>;
+  hasFullCourse: boolean;
+  purchasedModuleIds: number[];
   onSelectLesson: (moduleId: number, lessonId: number) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -25,6 +29,9 @@ export default function ClassroomSidebar({
   modules,
   currentLessonId,
   completedLessonIds,
+  unlockedLessonIds,
+  hasFullCourse,
+  purchasedModuleIds,
   onSelectLesson,
   isOpen,
   onClose,
@@ -49,6 +56,12 @@ export default function ClassroomSidebar({
   const isLessonCompleted = (lessonId: number) =>
     completedLessonIds.includes(String(lessonId));
 
+  const isLessonUnlocked = (lessonId: number) =>
+    unlockedLessonIds.has(lessonId);
+
+  const isModulePurchased = (moduleId: number) =>
+    hasFullCourse || purchasedModuleIds.includes(moduleId);
+
   const getModuleProgress = (module: CourseModule) => {
     if (!module.lessons) return { completed: 0, total: 0, percent: 0 };
     const total = module.lessons.length;
@@ -59,6 +72,7 @@ export default function ClassroomSidebar({
   };
 
   const getModuleStatus = (module: CourseModule) => {
+    if (!isModulePurchased(module.id)) return "locked";
     const { completed, total } = getModuleProgress(module);
     if (completed === total && total > 0) return "completed";
     if (completed > 0) return "in_progress";
@@ -106,24 +120,33 @@ export default function ClassroomSidebar({
             const isExpanded = expandedModules.includes(module.id);
             const progress = getModuleProgress(module);
             const status = getModuleStatus(module);
+            const moduleLocked = status === "locked";
 
             return (
               <div key={module.id} className="border-b border-slate-800/50">
                 {/* Module header */}
                 <button
                   onClick={() => toggleModule(module.id)}
-                  className="w-full p-4 flex items-start gap-3 hover:bg-slate-800/50 transition-colors text-left"
+                  className={`w-full p-4 flex items-start gap-3 transition-colors text-left ${
+                    moduleLocked
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-slate-800/50"
+                  }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-                      status === "completed"
+                      moduleLocked
+                        ? "bg-slate-700/30 text-slate-600"
+                        : status === "completed"
                         ? "bg-green-500/20 text-green-400"
                         : status === "in_progress"
                         ? "bg-cyan-500/20 text-cyan-400"
                         : "bg-slate-700/50 text-slate-400"
                     }`}
                   >
-                    {status === "completed" ? (
+                    {moduleLocked ? (
+                      <Lock className="w-4 h-4" />
+                    ) : status === "completed" ? (
                       <CheckCircle2 className="w-4 h-4" />
                     ) : (
                       String(index + 1).padStart(2, "0")
@@ -131,54 +154,71 @@ export default function ClassroomSidebar({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white text-sm font-medium leading-tight">
+                    <h3 className={`text-sm font-medium leading-tight ${
+                      moduleLocked ? "text-slate-600" : "text-white"
+                    }`}>
                       {module.title}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <div className="flex-1 bg-slate-700 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full transition-all ${
-                            status === "completed"
-                              ? "bg-green-500"
-                              : "bg-cyan-500"
-                          }`}
-                          style={{ width: `${progress.percent}%` }}
-                        />
+                    {moduleLocked ? (
+                      <p className="text-slate-600 text-xs mt-1.5">
+                        {hasFullCourse ? "Completa el módulo anterior" : "No comprado"}
+                      </p>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex-1 bg-slate-700 rounded-full h-1.5">
+                          <div
+                            className={`h-1.5 rounded-full transition-all ${
+                              status === "completed"
+                                ? "bg-green-500"
+                                : "bg-cyan-500"
+                            }`}
+                            style={{ width: `${progress.percent}%` }}
+                          />
+                        </div>
+                        <span className="text-slate-500 text-xs shrink-0">
+                          {progress.completed}/{progress.total}
+                        </span>
                       </div>
-                      <span className="text-slate-500 text-xs shrink-0">
-                        {progress.completed}/{progress.total}
-                      </span>
-                    </div>
+                    )}
                   </div>
 
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-500 shrink-0 mt-1 transition-transform ${
-                      isExpanded ? "rotate-180" : ""
-                    }`}
-                  />
+                  {!moduleLocked && (
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-500 shrink-0 mt-1 transition-transform ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
                 </button>
 
                 {/* Lessons */}
-                {isExpanded && module.lessons && (
+                {isExpanded && !moduleLocked && module.lessons && (
                   <div className="pb-2">
                     {module.lessons.map((lesson) => {
                       const isActive = lesson.id === currentLessonId;
                       const isCompleted = isLessonCompleted(lesson.id);
+                      const isUnlocked = isLessonUnlocked(lesson.id);
 
                       return (
                         <button
                           key={`${module.id}-${lesson.id}`}
                           onClick={() => {
+                            if (!isUnlocked) return;
                             onSelectLesson(module.id, lesson.id);
                             onClose();
                           }}
+                          disabled={!isUnlocked}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 pl-8 text-left transition-colors ${
-                            isActive
+                            !isUnlocked
+                              ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
+                              : isActive
                               ? "bg-cyan-500/10 border-l-2 border-cyan-500"
                               : "hover:bg-slate-800/50 border-l-2 border-transparent"
                           }`}
                         >
-                          {isCompleted ? (
+                          {!isUnlocked ? (
+                            <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+                          ) : isCompleted ? (
                             <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
                           ) : isActive ? (
                             <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -188,7 +228,9 @@ export default function ClassroomSidebar({
                           <div className="flex-1 min-w-0">
                             <span
                               className={`text-sm block truncate ${
-                                isActive
+                                !isUnlocked
+                                  ? "text-slate-600"
+                                  : isActive
                                   ? "text-cyan-400 font-medium"
                                   : isCompleted
                                   ? "text-slate-400"

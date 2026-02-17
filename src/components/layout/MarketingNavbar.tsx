@@ -8,77 +8,75 @@ import type { User } from "@supabase/supabase-js";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { signout } from "@/app/actions/auth";
 
-interface NavbarProps {
+interface MarketingNavbarProps {
   user?: User | null | undefined;
 }
-  
-export default function Navbar({ user }: NavbarProps) {
+
+export default function MarketingNavbar({ user }: MarketingNavbarProps) {
   const pathname = usePathname();
-  
+
   const isActive = (path: string) => {
     return pathname === path;
   };
-  
+
   return (
-    <nav className="fixed w-full top-0 z-50 bg-black/70 backdrop-blur-sm border-b-2 border-white/30">
+    <nav className="fixed w-full top-0 z-50 bg-slate-950/40 backdrop-blur-sm border-b-2 border-white/30">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="bg-blue-500 p-2 rounded-lg">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
+            <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
               <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
-              <span className="text-blue-400 font-bold text-lg">PRO</span>
+              <span className="text-black font-bold text-lg">PRO</span>
             </div>
           </Link>
           {/* Navigation Menu */}
           <div className="hidden md:flex items-center gap-8">
-            <Link 
-              href="/" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/') ? 'border-blue-500 text-white' : 'border-transparent'
+            <Link
+              href="/"
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Inicio
             </Link>
-            <Link 
+            <Link
               href="/cursos_m"
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/cursos_m') ? 'border-blue-500 text-white' : 'border-transparent'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/cursos_m') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Cursos
             </Link>
-            <Link 
-              href="/community_m" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/community_m') ? 'border-blue-500 text-white' : 'border-transparent'
+            <Link
+              href="/community_m"
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/community_m') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Comunidad
             </Link>
-            <Link 
-              href="/tools_m" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/tools_m') ? 'border-blue-500 text-white' : 'border-transparent'
+            <Link
+              href="/tools_m"
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/tools_m') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Herramientas
             </Link>
-            <Link 
-              href="/about" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/about') ? 'border-blue-500 text-white' : 'border-transparent'
+            <Link
+              href="/about"
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/about') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Sobre Nosotros
             </Link>
-            <Link 
-              href="/testimonials" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
-                isActive('/testimonials') ? 'border-blue-500 text-white' : 'border-transparent'
+            <Link
+              href="/testimonials"
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
+                isActive('/testimonials') ? 'border-black text-black' : 'border-transparent text-white'
               }`}
             >
               Testimonios
@@ -89,7 +87,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Popover>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 focus:outline-none">
-                  <span className="hidden sm:inline text-sm text-white font-semibold">
+                  <span className="hidden sm:inline text-lg text-white font-semibold">
                     {user.user_metadata.full_name
                       ? user.user_metadata.full_name.split(" ")[0]
                       : user.email}
@@ -97,7 +95,7 @@ export default function Navbar({ user }: NavbarProps) {
                   <img
                     src={user.user_metadata.avatar_url || "/images/Ingperfil.png"}
                     alt="Foto de perfil"
-                    className="w-8 h-8 rounded-full object-cover border"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
                   />
                 </button>
               </PopoverTrigger>

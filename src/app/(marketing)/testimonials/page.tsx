@@ -1,10 +1,7 @@
-import { getUser } from "@/app/actions/auth";
-import Navbar from "@/components/layout/Navbar";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 
 export default async function TestimonialsPage() {
-  const user = await getUser();
   const testimonials = [
     {
       name: "Carlos Mendoza",
@@ -49,28 +46,25 @@ export default async function TestimonialsPage() {
       image: "👩‍💻"
     }
   ];
-
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-      <Navbar user={user} />
-      <main className="pt-32 pb-20 px-4">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100">
+      <main className="pt-20 pb-20 px-4">
         <div className="container mx-auto">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4 text-white">
+          <div className="text-center mb-16 mt-20">
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 text-cyan-700">
               Lo que dicen nuestros estudiantes
             </h1>
-            <p className="text-slate-300 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-700 text-lg max-w-2xl mx-auto">
               Miles de ingenieros han transformado su carrera con nuestros cursos de Análisis Estructural
             </p>
           </div>
-
           {/* Testimonials Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {testimonials.map((testimonial, index) => (
               <Card 
                 key={index} 
-                className="bg-slate-800/50 border-slate-700 backdrop-blur-sm hover:bg-slate-800/70 transition-all"
+                className="bg-slate-900/90 border-slate-800 backdrop-blur-sm hover:bg-slate-900 transition-all"
               >
                 <CardHeader>
                   <div className="flex items-start gap-4">

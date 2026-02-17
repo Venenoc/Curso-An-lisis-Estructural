@@ -29,16 +29,41 @@ export default async function ClassroomPage({
 
   if (!profile) redirect(`/cursos/${slug}`);
 
+  // Check full course enrollment
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select("course_id, courses(title)")
     .eq("user_id", profile.id);
 
-  const isPurchased = enrollments?.some(
+  const hasFullCourse = enrollments?.some(
     (e: any) => e.courses?.title === course.title
   );
 
-  if (!isPurchased) redirect(`/cursos/${slug}`);
+  // Check module enrollments
+  let purchasedModuleIds: number[] = [];
+  if (!hasFullCourse) {
+    // Find course in DB to get course_id
+    const { data: dbCourse } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+
+    if (dbCourse) {
+      const { data: moduleEnrollments } = await supabase
+        .from("module_enrollments")
+        .select("module_id")
+        .eq("user_id", profile.id)
+        .eq("course_id", dbCourse.id);
+
+      purchasedModuleIds = (moduleEnrollments || []).map((me: any) => me.module_id);
+    }
+  }
+
+  // If no full course and no modules purchased, redirect
+  if (!hasFullCourse && purchasedModuleIds.length === 0) {
+    redirect(`/cursos/${slug}`);
+  }
 
   // Get progress — join with lessons to get titles, then map to catalog IDs
   const { data: progressData } = await supabase
@@ -65,6 +90,8 @@ export default async function ClassroomPage({
       course={course}
       completedLessonIds={completedLessonIds}
       profileId={profile.id}
+      hasFullCourse={!!hasFullCourse}
+      purchasedModuleIds={purchasedModuleIds}
     />
   );
 }

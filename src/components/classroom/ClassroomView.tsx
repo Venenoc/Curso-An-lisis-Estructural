@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Menu, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import ClassroomSidebar from "./ClassroomSidebar";
@@ -12,12 +12,16 @@ interface ClassroomViewProps {
   course: CatalogCourse;
   completedLessonIds: string[];
   profileId: string;
+  hasFullCourse: boolean;
+  purchasedModuleIds: number[];
 }
 
 export default function ClassroomView({
   course,
   completedLessonIds: initialCompleted,
   profileId,
+  hasFullCourse,
+  purchasedModuleIds,
 }: ClassroomViewProps) {
   const modules = course.modules || [];
 
@@ -34,21 +38,82 @@ export default function ClassroomView({
 
   const firstLesson = allLessons[0];
 
-  const [currentModuleId, setCurrentModuleId] = useState(firstLesson?.moduleId || 0);
+  const [, setCurrentModuleId] = useState(firstLesson?.moduleId || 0);
   const [currentLessonId, setCurrentLessonId] = useState(firstLesson?.lesson.id || 0);
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Compute which lessons are unlocked based on purchase type and progress
+  const unlockedLessonIds = useMemo(() => {
+    const unlocked = new Set<number>();
+
+    if (hasFullCourse) {
+      // Full course: sequential unlock across modules
+      // First lesson of first module is always unlocked
+      let canContinue = true;
+      for (const mod of modules) {
+        const moduleLessons = mod.lessons || [];
+        for (let i = 0; i < moduleLessons.length; i++) {
+          const lesson = moduleLessons[i];
+          if (canContinue) {
+            unlocked.add(lesson.id);
+            // If this lesson is NOT completed, lock everything after it
+            if (!completedIds.includes(String(lesson.id))) {
+              canContinue = false;
+            }
+          }
+        }
+      }
+    } else {
+      // Module purchases: only unlock lessons in purchased modules, sequentially
+      for (const mod of modules) {
+        if (!purchasedModuleIds.includes(mod.id)) continue;
+        const moduleLessons = mod.lessons || [];
+        for (let i = 0; i < moduleLessons.length; i++) {
+          const lesson = moduleLessons[i];
+          if (i === 0) {
+            // First lesson of purchased module is always unlocked
+            unlocked.add(lesson.id);
+          } else {
+            // Unlock only if previous lesson in this module is completed
+            const prevLesson = moduleLessons[i - 1];
+            if (completedIds.includes(String(prevLesson.id))) {
+              unlocked.add(lesson.id);
+            }
+          }
+        }
+      }
+    }
+
+    return unlocked;
+  }, [hasFullCourse, modules, purchasedModuleIds, completedIds]);
 
   const currentIndex = allLessons.findIndex(
     (l) => l.lesson.id === currentLessonId
   );
   const currentEntry = allLessons[currentIndex];
-  const hasNext = currentIndex < allLessons.length - 1;
 
-  const handleSelectLesson = (moduleId: number, lessonId: number) => {
+  // Next lesson must be unlocked
+  const nextAccessibleIndex = useMemo(() => {
+    for (let i = currentIndex + 1; i < allLessons.length; i++) {
+      const entry = allLessons[i];
+      const isAccessible = hasFullCourse || purchasedModuleIds.includes(entry.moduleId);
+      if (isAccessible) return i;
+    }
+    return -1;
+  }, [currentIndex, allLessons, hasFullCourse, purchasedModuleIds]);
+
+  const hasNext = nextAccessibleIndex !== -1;
+
+  // Check if the next lesson is already unlocked (current must be completed first)
+  const isNextUnlocked = hasNext && unlockedLessonIds.has(allLessons[nextAccessibleIndex].lesson.id);
+
+  const handleSelectLesson = useCallback((moduleId: number, lessonId: number) => {
+    // Only allow selecting unlocked lessons
+    if (!unlockedLessonIds.has(lessonId)) return;
     setCurrentModuleId(moduleId);
     setCurrentLessonId(lessonId);
-  };
+  }, [unlockedLessonIds]);
 
   const handleMarkComplete = () => {
     const id = String(currentLessonId);
@@ -58,8 +123,9 @@ export default function ClassroomView({
   };
 
   const handleNextLesson = () => {
-    if (hasNext) {
-      const next = allLessons[currentIndex + 1];
+    if (hasNext && nextAccessibleIndex !== -1) {
+      const next = allLessons[nextAccessibleIndex];
+      // After marking current complete, the next lesson should be unlocked
       setCurrentModuleId(next.moduleId);
       setCurrentLessonId(next.lesson.id);
     }
@@ -81,6 +147,9 @@ export default function ClassroomView({
           modules={modules}
           currentLessonId={currentLessonId}
           completedLessonIds={completedIds}
+          unlockedLessonIds={unlockedLessonIds}
+          hasFullCourse={hasFullCourse}
+          purchasedModuleIds={purchasedModuleIds}
           onSelectLesson={handleSelectLesson}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -121,6 +190,7 @@ export default function ClassroomView({
               lesson={currentEntry.lesson}
               isCompleted={completedIds.includes(String(currentLessonId))}
               hasNext={hasNext}
+              isNextUnlocked={isNextUnlocked}
               onMarkComplete={handleMarkComplete}
               onNextLesson={handleNextLesson}
             />

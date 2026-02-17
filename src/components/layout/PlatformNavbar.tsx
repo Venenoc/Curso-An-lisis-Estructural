@@ -25,9 +25,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
         <div className="flex items-center justify-between h-20">
           {/* Logo y marca */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="bg-blue-500 p-2 rounded-lg">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
+            <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
               <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
               <span className="text-blue-400 font-bold text-lg">PRO</span>
@@ -38,7 +36,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
           <div className="hidden md:flex items-center gap-8">
             <Link 
               href="/dashboard"
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+              className={`text-slate-300 hover:text-white transition-colors font-bold text-lg pb-1 border-b-2 ${
                 isActive('/dashboard') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
@@ -46,7 +44,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
             </Link>
             <Link 
               href="/cursos"
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+              className={`text-slate-300 hover:text-white transition-colors font-bold text-lg pb-1 border-b-2 ${
                 isActive('/cursos') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
@@ -54,7 +52,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
             </Link>
             <Link 
               href="/community" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+              className={`text-slate-300 hover:text-white transition-colors font-bold text-lg pb-1 border-b-2 ${
                 isActive('/community') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
@@ -62,7 +60,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
             </Link>
             <Link 
               href="/tools" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+              className={`text-slate-300 hover:text-white transition-colors font-bold text-lg pb-1 border-b-2 ${
                 isActive('/tools') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
@@ -70,7 +68,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
             </Link>
             <Link 
               href="/profile" 
-              className={`text-slate-300 hover:text-white transition-colors font-medium pb-1 border-b-2 ${
+              className={`text-slate-300 hover:text-white transition-colors font-bold text-lg pb-1 border-b-2 ${
                 isActive('/profile') ? 'border-blue-500 text-white' : 'border-transparent'
               }`}
             >
@@ -84,7 +82,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="flex items-center gap-2 focus:outline-none">
-                    <span className="hidden sm:inline text-sm text-white font-semibold">
+                    <span className="hidden sm:inline text-lg text-white font-bold">
                       {user.user_metadata.full_name
                         ? user.user_metadata.full_name.split(" ")[0]
                         : user.email}
@@ -92,7 +90,7 @@ const PlatformNavbar = ({ user }: PlatformNavbarProps) => {
                     <img
                       src={user.user_metadata.avatar_url || "/images/Ingperfil.png"}
                       alt="Foto de perfil"
-                      className="w-8 h-8 rounded-full object-cover border"
+                      className="w-12 h-12 rounded-full object-cover border"
                     />
                   </button>
                 </PopoverTrigger>

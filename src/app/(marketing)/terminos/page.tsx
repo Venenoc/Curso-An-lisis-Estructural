@@ -5,12 +5,12 @@ import { FileText } from "lucide-react";
 
 export default function TerminosPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black py-40">
-      <div className="mx-auto max-w-3xl bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent text-center">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100 py-40">
+      <div className="mx-auto max-w-3xl bg-white/90 border border-cyan-300/40 rounded-2xl p-10 shadow-lg">
+        <h1 className="text-4xl font-extrabold mb-8 text-cyan-700 text-center">
           Términos y Condiciones
         </h1>
-        <div className="prose prose-gray max-w-none text-slate-300">
+        <div className="prose prose-gray max-w-none text-slate-800">
           <p className="mb-4">
             Estos términos y condiciones regulan el uso de la plataforma y los servicios ofrecidos. Al acceder o utilizar la plataforma, aceptas cumplir con estos términos.
           </p>

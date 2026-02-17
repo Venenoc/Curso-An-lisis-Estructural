@@ -16,6 +16,9 @@ import {
   Shield,
   Settings,
   PlayCircle,
+  Lock,
+  CheckCircle2,
+  ShoppingCart,
 } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -40,9 +43,15 @@ export default async function DashboardPage() {
       payment_type,
       enrolled_at,
       course_id,
-      courses(title, description, price)
+      courses(title, description, price, slug)
     `)
     .eq("user_id", profile?.id);
+
+  // Fetch module enrollments
+  const { data: moduleEnrollments } = await supabase
+    .from("module_enrollments")
+    .select("id, course_id, module_id, courses(title, description, price, slug)")
+    .eq("user_id", profile?.id) as { data: any[] | null };
 
   const { data: progress } = await supabase
     .from("progress")
@@ -50,22 +59,45 @@ export default async function DashboardPage() {
     .eq("user_id", profile?.id)
     .eq("completed", true);
 
-  const enrolledCount = enrollments?.length || 0;
   const completedLessons = progress?.length || 0;
   const firstName = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0];
 
-  // Build a set of completed lesson titles grouped by course_id
+  // Build a set of completed lesson titles
   const completedByTitle = new Set(
     (progress || []).map((p: any) => p.lessons?.title).filter(Boolean)
   );
 
-  // Match enrollments with catalog data for gradients/slugs and calculate progress
-  const enrolledCourses = (enrollments || []).map((enrollment: any) => {
+  // Group module enrollments by course_id
+  const modulesByCourseId = new Map<string, number[]>();
+  (moduleEnrollments || []).forEach((me: any) => {
+    const list = modulesByCourseId.get(me.course_id) || [];
+    list.push(me.module_id);
+    modulesByCourseId.set(me.course_id, list);
+  });
+
+  // Set of course_ids that have full enrollment
+  const fullEnrollmentCourseIds = new Set(
+    (enrollments || []).map((e: any) => e.course_id)
+  );
+
+  // Build unified course list: full enrollments + module-only enrollments (no duplicates)
+  type DashboardCourse = {
+    id: string;
+    courseTitle: string;
+    courseDescription: string;
+    catalog: (typeof coursesCatalog)[number] | undefined;
+    hasFullCourse: boolean;
+    purchasedModuleIds: number[];
+    progress: number;
+  };
+
+  const dashboardCourses: DashboardCourse[] = [];
+
+  // Add full course enrollments
+  (enrollments || []).forEach((enrollment: any) => {
     const catalogMatch = coursesCatalog.find(
       (c) => c.title === enrollment.courses?.title
     );
-
-    // Calculate progress for this course
     let courseProgress = 0;
     if (catalogMatch) {
       const allLessons = catalogMatch.modules?.flatMap((m) => m.lessons || []) || [];
@@ -73,13 +105,53 @@ export default async function DashboardPage() {
       const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
       courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
     }
-
-    return {
-      ...enrollment,
+    dashboardCourses.push({
+      id: enrollment.id,
+      courseTitle: enrollment.courses?.title || "",
+      courseDescription: enrollment.courses?.description || "",
       catalog: catalogMatch,
+      hasFullCourse: true,
+      purchasedModuleIds: catalogMatch?.modules?.map((m) => m.id) || [],
       progress: courseProgress,
-    };
+    });
   });
+
+  // Add module-only courses (not already in full enrollments)
+  modulesByCourseId.forEach((moduleIds, courseId) => {
+    if (fullEnrollmentCourseIds.has(courseId)) return;
+    const sampleME = (moduleEnrollments || []).find((me: any) => me.course_id === courseId);
+    const catalogMatch = coursesCatalog.find(
+      (c) => c.title === sampleME?.courses?.title
+    );
+
+    // Check if all modules are purchased -> treat as full course
+    const totalModules = catalogMatch?.modules?.length || 0;
+    const allModulesPurchased = totalModules > 0 && moduleIds.length >= totalModules;
+
+    let courseProgress = 0;
+    if (catalogMatch) {
+      const relevantModules = allModulesPurchased
+        ? catalogMatch.modules || []
+        : catalogMatch.modules?.filter((m) => moduleIds.includes(m.id)) || [];
+      const allLessons = relevantModules.flatMap((m) => m.lessons || []);
+      const totalLessons = allLessons.length;
+      const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
+      courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+    }
+    dashboardCourses.push({
+      id: `module-${courseId}`,
+      courseTitle: sampleME?.courses?.title || "",
+      courseDescription: sampleME?.courses?.description || "",
+      catalog: catalogMatch,
+      hasFullCourse: allModulesPurchased,
+      purchasedModuleIds: allModulesPurchased
+        ? catalogMatch?.modules?.map((m) => m.id) || moduleIds
+        : moduleIds,
+      progress: courseProgress,
+    });
+  });
+
+  const enrolledCount = dashboardCourses.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black">
@@ -130,11 +202,13 @@ export default async function DashboardPage() {
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
             <Trophy className="w-6 h-6 text-amber-400 mb-3" />
             {
-              // Calcular el total de lecciones solo de los cursos inscritos
               (() => {
-                const totalLessonsEnrolled = enrolledCourses.reduce((acc: number, enrollment: any) => {
-                  if (enrollment.catalog && enrollment.catalog.modules) {
-                    return acc + enrollment.catalog.modules.reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0);
+                const totalLessonsEnrolled = dashboardCourses.reduce((acc: number, dc) => {
+                  if (dc.catalog && dc.catalog.modules) {
+                    const modules = dc.hasFullCourse
+                      ? dc.catalog.modules
+                      : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
+                    return acc + modules.reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0);
                   }
                   return acc;
                 }, 0);
@@ -153,12 +227,11 @@ export default async function DashboardPage() {
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
               <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
               {(() => {
-                // Certificados: completados sobre cursos inscritos
-                const certificados = 0; // Aquí puedes poner la lógica real si la tienes
+                const certificados = 0;
                 return (
                   <div className="text-3xl font-bold">
                     <span className="text-slate-400">{certificados}</span>
-                    <span className="text-white"> / {enrolledCourses.length}</span>
+                    <span className="text-white"> / {dashboardCourses.length}</span>
                   </div>
                 );
               })()}
@@ -177,18 +250,19 @@ export default async function DashboardPage() {
                 // Total minutos completados
                 let minutosCompletados = 0;
                 let minutosTotales = 0;
-                enrolledCourses.forEach((enrollment: any) => {
-                  if (enrollment.catalog) {
-                    // Si el curso tiene duration a nivel de curso, úsalo para el total
-                    if (enrollment.catalog.duration) {
-                      const match = enrollment.catalog.duration.match(/(\d+)\s*h/);
+                dashboardCourses.forEach((dc) => {
+                  if (dc.catalog) {
+                    if (dc.catalog.duration) {
+                      const match = dc.catalog.duration.match(/(\d+)\s*h/);
                       if (match) {
                         minutosTotales += parseInt(match[1], 10) * 60;
                       }
                     }
-                    // Sumar minutos completados igual que antes
-                    if (enrollment.catalog.modules) {
-                      enrollment.catalog.modules.forEach((mod: any) => {
+                    if (dc.catalog.modules) {
+                      const modules = dc.hasFullCourse
+                        ? dc.catalog.modules
+                        : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
+                      modules.forEach((mod: any) => {
                         (mod.lessons || []).forEach((lesson: any) => {
                           const min = parseMin(lesson.duration);
                           if (completedByTitle.has(lesson.title)) {
@@ -237,83 +311,168 @@ export default async function DashboardPage() {
                 )}
               </div>
 
-              {enrolledCourses.length > 0 ? (
-                <div className="space-y-4">
-                  {enrolledCourses.map((enrollment: any) => {
-                    const gradient = enrollment.catalog?.gradient || "from-cyan-500 to-blue-600";
-                    const slug = enrollment.catalog?.slug;
-                    const lessonsCount = enrollment.catalog?.lessonsCount || 0;
-                    const duration = enrollment.catalog?.duration || "";
+              {dashboardCourses.length > 0 ? (
+                <div className="space-y-6">
+                  {dashboardCourses.map((dc) => {
+                    const gradient = dc.catalog?.gradient || "from-cyan-500 to-blue-600";
+                    const slug = dc.catalog?.slug;
+                    const modules = dc.catalog?.modules || [];
 
                     return (
                       <div
-                        key={enrollment.id}
-                        className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/70 transition-all group"
+                        key={dc.id}
+                        className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden"
                       >
-                        <div className="flex flex-col sm:flex-row">
-                          <div
-                            className={`w-full sm:w-2 sm:min-h-full bg-gradient-to-b ${gradient} shrink-0 h-1 sm:h-auto`}
-                          />
-                          <div className="flex-1 p-5">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-semibold text-lg mb-1 truncate">
-                                  {enrollment.courses?.title}
-                                </h3>
-                                <p className="text-slate-400 text-sm line-clamp-1">
-                                  {enrollment.courses?.description}
-                                </p>
-                                <div className="flex gap-4 mt-3 text-xs text-slate-500">
-                                  {lessonsCount > 0 && (
-                                    <span className="flex items-center gap-1">
-                                      <PlayCircle className="w-3.5 h-3.5" />
-                                      {lessonsCount} lecciones
-                                    </span>
-                                  )}
-                                  {duration && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3.5 h-3.5" />
-                                      {duration}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="mt-3">
-                                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                                    <span>Progreso</span>
-                                    <span>{enrollment.progress}%</span>
-                                  </div>
-                                  <div className="w-full bg-slate-700 rounded-full h-1.5">
-                                    <div
-                                      className={`h-1.5 rounded-full ${enrollment.progress === 100 ? "bg-green-500" : "bg-cyan-500"}`}
-                                      style={{ width: `${enrollment.progress}%` }}
-                                    />
-                                  </div>
-                                </div>
+                        {/* Course Header */}
+                        <div className={`bg-gradient-to-r ${gradient} px-5 py-4`}>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-white font-bold text-lg">
+                                {dc.courseTitle}
+                              </h3>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                  dc.hasFullCourse
+                                    ? "bg-white/20 text-white"
+                                    : "bg-amber-500/20 text-amber-200"
+                                }`}>
+                                  {dc.hasFullCourse ? "Curso Completo" : `${dc.purchasedModuleIds.length} de ${modules.length} módulos`}
+                                </span>
+                                <span className="text-white/70 text-xs">
+                                  {dc.progress}% completado
+                                </span>
                               </div>
-                              <div className="shrink-0">
-                                {slug ? (
-                                  <Link href={`/classroom/${slug}`}>
-                                    <Button
-                                      size="sm"
-                                      className="bg-cyan-600 hover:bg-cyan-700 text-white"
-                                    >
-                                      Continuar
-                                      <ArrowRight className="w-4 h-4 ml-1" />
-                                    </Button>
-                                  </Link>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    className="bg-slate-700 text-slate-300"
-                                    disabled
-                                  >
-                                    Próximamente
-                                  </Button>
-                                )}
-                              </div>
+                            </div>
+                            {slug && dc.hasFullCourse && (
+                              <Link href={`/classroom/${slug}`}>
+                                <Button
+                                  size="sm"
+                                  className="bg-white/20 hover:bg-white/30 text-white border-none"
+                                >
+                                  Continuar
+                                  <ArrowRight className="w-4 h-4 ml-1" />
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                          {/* Progress bar */}
+                          <div className="mt-3">
+                            <div className="w-full bg-white/20 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full ${dc.progress === 100 ? "bg-green-400" : "bg-white"}`}
+                                style={{ width: `${dc.progress}%` }}
+                              />
                             </div>
                           </div>
                         </div>
+
+                        {/* Modules List */}
+                        {modules.length > 0 && (
+                          <div className="divide-y divide-slate-700/50">
+                            {modules.map((mod) => {
+                              const isUnlocked = dc.hasFullCourse || dc.purchasedModuleIds.includes(mod.id);
+                              const moduleLessons = mod.lessons || [];
+                              const completedInModule = moduleLessons.filter((l) => completedByTitle.has(l.title)).length;
+                              const moduleProgress = moduleLessons.length > 0
+                                ? Math.round((completedInModule / moduleLessons.length) * 100)
+                                : 0;
+
+                              return (
+                                <div
+                                  key={mod.id}
+                                  className={`px-5 py-4 flex items-center gap-4 ${
+                                    isUnlocked
+                                      ? "hover:bg-slate-800/70 transition-colors"
+                                      : "opacity-60"
+                                  }`}
+                                >
+                                  {/* Icon */}
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                    isUnlocked
+                                      ? moduleProgress === 100
+                                        ? "bg-green-500/20 text-green-400"
+                                        : "bg-cyan-500/20 text-cyan-400"
+                                      : "bg-slate-700/50 text-slate-500"
+                                  }`}>
+                                    {isUnlocked ? (
+                                      moduleProgress === 100 ? (
+                                        <CheckCircle2 className="w-5 h-5" />
+                                      ) : (
+                                        <PlayCircle className="w-5 h-5" />
+                                      )
+                                    ) : (
+                                      <Lock className="w-5 h-5" />
+                                    )}
+                                  </div>
+
+                                  {/* Module Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className={`font-medium text-sm truncate ${
+                                      isUnlocked ? "text-white" : "text-slate-500"
+                                    }`}>
+                                      {mod.title}
+                                    </h4>
+                                    <div className={`flex gap-3 mt-1 text-xs ${
+                                      isUnlocked ? "text-slate-400" : "text-slate-600"
+                                    }`}>
+                                      <span className="flex items-center gap-1">
+                                        <PlayCircle className="w-3 h-3" />
+                                        {mod.lessonsCount} lecciones
+                                      </span>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {mod.duration}
+                                      </span>
+                                      {isUnlocked && moduleLessons.length > 0 && (
+                                        <span className={moduleProgress === 100 ? "text-green-400" : "text-cyan-400"}>
+                                          {moduleProgress}%
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Action */}
+                                  <div className="shrink-0">
+                                    {isUnlocked ? (
+                                      slug ? (
+                                        <Link href={`/classroom/${slug}`}>
+                                          <Button
+                                            size="sm"
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs h-8 px-3"
+                                          >
+                                            Ir al Classroom
+                                            <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                                          </Button>
+                                        </Link>
+                                      ) : (
+                                        <Button size="sm" className="bg-slate-700 text-slate-300 text-xs h-8" disabled>
+                                          Próximamente
+                                        </Button>
+                                      )
+                                    ) : (
+                                      slug ? (
+                                        <Link href={`/checkout/${slug}?module=${mod.id}`}>
+                                          <Button
+                                            size="sm"
+                                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 px-3"
+                                          >
+                                            <ShoppingCart className="w-3.5 h-3.5 mr-1" />
+                                            ${mod.price}
+                                          </Button>
+                                        </Link>
+                                      ) : (
+                                        <div className="flex items-center gap-1 text-slate-500 text-xs">
+                                          <Lock className="w-3.5 h-3.5" />
+                                          Bloqueado
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -339,49 +498,50 @@ export default async function DashboardPage() {
             </div>
 
             {/* Cursos recomendados */}
-            {enrolledCount < 8 && (
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-400" />
-                  Recomendados para ti
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {enrolledCourses.length > 0 && enrolledCourses.length < 8 && (
-                    enrolledCourses.length < 8 && (
-                      enrolledCourses.slice(0, 2).map((course: any, idx: number) => (
-                        <Link
-                          key={course.slug || course.id || idx}
-                          href={`/cursos/${course.slug}`}
-                          className="block"
-                        >
-                          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/70 hover:shadow-lg hover:shadow-cyan-500/5 transition-all group">
-                            <div className={`h-24 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
-                              <h4 className="text-white font-bold text-center text-sm px-4 drop-shadow">
-                                {course.courses?.title}
-                              </h4>
-                            </div>
-                            <div className="p-4">
-                              <p className="text-slate-400 text-xs line-clamp-2 mb-3">
-                                {course.courses?.description}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <span className="text-white font-bold">
-                                  ${course.courses?.price}
-                                </span>
-                                <span className="text-cyan-400 text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                  Ver curso
-                                  <ArrowRight className="w-3 h-3" />
-                                </span>
-                              </div>
+            {(() => {
+              const enrolledSlugs = new Set(dashboardCourses.map((dc) => dc.catalog?.slug).filter(Boolean));
+              const recommended = coursesCatalog.filter((c) => !enrolledSlugs.has(c.slug)).slice(0, 2);
+              if (recommended.length === 0) return null;
+              return (
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-400" />
+                    Recomendados para ti
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {recommended.map((course) => (
+                      <Link
+                        key={course.slug}
+                        href={`/cursos/${course.slug}`}
+                        className="block"
+                      >
+                        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/70 hover:shadow-lg hover:shadow-cyan-500/5 transition-all group">
+                          <div className={`h-24 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
+                            <h4 className="text-white font-bold text-center text-sm px-4 drop-shadow">
+                              {course.title}
+                            </h4>
+                          </div>
+                          <div className="p-4">
+                            <p className="text-slate-400 text-xs line-clamp-2 mb-3">
+                              {course.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-white font-bold">
+                                ${course.price}
+                              </span>
+                              <span className="text-cyan-400 text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                Ver curso
+                                <ArrowRight className="w-3 h-3" />
+                              </span>
                             </div>
                           </div>
-                        </Link>
-                      ))
-                    )
-                  )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Sidebar */}

@@ -194,6 +194,91 @@ export async function purchaseCourse(slug: string) {
   }
 }
 
+export async function purchaseModule(slug: string, moduleId: number) {
+  try {
+    const user = await getUser();
+    if (!user) return { error: "Debes iniciar sesión para comprar un módulo" };
+
+    const supabase = await createClient();
+
+    // Obtener perfil del usuario
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile) return { error: "Perfil no encontrado" };
+
+    // Buscar el curso por slug en DB
+    const { data: existingCourse } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+
+    if (!existingCourse) {
+      return { error: "El curso no está disponible. Contacta al administrador." };
+    }
+
+    // Buscar el módulo en el catálogo para obtener precio y título
+    const catalogCourse = coursesCatalog.find((c) => c.slug === slug);
+    if (!catalogCourse) return { error: "Curso no encontrado en catálogo" };
+
+    const catalogModule = catalogCourse.modules?.find((m) => m.id === moduleId);
+    if (!catalogModule) return { error: "Módulo no encontrado" };
+
+    // Verificar que el usuario no tenga el curso completo
+    const { data: existingEnrollment } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", profile.id)
+      .eq("course_id", existingCourse.id)
+      .single();
+
+    if (existingEnrollment) {
+      return { error: "Ya tienes acceso al curso completo" };
+    }
+
+    // Verificar que no haya comprado este módulo antes
+    const { data: existingModuleEnrollment } = await supabase
+      .from("module_enrollments")
+      .select("id")
+      .eq("user_id", profile.id)
+      .eq("course_id", existingCourse.id)
+      .eq("module_id", moduleId)
+      .single();
+
+    if (existingModuleEnrollment) {
+      return { error: "Ya tienes este módulo" };
+    }
+
+    // Crear module enrollment
+    const { error: enrollError } = await supabase
+      .from("module_enrollments")
+      .insert({
+        user_id: profile.id,
+        course_id: existingCourse.id,
+        module_id: moduleId,
+        module_title: catalogModule.title,
+        price: catalogModule.price,
+        payment_type: "one_time",
+      });
+
+    if (enrollError) {
+      return { error: "Error al procesar la compra del módulo" };
+    }
+
+    revalidatePath("/cursos");
+    revalidatePath(`/cursos/${slug}`);
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error: any) {
+    return { error: "Error inesperado al procesar la compra" };
+  }
+}
+
 export async function markLessonComplete(courseSlug: string, lessonId: number) {
   try {
     const user = await getUser();

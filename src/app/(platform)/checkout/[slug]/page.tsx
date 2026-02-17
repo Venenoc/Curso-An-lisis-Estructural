@@ -6,10 +6,13 @@ import CheckoutForm from "@/components/courses/CheckoutForm";
 
 export default async function CheckoutPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ module?: string }>;
 }) {
   const { slug } = await params;
+  const { module: moduleIdParam } = await searchParams;
   const course = coursesCatalog.find((c) => c.slug === slug);
 
   if (!course) notFound();
@@ -43,10 +46,20 @@ export default async function CheckoutPage({
     }
   }
 
+  // Find module if purchasing individually
+  const moduleId = moduleIdParam ? parseInt(moduleIdParam) : null;
+  const selectedModule = moduleId
+    ? course.modules?.find((m) => m.id === moduleId) || null
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black py-16 lg:py-24">
       <div className="container mx-auto px-4 max-w-5xl">
-        <CheckoutForm course={course} userEmail={user.email || ""} />
+        <CheckoutForm
+          course={course}
+          userEmail={user.email || ""}
+          selectedModule={selectedModule}
+        />
       </div>
     </div>
   );

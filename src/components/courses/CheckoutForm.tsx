@@ -14,20 +14,29 @@ import {
   Signal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { purchaseCourse } from "@/app/actions/courses";
-import type { CatalogCourse } from "@/data/courses-catalog";
+import { purchaseCourse, purchaseModule } from "@/app/actions/courses";
+import type { CatalogCourse, CourseModule } from "@/data/courses-catalog";
 
 interface CheckoutFormProps {
   course: CatalogCourse;
   userEmail: string;
+  selectedModule?: CourseModule | null;
 }
 
 type CheckoutStep = "review" | "processing" | "success";
 
-export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
+export default function CheckoutForm({ course, userEmail, selectedModule }: CheckoutFormProps) {
   const [step, setStep] = useState<CheckoutStep>("review");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const isModulePurchase = !!selectedModule;
+  const checkoutPrice = isModulePurchase ? selectedModule.price : course.price;
+  const checkoutTitle = isModulePurchase
+    ? `Módulo: ${selectedModule.title}`
+    : course.title;
+  const checkoutLessons = isModulePurchase ? selectedModule.lessonsCount : course.lessonsCount;
+  const checkoutDuration = isModulePurchase ? selectedModule.duration : course.duration;
 
   const handlePayment = async () => {
     setStep("processing");
@@ -37,7 +46,9 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     try {
-      const result = await purchaseCourse(course.slug);
+      const result = isModulePurchase
+        ? await purchaseModule(course.slug, selectedModule.id)
+        : await purchaseCourse(course.slug);
       if (result?.error) {
         setError(result.error);
         setStep("review");
@@ -61,7 +72,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
           Pago Confirmado
         </h1>
         <p className="text-slate-400 mb-2">
-          Tu compra de <span className="text-white font-medium">{course.title}</span> se ha procesado exitosamente.
+          Tu compra de <span className="text-white font-medium">{checkoutTitle}</span> se ha procesado exitosamente.
         </p>
         <p className="text-slate-500 text-sm mb-8">
           Se envió un recibo a {userEmail}
@@ -70,12 +81,12 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 mb-8 text-left">
           <h3 className="text-white font-semibold mb-3">Resumen de compra</h3>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-400">{course.title}</span>
-            <span className="text-white">${course.price} USD</span>
+            <span className="text-slate-400">{checkoutTitle}</span>
+            <span className="text-white">${checkoutPrice} USD</span>
           </div>
           <div className="flex justify-between text-sm pt-2 border-t border-slate-700/50">
             <span className="text-white font-medium">Total pagado</span>
-            <span className="text-green-400 font-bold">${course.price} USD</span>
+            <span className="text-green-400 font-bold">${checkoutPrice} USD</span>
           </div>
         </div>
 
@@ -91,8 +102,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
           </Button>
           <Button
             onClick={() => router.push("/courses")}
-            variant="outline"
-            className="w-full border-slate-600 text-slate-300 hover:bg-slate-800 h-12"
+            className="w-full bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-600 h-12 transition-colors"
           >
             Seguir comprando
           </Button>
@@ -239,7 +249,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
               className="w-full bg-[#009EE3] hover:bg-[#0087CC] text-white h-14 text-lg font-semibold rounded-xl"
             >
               <Lock className="w-5 h-5 mr-2" />
-              Pagar ${course.price} USD
+              Pagar ${checkoutPrice} USD
             </Button>
 
             <div className="flex items-center justify-center gap-2 mt-4 text-xs text-slate-500">
@@ -256,7 +266,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
               Resumen del Pedido
             </h2>
 
-            {/* Curso */}
+            {/* Item */}
             <div className="flex gap-4 mb-6">
               <div
                 className={`w-16 h-16 bg-gradient-to-br ${course.gradient} rounded-xl flex items-center justify-center shrink-0`}
@@ -265,16 +275,19 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm leading-tight">
-                  {course.title}
+                  {checkoutTitle}
                 </h3>
+                {isModulePurchase && (
+                  <p className="text-slate-500 text-xs mt-0.5">{course.title}</p>
+                )}
                 <div className="flex gap-3 mt-2 text-xs text-slate-500">
                   <span className="flex items-center gap-1">
                     <BookOpen className="w-3 h-3" />
-                    {course.lessonsCount}
+                    {checkoutLessons} lecciones
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {course.duration}
+                    {checkoutDuration}
                   </span>
                   <span className="flex items-center gap-1">
                     <Signal className="w-3 h-3" />
@@ -286,8 +299,10 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
 
             <div className="border-t border-slate-700/50 pt-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Subtotal</span>
-                <span className="text-white">${course.price} USD</span>
+                <span className="text-slate-400">
+                  {isModulePurchase ? "Módulo individual" : "Curso completo"}
+                </span>
+                <span className="text-white">${checkoutPrice} USD</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Impuestos</span>
@@ -295,7 +310,7 @@ export default function CheckoutForm({ course, userEmail }: CheckoutFormProps) {
               </div>
               <div className="flex justify-between text-base pt-3 border-t border-slate-700/50">
                 <span className="text-white font-bold">Total</span>
-                <span className="text-white font-bold">${course.price} USD</span>
+                <span className="text-white font-bold">${checkoutPrice} USD</span>
               </div>
             </div>
 
