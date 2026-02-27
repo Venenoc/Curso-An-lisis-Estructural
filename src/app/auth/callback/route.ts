@@ -15,6 +15,9 @@ export async function GET(request: Request) {
     }
   }
 
-  // Si hay error, redirigir al login
+  // Si hay error en un flujo de recovery, redirigir con error legible
+  if (next.startsWith('/reset-password')) {
+    return NextResponse.redirect(`${origin}/reset-password?error=invalid_link`)
+  }
   return NextResponse.redirect(`${origin}/login`)
 }

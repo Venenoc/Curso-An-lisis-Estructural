@@ -1,6 +1,8 @@
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { coursesCatalog } from "@/data/courses-catalog";
+import { getUserCertificates, checkAndIssueCertificate } from "@/app/actions/certificates";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -19,6 +21,7 @@ import {
   Lock,
   CheckCircle2,
   ShoppingCart,
+  Award,
 } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -47,13 +50,20 @@ export default async function DashboardPage() {
     `)
     .eq("user_id", profile?.id);
 
+  // Use admin client to bypass RLS (needed for module-only purchases and progress)
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
   // Fetch module enrollments
-  const { data: moduleEnrollments } = await supabase
+  const { data: moduleEnrollments } = await supabaseAdmin
     .from("module_enrollments")
     .select("id, course_id, module_id, courses(title, description, price, slug)")
     .eq("user_id", profile?.id) as { data: any[] | null };
 
-  const { data: progress } = await supabase
+  const { data: progress } = await supabaseAdmin
     .from("progress")
     .select("*, lessons(title, course_id)")
     .eq("user_id", profile?.id)
@@ -96,11 +106,11 @@ export default async function DashboardPage() {
   // Add full course enrollments
   (enrollments || []).forEach((enrollment: any) => {
     const catalogMatch = coursesCatalog.find(
-      (c) => c.title === enrollment.courses?.title
+      (c) => c.slug === enrollment.courses?.slug || c.title === enrollment.courses?.title
     );
     let courseProgress = 0;
     if (catalogMatch) {
-      const allLessons = catalogMatch.modules?.flatMap((m) => m.lessons || []) || [];
+      const allLessons = catalogMatch.modules?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons)) || [];
       const totalLessons = allLessons.length;
       const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
       courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
@@ -121,7 +131,7 @@ export default async function DashboardPage() {
     if (fullEnrollmentCourseIds.has(courseId)) return;
     const sampleME = (moduleEnrollments || []).find((me: any) => me.course_id === courseId);
     const catalogMatch = coursesCatalog.find(
-      (c) => c.title === sampleME?.courses?.title
+      (c) => c.slug === sampleME?.courses?.slug || c.title === sampleME?.courses?.title
     );
 
     // Check if all modules are purchased -> treat as full course
@@ -133,7 +143,7 @@ export default async function DashboardPage() {
       const relevantModules = allModulesPurchased
         ? catalogMatch.modules || []
         : catalogMatch.modules?.filter((m) => moduleIds.includes(m.id)) || [];
-      const allLessons = relevantModules.flatMap((m) => m.lessons || []);
+      const allLessons = relevantModules.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons));
       const totalLessons = allLessons.length;
       const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
       courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
@@ -153,10 +163,21 @@ export default async function DashboardPage() {
 
   const enrolledCount = dashboardCourses.length;
 
+  // Auto-issue certificates for 100% completed courses and fetch all certificates
+  const completedCourseSlugs = dashboardCourses
+    .filter((dc) => dc.progress === 100 && dc.catalog?.slug)
+    .map((dc) => dc.catalog!.slug);
+
+  await Promise.all(
+    completedCourseSlugs.map((slug) => checkAndIssueCertificate(slug))
+  );
+
+  const certificates = await getUserCertificates();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+    <div className="min-h-screen">
       {/* Hero Header */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
         <div className="container mx-auto px-4 py-12 lg:py-16 relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -192,14 +213,14 @@ export default async function DashboardPage() {
       {/* Stats */}
       <section className="container mx-auto px-4 -mt-2 mb-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
             <BookOpen className="w-6 h-6 text-cyan-400 mb-3" />
             <div className="text-3xl font-bold"><span className="text-slate-400">{enrolledCount}</span><span className="text-white"> / {coursesCatalog.length}</span></div>
             <div className="text-xs text-slate-400 mt-1">
               {enrolledCount === 1 ? "Curso inscrito" : "Cursos inscritos"}
             </div>
           </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
             <Trophy className="w-6 h-6 text-amber-400 mb-3" />
             {
               (() => {
@@ -208,7 +229,7 @@ export default async function DashboardPage() {
                     const modules = dc.hasFullCourse
                       ? dc.catalog.modules
                       : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
-                    return acc + modules.reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0);
+                    return acc + modules.reduce((sum: number, m: any) => sum + (m.chapters || []).flatMap((ch: any) => ch.lessons || []).length, 0);
                   }
                   return acc;
                 }, 0);
@@ -224,20 +245,15 @@ export default async function DashboardPage() {
               {completedLessons === 1 ? "Lección completada" : "Lecciones completadas"}
             </div>
           </div>
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
               <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
-              {(() => {
-                const certificados = 0;
-                return (
-                  <div className="text-3xl font-bold">
-                    <span className="text-slate-400">{certificados}</span>
-                    <span className="text-white"> / {dashboardCourses.length}</span>
-                  </div>
-                );
-              })()}
+              <div className="text-3xl font-bold">
+                <span className="text-slate-400">{certificates.length}</span>
+                <span className="text-white"> / {dashboardCourses.length}</span>
+              </div>
               <div className="text-xs text-slate-400 mt-1">Certificados</div>
             </div>
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
               <Clock className="w-6 h-6 text-purple-400 mb-3" />
               {(() => {
                 // Sumar la duración de las lecciones completadas de los cursos inscritos
@@ -263,7 +279,7 @@ export default async function DashboardPage() {
                         ? dc.catalog.modules
                         : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
                       modules.forEach((mod: any) => {
-                        (mod.lessons || []).forEach((lesson: any) => {
+                        (mod.chapters || []).flatMap((ch: any) => ch.lessons || []).forEach((lesson: any) => {
                           const min = parseMin(lesson.duration);
                           if (completedByTitle.has(lesson.title)) {
                             minutosCompletados += min;
@@ -321,7 +337,7 @@ export default async function DashboardPage() {
                     return (
                       <div
                         key={dc.id}
-                        className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden"
+                        className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden"
                       >
                         {/* Course Header */}
                         <div className={`bg-gradient-to-r ${gradient} px-5 py-4`}>
@@ -371,7 +387,7 @@ export default async function DashboardPage() {
                           <div className="divide-y divide-slate-700/50">
                             {modules.map((mod) => {
                               const isUnlocked = dc.hasFullCourse || dc.purchasedModuleIds.includes(mod.id);
-                              const moduleLessons = mod.lessons || [];
+                              const moduleLessons = (mod.chapters || []).flatMap((ch: any) => ch.lessons || []);
                               const completedInModule = moduleLessons.filter((l) => completedByTitle.has(l.title)).length;
                               const moduleProgress = moduleLessons.length > 0
                                 ? Math.round((completedInModule / moduleLessons.length) * 100)
@@ -497,6 +513,46 @@ export default async function DashboardPage() {
               )}
             </div>
 
+            {/* Mis Certificados */}
+            {certificates.length > 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-400" />
+                  Mis Certificados
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {certificates.map((cert) => (
+                    <Link
+                      key={cert.id}
+                      href={`/certificados/${cert.id}`}
+                      className="block"
+                    >
+                      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/30 rounded-xl p-5 hover:border-amber-500/60 hover:shadow-lg hover:shadow-amber-500/5 transition-all group">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+                            <Award className="w-5 h-5 text-amber-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-semibold text-sm line-clamp-2 mb-1">
+                              {cert.course_title}
+                            </p>
+                            <p className="text-slate-500 text-xs">
+                              {new Date(cert.issued_at).toLocaleDateString("es-ES", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-amber-400/60 group-hover:text-amber-400 shrink-0 mt-0.5 transition-colors" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Cursos recomendados */}
             {(() => {
               const enrolledSlugs = new Set(dashboardCourses.map((dc) => dc.catalog?.slug).filter(Boolean));
@@ -515,7 +571,7 @@ export default async function DashboardPage() {
                         href={`/cursos/${course.slug}`}
                         className="block"
                       >
-                        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/70 hover:shadow-lg hover:shadow-cyan-500/5 transition-all group">
+                        <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/70 hover:shadow-lg hover:shadow-cyan-500/5 transition-all group">
                           <div className={`h-24 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
                             <h4 className="text-white font-bold text-center text-sm px-4 drop-shadow">
                               {course.title}
@@ -547,7 +603,7 @@ export default async function DashboardPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Profile Card */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden">
               <div className="bg-gradient-to-r from-cyan-600 to-blue-600 h-20 relative">
                 <div className="absolute -bottom-8 left-5">
                   <div className="w-16 h-16 rounded-full border-4 border-slate-900 overflow-hidden">
@@ -588,7 +644,7 @@ export default async function DashboardPage() {
                   </div>
                 </div>
 
-                <Link href="/settings" className="block mt-5">
+                <Link href="/profile" className="block mt-5">
                   <Button
                     className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md"
                   >
@@ -600,7 +656,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
               <h3 className="text-white font-semibold mb-4">Acciones Rápidas</h3>
               <div className="space-y-2">
                 <Link href="/cursos" className="block">

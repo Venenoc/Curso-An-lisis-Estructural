@@ -148,34 +148,34 @@ export default async function CursoDetailPage({
               {/* Orbital grid layout */}
               <div className="relative max-w-6xl mx-auto">
                 {/* Desktop orbital layout */}
-                <div className="hidden lg:block relative" style={{ height: '700px' }}>
+                <div className="hidden lg:block relative" style={{ height: '860px' }}>
                   {/* Connection lines (decorative) */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 1000 700">
-                    <line x1="200" y1="150" x2="420" y2="280" stroke="rgba(6,182,212,0.15)" strokeWidth="1" strokeDasharray="6 4" />
-                    <line x1="800" y1="150" x2="580" y2="280" stroke="rgba(6,182,212,0.15)" strokeWidth="1" strokeDasharray="6 4" />
-                    <line x1="200" y1="550" x2="420" y2="420" stroke="rgba(6,182,212,0.15)" strokeWidth="1" strokeDasharray="6 4" />
-                    <line x1="800" y1="550" x2="580" y2="420" stroke="rgba(6,182,212,0.15)" strokeWidth="1" strokeDasharray="6 4" />
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 1200 860">
+                    <line x1="120" y1="170" x2="600" y2="430" stroke="rgba(6,182,212,0.15)" strokeWidth="2" strokeDasharray="6 4" />
+                    <line x1="1080" y1="170" x2="600" y2="430" stroke="rgba(6,182,212,0.15)" strokeWidth="2" strokeDasharray="6 4" />
+                    <line x1="120" y1="690" x2="600" y2="430" stroke="rgba(6,182,212,0.15)" strokeWidth="2" strokeDasharray="6 4" />
+                    <line x1="1080" y1="690" x2="600" y2="430" stroke="rgba(6,182,212,0.15)" strokeWidth="2" strokeDasharray="6 4" />
                   </svg>
 
                   {/* Central course card */}
                   {(() => {
-                    const courseVideoUrl = course.modules?.flatMap((m) => m.lessons || []).find((l) => l.videoUrl)?.videoUrl || "";
+                    const courseVideoUrl = course.modules?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons)).find((l) => l.videoUrl)?.videoUrl || "";
                     return (
-                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[380px]">
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[480px]">
                         <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-2xl shadow-cyan-500/20`}>
                           <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                             {/* Video or gradient header */}
                             {courseVideoUrl ? (
                               <video
-                                className="w-full h-44 object-cover bg-black"
+                                className="w-full h-64 object-cover bg-black"
                                 controls
                                 preload="metadata"
                               >
                                 <source src={courseVideoUrl} type="video/mp4" />
                               </video>
                             ) : (
-                              <div className={`h-32 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
-                                <BookOpen className="w-12 h-12 text-white/70" />
+                              <div className={`h-44 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
+                                <BookOpen className="w-14 h-14 text-white/70" />
                               </div>
                             )}
                             <div className="p-5 text-center">
@@ -235,19 +235,19 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
-                    const firstVideoUrl = module.lessons?.find((l) => l.videoUrl)?.videoUrl || "";
+                    const firstVideoUrl = (module.chapters || []).flatMap((ch) => ch.lessons).find((l) => l.videoUrl)?.videoUrl || "";
                     const positions = [
-                      'left-[2%] top-[4%]',
-                      'right-[2%] top-[4%]',
-                      'left-[2%] bottom-[4%]',
-                      'right-[2%] bottom-[4%]',
+                      'left-[-7%] top-[3%]',
+                      'right-[-7%] top-[3%]',
+                      'left-[-7%] bottom-[3%]',
+                      'right-[-7%] bottom-[3%]',
                     ];
                     const rotations = ['-rotate-2', 'rotate-2', 'rotate-1', '-rotate-1'];
 
                     return (
                       <div
                         key={module.id}
-                        className={`absolute ${positions[index]} z-20 w-[280px] group`}
+                        className={`absolute ${positions[index]} z-20 w-[320px] group`}
                       >
                         <div className={`${rotations[index]} hover:rotate-0 transition-all duration-500 ease-out`}>
                           <div className={`bg-slate-800/80 border rounded-xl overflow-hidden backdrop-blur-sm hover:shadow-lg transition-all duration-300 ${
@@ -258,7 +258,7 @@ export default async function CursoDetailPage({
                             <div className="relative overflow-hidden">
                               {firstVideoUrl ? (
                                 <video
-                                  className="w-full h-40 object-cover bg-black"
+                                  className="w-full h-52 object-cover bg-black"
                                   controls
                                   preload="metadata"
                                   poster=""
@@ -266,7 +266,7 @@ export default async function CursoDetailPage({
                                   <source src={firstVideoUrl} type="video/mp4" />
                                 </video>
                               ) : (
-                                <div className={`h-32 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
+                                <div className={`h-40 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
                                   <div className="absolute inset-0 bg-black/20" />
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <ModuleIcon className="w-12 h-12 text-white/70" />
@@ -293,9 +293,19 @@ export default async function CursoDetailPage({
                               <h4 className="text-white font-semibold text-sm leading-snug mb-2 line-clamp-2">
                                 {module.title}
                               </h4>
-                              <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-3">
-                                {module.description}
-                              </p>
+                              {module.chapters && module.chapters.length > 0 && (
+                                <ul className="space-y-1 mb-3">
+                                  {module.chapters.slice(0, 3).map((chapter) => (
+                                    <li key={chapter.id} className="flex items-start gap-1.5 text-xs text-slate-400">
+                                      <ChevronRight className="w-3 h-3 text-cyan-500 shrink-0 mt-0.5" />
+                                      <span className="line-clamp-1">{chapter.title}</span>
+                                    </li>
+                                  ))}
+                                  {module.chapters.length > 3 && (
+                                    <li className="text-xs text-slate-500 pl-4">+{module.chapters.length - 3} más</li>
+                                  )}
+                                </ul>
+                              )}
                               <div className="flex items-center justify-between">
                                 <div className="flex gap-3 text-[11px] text-slate-500">
                                   <span className="flex items-center gap-1">
@@ -308,7 +318,7 @@ export default async function CursoDetailPage({
                                   </span>
                                 </div>
                                 {isModuleOwned ? (
-                                  <Link href={`/classroom/${course.slug}`}>
+                                  <Link href={`/classroom/${course.slug}?module=${module.id}`}>
                                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-400 hover:text-green-300 transition-colors cursor-pointer">
                                       <PlayCircle className="w-3 h-3" />
                                       Ir al Classroom
@@ -340,18 +350,18 @@ export default async function CursoDetailPage({
                 {/* Tablet layout */}
                 <div className="hidden md:grid lg:hidden grid-cols-2 gap-6">
                   {(() => {
-                    const courseVideoUrl = course.modules?.flatMap((m) => m.lessons || []).find((l) => l.videoUrl)?.videoUrl || "";
+                    const courseVideoUrl = course.modules?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons)).find((l) => l.videoUrl)?.videoUrl || "";
                     return (
                       <div className="col-span-2 flex justify-center mb-4">
-                        <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-2xl shadow-cyan-500/20 w-full max-w-lg`}>
+                        <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-2xl shadow-cyan-500/20 w-full max-w-2xl`}>
                           <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                             {courseVideoUrl ? (
-                              <video className="w-full h-48 object-cover bg-black" controls preload="metadata">
+                              <video className="w-full h-64 object-cover bg-black" controls preload="metadata">
                                 <source src={courseVideoUrl} type="video/mp4" />
                               </video>
                             ) : (
-                              <div className={`h-28 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
-                                <BookOpen className="w-10 h-10 text-white/70" />
+                              <div className={`h-40 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
+                                <BookOpen className="w-12 h-12 text-white/70" />
                               </div>
                             )}
                             <div className="p-5 text-center">
@@ -390,18 +400,18 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
-                    const firstVideoUrl = module.lessons?.find((l) => l.videoUrl)?.videoUrl || "";
+                    const firstVideoUrl = (module.chapters || []).flatMap((ch) => ch.lessons).find((l) => l.videoUrl)?.videoUrl || "";
                     return (
                       <div key={module.id} className={`bg-slate-800/80 border rounded-xl overflow-hidden transition-all ${
                         isModuleOwned ? "border-green-500/30 hover:border-green-500/50" : "border-slate-700/50 hover:border-cyan-500/30"
                       }`}>
                         <div className="relative">
                           {firstVideoUrl ? (
-                            <video className="w-full h-36 object-cover bg-black" controls preload="metadata">
+                            <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
                               <source src={firstVideoUrl} type="video/mp4" />
                             </video>
                           ) : (
-                            <div className={`h-28 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
+                            <div className={`h-40 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
                               <div className="absolute inset-0 bg-black/20" />
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <ModuleIcon className="w-10 h-10 text-white/70" />
@@ -419,14 +429,26 @@ export default async function CursoDetailPage({
                         </div>
                         <div className="p-4">
                           <h4 className="text-white font-semibold text-sm mb-1 line-clamp-2">{module.title}</h4>
-                          <p className="text-slate-400 text-xs line-clamp-2 mb-2">{module.description}</p>
+                          {module.chapters && module.chapters.length > 0 && (
+                            <ul className="space-y-1 mb-2">
+                              {module.chapters.slice(0, 3).map((chapter) => (
+                                <li key={chapter.id} className="flex items-start gap-1.5 text-xs text-slate-400">
+                                  <ChevronRight className="w-3 h-3 text-cyan-500 shrink-0 mt-0.5" />
+                                  <span className="line-clamp-1">{chapter.title}</span>
+                                </li>
+                              ))}
+                              {module.chapters.length > 3 && (
+                                <li className="text-xs text-slate-500 pl-4">+{module.chapters.length - 3} más</li>
+                              )}
+                            </ul>
+                          )}
                           <div className="flex items-center justify-between">
                             <div className="flex gap-3 text-[11px] text-slate-500">
                               <span className="flex items-center gap-1"><PlayCircle className="w-3 h-3" />{module.lessonsCount} lecciones</span>
                               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{module.duration}</span>
                             </div>
                             {isModuleOwned ? (
-                              <Link href={`/classroom/${course.slug}`}>
+                              <Link href={`/classroom/${course.slug}?module=${module.id}`}>
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-400 hover:text-green-300 transition-colors">
                                   <PlayCircle className="w-3 h-3" />Ir al Classroom
                                 </span>
@@ -448,17 +470,17 @@ export default async function CursoDetailPage({
                 {/* Mobile layout */}
                 <div className="md:hidden space-y-4">
                   {(() => {
-                    const courseVideoUrl = course.modules?.flatMap((m) => m.lessons || []).find((l) => l.videoUrl)?.videoUrl || "";
+                    const courseVideoUrl = course.modules?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons)).find((l) => l.videoUrl)?.videoUrl || "";
                     return (
                       <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-xl shadow-cyan-500/20`}>
                         <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                           {courseVideoUrl ? (
-                            <video className="w-full h-44 object-cover bg-black" controls preload="metadata">
+                            <video className="w-full h-56 object-cover bg-black" controls preload="metadata">
                               <source src={courseVideoUrl} type="video/mp4" />
                             </video>
                           ) : (
-                            <div className={`h-24 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
-                              <BookOpen className="w-8 h-8 text-white/70" />
+                            <div className={`h-36 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
+                              <BookOpen className="w-10 h-10 text-white/70" />
                             </div>
                           )}
                           <div className="p-4 text-center">
@@ -503,14 +525,14 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
-                    const firstVideoUrl = module.lessons?.find((l) => l.videoUrl)?.videoUrl || "";
+                    const firstVideoUrl = (module.chapters || []).flatMap((ch) => ch.lessons).find((l) => l.videoUrl)?.videoUrl || "";
                     return (
                       <div key={module.id} className={`bg-slate-800/80 border rounded-xl overflow-hidden ${
                         isModuleOwned ? "border-green-500/30" : "border-slate-700/50"
                       }`}>
                         {firstVideoUrl ? (
                           <div className="relative">
-                            <video className="w-full h-40 object-cover bg-black" controls preload="metadata">
+                            <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
                               <source src={firstVideoUrl} type="video/mp4" />
                             </video>
                             <div className="absolute top-2 left-2 bg-black/60 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white z-10">
@@ -542,14 +564,26 @@ export default async function CursoDetailPage({
                                   <span className="text-[9px] font-bold text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded-full shrink-0">Adquirido</span>
                                 )}
                               </div>
-                              <p className="text-slate-400 text-xs line-clamp-2 mb-2">{module.description}</p>
+                              {module.chapters && module.chapters.length > 0 && (
+                                <ul className="space-y-1 mb-2">
+                                  {module.chapters.slice(0, 2).map((chapter) => (
+                                    <li key={chapter.id} className="flex items-start gap-1 text-[10px] text-slate-400">
+                                      <ChevronRight className="w-2.5 h-2.5 text-cyan-500 shrink-0 mt-0.5" />
+                                      <span className="line-clamp-1">{chapter.title}</span>
+                                    </li>
+                                  ))}
+                                  {module.chapters.length > 2 && (
+                                    <li className="text-[10px] text-slate-500 pl-3">+{module.chapters.length - 2} más</li>
+                                  )}
+                                </ul>
+                              )}
                               <div className="flex items-center justify-between">
                                 <div className="flex gap-3 text-[10px] text-slate-500">
                                   <span className="flex items-center gap-1"><PlayCircle className="w-3 h-3" />{module.lessonsCount}</span>
                                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{module.duration}</span>
                                 </div>
                                 {isModuleOwned ? (
-                                  <Link href={`/classroom/${course.slug}`}>
+                                  <Link href={`/classroom/${course.slug}?module=${module.id}`}>
                                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-400 hover:text-green-300 transition-colors">
                                       <PlayCircle className="w-3 h-3" />Classroom
                                     </span>
@@ -574,14 +608,26 @@ export default async function CursoDetailPage({
                                 <span className="text-[9px] font-bold text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded-full shrink-0">Adquirido</span>
                               )}
                             </div>
-                            <p className="text-slate-400 text-xs line-clamp-2 mb-2">{module.description}</p>
+                            {module.chapters && module.chapters.length > 0 && (
+                              <ul className="space-y-1 mb-2">
+                                {module.chapters.slice(0, 2).map((chapter) => (
+                                  <li key={chapter.id} className="flex items-start gap-1 text-[10px] text-slate-400">
+                                    <ChevronRight className="w-2.5 h-2.5 text-cyan-500 shrink-0 mt-0.5" />
+                                    <span className="line-clamp-1">{chapter.title}</span>
+                                  </li>
+                                ))}
+                                {module.chapters.length > 2 && (
+                                  <li className="text-[10px] text-slate-500 pl-3">+{module.chapters.length - 2} más</li>
+                                )}
+                              </ul>
+                            )}
                             <div className="flex items-center justify-between">
                               <div className="flex gap-3 text-[10px] text-slate-500">
                                 <span className="flex items-center gap-1"><PlayCircle className="w-3 h-3" />{module.lessonsCount}</span>
                                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{module.duration}</span>
                               </div>
                               {isModuleOwned ? (
-                                <Link href={`/classroom/${course.slug}`}>
+                                <Link href={`/classroom/${course.slug}?module=${module.id}`}>
                                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-400 hover:text-green-300 transition-colors">
                                     <PlayCircle className="w-3 h-3" />Classroom
                                   </span>
@@ -605,6 +651,77 @@ export default async function CursoDetailPage({
           </section>
         );
       })()}
+
+      {/* Syllabus Section */}
+      {course.modules && course.modules.length > 0 && (
+        <section className="py-16 lg:py-20 border-t border-slate-800/60">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-white mb-2 text-center">Syllabus</h2>
+              <p className="text-slate-400 mb-10 text-center max-w-2xl mx-auto">{course.title}</p>
+
+              <div className="space-y-3">
+                {course.modules.map((module, moduleIndex) => (
+                  <details
+                    key={module.id}
+                    className="group bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden"
+                  >
+                    <summary className="flex items-center justify-between p-5 cursor-pointer list-none hover:bg-slate-700/30 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-br ${course.gradient} text-white shadow-md`}>
+                          {String(moduleIndex + 1).padStart(2, "0")}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">Módulo {moduleIndex + 1}</p>
+                          <h3 className="text-white font-semibold text-sm leading-snug truncate">{module.title}</h3>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 ml-4">
+                        <span className="hidden sm:flex items-center gap-1 text-[11px] text-slate-500">
+                          <PlayCircle className="w-3.5 h-3.5" />
+                          {module.lessonsCount} lecciones
+                        </span>
+                        <span className="hidden sm:flex items-center gap-1 text-[11px] text-slate-500">
+                          <Clock className="w-3.5 h-3.5" />
+                          {module.duration}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-slate-400 transition-transform duration-300 group-open:rotate-90" />
+                      </div>
+                    </summary>
+
+                    {module.chapters && module.chapters.map((chapter) => (
+                      <div key={chapter.id} className="border-t border-slate-700/40">
+                        {/* Chapter header */}
+                        <div className="flex items-center gap-2 px-5 py-3 bg-slate-900/50">
+                          <BookOpen className="w-3.5 h-3.5 text-cyan-400/80 shrink-0" />
+                          <p className="text-cyan-300/90 text-xs font-medium">{chapter.title}</p>
+                        </div>
+                        {/* Lessons */}
+                        <ul>
+                          {chapter.lessons.map((lesson, lessonIndex) => (
+                            <li
+                              key={lesson.id}
+                              className="flex items-center justify-between px-5 py-2.5 border-t border-slate-700/20 hover:bg-slate-700/10 transition-colors"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-[10px] text-slate-600 shrink-0 w-5 text-right tabular-nums">
+                                  {lessonIndex + 1}
+                                </span>
+                                <span className="text-slate-300 text-xs truncate">{lesson.title}</span>
+                              </div>
+                              <span className="text-[11px] text-slate-500 shrink-0 ml-4 tabular-nums">{lesson.duration}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Purchase Section - Curso Completo */}
       <section className="py-16 lg:py-20">

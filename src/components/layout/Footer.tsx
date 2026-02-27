@@ -80,7 +80,7 @@ export default function Footer() {
         </div>
         <div className="mt-6 border-t border-blue-600 pt-4 text-center w-full">
           <p className="text-xs text-blue-100">
-            © 2026 IngeCivil Academy. Todos los derechos reservados.
+            © 2026 Albert Structural Academy. Todos los derechos reservados.
           </p>
         </div>
       </div>

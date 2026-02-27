@@ -9,31 +9,78 @@ interface CourseCardProps {
   course: CatalogCourse;
   purchased: boolean;
   isAuthenticated: boolean;
+  variant?: "default" | "light" | "platform";
 }
 
-export default function CourseCard({ course, purchased, isAuthenticated }: CourseCardProps) {
-  const link = isAuthenticated
-    ? `/cursos/${course.slug}`
-    : `/login?redirectTo=/cursos/${course.slug}`;
+export default function CourseCard({ course, purchased, isAuthenticated, variant = "default" }: CourseCardProps) {
+  const link = variant === "light"
+    ? `/cursos_m/${course.slug}`
+    : isAuthenticated
+      ? `/cursos/${course.slug}`
+      : `/login?redirectTo=/cursos/${course.slug}`;
+  const isLight = variant === "light";
+  const isPlatform = variant === "platform";
   return (
     <Link href={link} className="block">
-      <div className="group bg-slate-800/60 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col h-full">
-        {/* Gradient Header */}
-        <div className={`h-44 bg-gradient-to-br ${course.gradient} relative flex items-center justify-center p-6`}>
-          <h3 className="text-white text-xl font-bold text-center drop-shadow-lg leading-tight">
-            {course.title}
-          </h3>
-          {purchased && (
-            <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              Adquirido
-            </div>
-          )}
-        </div>
+      <div
+        className={
+          isLight
+            ? "group bg-white border border-cyan-100 rounded-2xl overflow-hidden hover:bg-cyan-50 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-200/30 hover:-translate-y-1 flex flex-col h-full"
+            : "group bg-slate-800/80 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col h-full"
+        }
+      >
+        {/* Header solo imagen o gradiente */}
+        {course.title === "Conceptos Fundamentales en el Comportamiento y Diseño de Vigas" ? (
+          <div
+            className={isLight
+              ? "h-44 relative flex items-center justify-center p-6 bg-cover bg-center"
+              : "h-44 relative flex items-center justify-center p-6 bg-cover bg-center"}
+            style={{ backgroundImage: 'url(/images/Fondocurso1.jpg)' }}
+          >
+            {purchased && (
+              <div className={isLight ? "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow" : "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"}>
+                <CheckCircle2 className="w-3 h-3" />
+                Adquirido
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            className={
+              isLight
+                ? `h-44 bg-gradient-to-br from-cyan-100 to-blue-100 relative flex items-center justify-center p-6`
+                : `h-44 bg-gradient-to-br ${course.gradient} relative flex items-center justify-center p-6`
+            }
+          >
+            {purchased && (
+              <div className={isLight ? "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow" : "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"}>
+                <CheckCircle2 className="w-3 h-3" />
+                Adquirido
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Content */}
-        <div className="p-5 flex flex-col flex-1">
-          <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 mb-4">
+        <div className={isLight ? "p-5 flex flex-col flex-1" : "p-5 flex flex-col flex-1"}>
+          <h3
+            className={
+              isLight
+                ? "text-cyan-700 text-xl font-bold text-center drop-shadow-lg leading-tight mb-2"
+                : isPlatform
+                  ? "text-white text-xl font-bold text-center drop-shadow-lg leading-tight mb-2"
+                  : "text-white text-xl font-bold text-center drop-shadow-lg leading-tight mb-2"
+            }
+          >
+            {course.title}
+          </h3>
+          <p className={
+            isLight
+              ? "text-slate-600 text-sm leading-relaxed line-clamp-3 mb-4"
+              : isPlatform
+                ? "text-slate-200 text-sm leading-relaxed line-clamp-3 mb-4"
+                : "text-black-200 text-sm leading-relaxed line-clamp-3 mb-4"
+          }>
             {course.description}
           </p>
 
@@ -71,8 +118,8 @@ export default function CourseCard({ course, purchased, isAuthenticated }: Cours
           {/* Price & CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
             <div>
-              <span className="text-2xl font-bold text-white">${course.price}</span>
-              <span className="text-slate-500 text-sm ml-1">USD</span>
+              <span className={isPlatform ? "text-2xl font-bold text-white" : "text-2xl font-bold text-black"}>${course.price}</span>
+              <span className={isPlatform ? "text-slate-200 text-sm ml-1" : "text-slate-500 text-sm ml-1"}>USD</span>
             </div>
 
             {purchased ? (

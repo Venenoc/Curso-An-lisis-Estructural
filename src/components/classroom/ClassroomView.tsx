@@ -7,6 +7,7 @@ import ClassroomSidebar from "./ClassroomSidebar";
 import VideoPlayer from "./VideoPlayer";
 import ClassroomTabs from "./ClassroomTabs";
 import type { CatalogCourse, CourseLesson } from "@/data/courses-catalog";
+import type { QuizWithQuestions } from "@/app/actions/quizzes";
 
 interface ClassroomViewProps {
   course: CatalogCourse;
@@ -14,6 +15,8 @@ interface ClassroomViewProps {
   profileId: string;
   hasFullCourse: boolean;
   purchasedModuleIds: number[];
+  initialLessonId?: number;
+  quizzesByCatalogLessonId?: Record<number, QuizWithQuestions>;
 }
 
 export default function ClassroomView({
@@ -22,24 +25,31 @@ export default function ClassroomView({
   profileId,
   hasFullCourse,
   purchasedModuleIds,
+  initialLessonId,
+  quizzesByCatalogLessonId,
 }: ClassroomViewProps) {
   const modules = course.modules || [];
 
-  // Flatten all lessons with their module info
+  // Flatten all lessons through module → chapter → lesson
   const allLessons = useMemo(() => {
-    const lessons: { moduleId: number; moduleName: string; lesson: CourseLesson }[] = [];
+    const lessons: { moduleId: number; moduleName: string; chapterId: number; chapterName: string; lesson: CourseLesson }[] = [];
     modules.forEach((m) => {
-      (m.lessons || []).forEach((l) => {
-        lessons.push({ moduleId: m.id, moduleName: m.title, lesson: l });
+      (m.chapters || []).forEach((ch) => {
+        (ch.lessons || []).forEach((l) => {
+          lessons.push({ moduleId: m.id, moduleName: m.title, chapterId: ch.id, chapterName: ch.title, lesson: l });
+        });
       });
     });
     return lessons;
   }, [modules]);
 
   const firstLesson = allLessons[0];
+  const startLesson = initialLessonId
+    ? (allLessons.find((l) => l.lesson.id === initialLessonId) ?? firstLesson)
+    : firstLesson;
 
-  const [, setCurrentModuleId] = useState(firstLesson?.moduleId || 0);
-  const [currentLessonId, setCurrentLessonId] = useState(firstLesson?.lesson.id || 0);
+  const [, setCurrentModuleId] = useState(startLesson?.moduleId || 0);
+  const [currentLessonId, setCurrentLessonId] = useState(startLesson?.lesson.id || 0);
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -48,37 +58,32 @@ export default function ClassroomView({
     const unlocked = new Set<number>();
 
     if (hasFullCourse) {
-      // Full course: sequential unlock across modules
-      // First lesson of first module is always unlocked
+      // Full course: sequential unlock across modules → chapters → lessons
       let canContinue = true;
       for (const mod of modules) {
-        const moduleLessons = mod.lessons || [];
-        for (let i = 0; i < moduleLessons.length; i++) {
-          const lesson = moduleLessons[i];
-          if (canContinue) {
-            unlocked.add(lesson.id);
-            // If this lesson is NOT completed, lock everything after it
-            if (!completedIds.includes(String(lesson.id))) {
-              canContinue = false;
+        for (const ch of (mod.chapters || [])) {
+          for (const lesson of (ch.lessons || [])) {
+            if (canContinue) {
+              unlocked.add(lesson.id);
+              if (!completedIds.includes(String(lesson.id))) {
+                canContinue = false;
+              }
             }
           }
         }
       }
     } else {
-      // Module purchases: only unlock lessons in purchased modules, sequentially
+      // Module purchases: sequential within each purchased module (across chapters)
       for (const mod of modules) {
         if (!purchasedModuleIds.includes(mod.id)) continue;
-        const moduleLessons = mod.lessons || [];
-        for (let i = 0; i < moduleLessons.length; i++) {
-          const lesson = moduleLessons[i];
-          if (i === 0) {
-            // First lesson of purchased module is always unlocked
-            unlocked.add(lesson.id);
-          } else {
-            // Unlock only if previous lesson in this module is completed
-            const prevLesson = moduleLessons[i - 1];
-            if (completedIds.includes(String(prevLesson.id))) {
+        let canContinue = true;
+        for (const ch of (mod.chapters || [])) {
+          for (const lesson of (ch.lessons || [])) {
+            if (canContinue) {
               unlocked.add(lesson.id);
+              if (!completedIds.includes(String(lesson.id))) {
+                canContinue = false;
+              }
             }
           }
         }
@@ -186,7 +191,7 @@ export default function ClassroomView({
             <VideoPlayer
               courseSlug={course.slug}
               gradient={course.gradient}
-              moduleName={currentEntry.moduleName}
+              chapterName={currentEntry.chapterName}
               lesson={currentEntry.lesson}
               isCompleted={completedIds.includes(String(currentLessonId))}
               hasNext={hasNext}
@@ -195,7 +200,11 @@ export default function ClassroomView({
               onNextLesson={handleNextLesson}
             />
             {/* Tabs */}
-            <ClassroomTabs lessonTitle={currentEntry.lesson.title} />
+            <ClassroomTabs
+              lessonTitle={currentEntry.lesson.title}
+              quiz={quizzesByCatalogLessonId?.[currentLessonId]}
+              courseSlug={course.slug}
+            />
           </div>
         </div>
       </div>

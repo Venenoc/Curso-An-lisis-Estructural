@@ -5,7 +5,8 @@ import { Send, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createReply, deleteReply } from "@/app/actions/community";
-import { Avatar, RoleBadge, timeAgo } from "./PostCard";
+import { Avatar, RoleBadge, LevelBadge, timeAgo } from "./PostCard";
+import type { UserStats } from "@/lib/community-levels";
 
 interface ReplyAuthor {
   full_name: string | null;
@@ -25,9 +26,10 @@ interface ReplySectionProps {
   postId: string;
   replies: Reply[];
   currentUserId: string;
+  userStats: Record<string, UserStats>;
 }
 
-export default function ReplySection({ postId, replies, currentUserId }: ReplySectionProps) {
+export default function ReplySection({ postId, replies, currentUserId, userStats }: ReplySectionProps) {
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,33 +54,37 @@ export default function ReplySection({ postId, replies, currentUserId }: ReplySe
   return (
     <div className="border-t border-slate-700/30 bg-slate-900/30">
       {/* Replies list */}
-      {replies.map((reply) => (
-        <div key={reply.id} className="px-5 py-3 border-b border-slate-800/50 last:border-b-0">
-          <div className="flex items-start gap-3 pl-6">
-            <div className="w-8 h-8 shrink-0">
-              <Avatar name={reply.profiles.full_name} url={reply.profiles.avatar_url} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white font-medium text-xs">
-                  {reply.profiles.full_name || "Usuario"}
-                </span>
-                <RoleBadge role={reply.profiles.role} />
-                <span className="text-slate-500 text-xs">{timeAgo(reply.created_at)}</span>
-                {reply.user_id === currentUserId && (
-                  <button
-                    onClick={() => handleDelete(reply.id)}
-                    className="text-slate-600 hover:text-red-400 transition-colors ml-auto"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                )}
+      {replies.map((reply) => {
+        const replyLevel = userStats[reply.user_id]?.level || "estudiante";
+        return (
+          <div key={reply.id} className="px-5 py-3 border-b border-slate-800/50 last:border-b-0">
+            <div className="flex items-start gap-3 pl-6">
+              <div className="w-8 h-8 shrink-0">
+                <Avatar name={reply.profiles.full_name} url={reply.profiles.avatar_url} />
               </div>
-              <p className="text-slate-400 text-sm mt-1 whitespace-pre-wrap">{reply.content}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-white font-medium text-xs">
+                    {reply.profiles.full_name || "Usuario"}
+                  </span>
+                  <RoleBadge role={reply.profiles.role} />
+                  <LevelBadge level={replyLevel} />
+                  <span className="text-slate-500 text-xs">{timeAgo(reply.created_at)}</span>
+                  {reply.user_id === currentUserId && (
+                    <button
+                      onClick={() => handleDelete(reply.id)}
+                      className="text-slate-600 hover:text-red-400 transition-colors ml-auto"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-slate-400 text-sm mt-1 whitespace-pre-wrap">{reply.content}</p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Reply form */}
       <div className="p-4 pl-11">

@@ -41,9 +41,24 @@ export default async function CursosPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+    <div className="relative flex flex-col min-h-screen">
+      {/* Fondo fijo */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0,
+        backgroundImage: 'url(/images/FondoPlatform_c.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        pointerEvents: 'none',
+      }} />
+      <div className="relative z-10 flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-28 overflow-hidden">
+      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
@@ -62,22 +77,22 @@ export default async function CursosPage() {
             </p>
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+              <div className="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4">
                 <BookOpen className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-white">8</div>
                 <div className="text-xs text-slate-400">Cursos</div>
               </div>
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+              <div className="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4">
                 <GraduationCap className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-white">225+</div>
                 <div className="text-xs text-slate-400">Lecciones</div>
               </div>
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+              <div className="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4">
                 <Clock className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-white">150+</div>
                 <div className="text-xs text-slate-400">Horas de contenido</div>
               </div>
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+              <div className="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4">
                 <Award className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-white">100%</div>
                 <div className="text-xs text-slate-400">Certificado</div>
@@ -92,12 +107,15 @@ export default async function CursosPage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {coursesCatalog.map((course) => (
-              <CourseCard
-                key={course.slug}
-                course={course}
-                purchased={purchasedSlugs.includes(course.slug)}
-                isAuthenticated={true}
-              />
+              <div className="bg-slate-800/80 rounded-xl">
+                <CourseCard
+                  key={course.slug}
+                  course={course}
+                  purchased={purchasedSlugs.includes(course.slug)}
+                  isAuthenticated={true}
+                  variant="platform"
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -106,7 +124,7 @@ export default async function CursosPage() {
       {/* CTA Section */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/20 rounded-2xl p-10">
+          <div className="max-w-3xl mx-auto text-center bg-gradient-to-r from-cyan-900/80 to-blue-900/80 border border-cyan-500/80 rounded-2xl p-10">
             <h2 className="text-3xl font-bold text-white mb-4">
               Invierte en tu carrera profesional
             </h2>
@@ -130,6 +148,7 @@ export default async function CursosPage() {
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }

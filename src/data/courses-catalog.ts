@@ -5,6 +5,12 @@ export interface CourseLesson {
   videoUrl: string;
 }
 
+export interface CourseChapter {
+  id: number;
+  title: string;
+  lessons: CourseLesson[];
+}
+
 export interface CourseModule {
   id: number;
   title: string;
@@ -12,7 +18,7 @@ export interface CourseModule {
   lessonsCount: number;
   duration: string;
   price: number;
-  lessons?: CourseLesson[];
+  chapters?: CourseChapter[];
 }
 
 export interface CatalogCourse {
@@ -30,7 +36,7 @@ export interface CatalogCourse {
 export const coursesCatalog: CatalogCourse[] = [
   {
     slug: "fundamentos-analisis-estructural",
-    title: "Fundamentos de Análisis Estructural",
+    title: "Conceptos Fundamentales en el Comportamiento y Diseño de Vigas",
     description:
       "Aprende los conceptos base del análisis estructural: equilibrio, diagramas de cuerpo libre, reacciones en apoyos y análisis de vigas y marcos isostáticos.",
     price: 29.99,
@@ -46,47 +52,160 @@ export const coursesCatalog: CatalogCourse[] = [
         lessonsCount: 2,
         duration: "45 min",
         price: 7.50,
-        lessons: [
-          { id: 101, title: "¿Qué es el Análisis Estructural?", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
-          { id: 102, title: "Tipos de Estructuras y Clasificación de Cargas", duration: "23 min", videoUrl: "" },
+        chapters: [
+          {
+            id: 11,
+            title: "Capítulo I: Fundamentos para el Diseño: Demanda vs Capacidad",
+            lessons: [
+              { id: 111, title: "¿Qué es la Demanda en el Diseño?", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 112, title: "Combinaciones para el Diseño: ACI 318 – 2019 & NTP E060", duration: "23 min", videoUrl: "" },
+              { id: 113, title: "¿Qué es la Capacidad en el Diseño?", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 114, title: "Estudio del Comportamiento del Concreto", duration: "23 min", videoUrl: "" },
+              { id: 115, title: "Relación Esfuerzo – Deformación: Modelo de Hognestad", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 116, title: "Estudio del Comportamiento del Acero de Refuerzo", duration: "23 min", videoUrl: "" },
+              { id: 117, title: "Relación Esfuerzo – Deformación: Modelo Elastoplástico", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 118, title: "¿Relación: Demanda/Capacidad?", duration: "23 min", videoUrl: "" },
+            ],
+          },
+          {
+            id: 12,
+            title: "Capítulo II: Diseño a Flexión en Vigas Simplemente Reforzadas",
+            lessons: [
+              { id: 121, title: "Hipótesis para el Diseño: ACI 318 – 2019 & NTP E060", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 122, title: "Introducción al Diseño a Flexión ACI 318 – 2019 & NTP E060", duration: "23 min", videoUrl: "" },
+              { id: 123, title: "Estudio de las Secciones Controladas a: Compresión & Tracción & Transición", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 124, title: "¿Sección Sub – Reforzada vs Sección Sobre – Reforzada?", duration: "23 min", videoUrl: "" },
+              { id: 125, title: "Estudio de la Cuantía Balanceada & Mínima & Máxima", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 126, title: "Deducción de las Ecuaciones de Diseño a Flexión – MathCad Prime", duration: "23 min", videoUrl: "" },
+              { id: 127, title: "Ejemplo I: Diseño de una Viga Simplemente Reforzada – MathCad Prime & Etabs", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 128, title: "Ejemplo II: Verificación a Flexión en una Viga Simplemente Reforzada – MathCad Prime", duration: "23 min", videoUrl: "" },
+            ],
+          },
+          {
+            id: 13,
+            title: "Capítulo III: Estudio del Comportamiento en Vigas Simplemente Reforzadas",
+            lessons: [
+              { id: 131, title: "Estudio del Diagrama Momento Curvatura – Acero en Tracción", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 132, title: "Estado Elástico No Agrietado (EENA)", duration: "23 min", videoUrl: "" },
+              { id: 133, title: "Estado Elástico Agrietado (EEA)", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 134, title: "Estado de Fluencia", duration: "23 min", videoUrl: "" },
+              { id: 135, title: "Estado de Rotura o Último (EU)", duration: "22 min", videoUrl: "https://res.cloudinary.com/dio3db11v/video/upload/v1771194576/Milky_Chance_-_Picnic_Concert_2020_in_Berlin_Germany_Full_Concert_online-video-cutter.com_vn4njl.mp4" },
+              { id: 136, title: "Cálculos en MathCad Prime", duration: "23 min", videoUrl: "" },
+            ],
+          },
         ],
       },
       {
         id: 2,
-        title: "Estática y Equilibrio de Cuerpos Rígidos",
+        title: "Vigas Doblemente Reforzadas: Diseño y Análisis",
         description: "Repaso de estática: fuerzas, momentos, resultantes, condiciones de equilibrio y principio de superposición.",
         lessonsCount: 3,
         duration: "1h 20min",
         price: 7.50,
-        lessons: [
-          { id: 201, title: "Fuerzas, Momentos y Resultantes", duration: "28 min", videoUrl: "" },
-          { id: 202, title: "Condiciones de Equilibrio", duration: "26 min", videoUrl: "" },
-          { id: 203, title: "Principio de Superposición", duration: "26 min", videoUrl: "" },
+        chapters: [
+          {
+            id: 21,
+            title: "Capítulo IV: Diseño a Flexión en Vigas Doblemente Reforzadas",
+            lessons: [
+              { id: 211, title: "Hipótesis para el Diseño: ACI 318 – 2019 & NTP E060", duration: "28 min", videoUrl: "" },
+              { id: 212, title: "¿Qué es una Viga Doblemente Reforzada?", duration: "26 min", videoUrl: "" },
+              { id: 213, title: "¿Cuándo usar una Viga Doblemente Reforzada en el Diseño?", duration: "28 min", videoUrl: "" },
+              { id: 214, title: "Introducción al Diseño a Flexión: ACI 318 – 2019 & NTP E060", duration: "26 min", videoUrl: "" },
+              { id: 215, title: "Cuantía Balanceada & Mínima & Máxima", duration: "28 min", videoUrl: "" },
+              { id: 216, title: "Deducción de las Ecuaciones de Diseño a Flexión – MathCad Prime", duration: "26 min", videoUrl: "" },
+              { id: 217, title: "Ejemplo I: Diseño de una Viga Doblemente Reforzada – MathCad Prime & Etabs", duration: "28 min", videoUrl: "" },
+              { id: 218, title: "Ejemplo II: Verificación a Flexión en una Viga Doblemente Reforzada – MathCad Prime", duration: "26 min", videoUrl: "" },
+            ],
+          },
+          {
+            id: 22,
+            title: "Capítulo V: Estudio del Comportamiento en Vigas Doblemente Reforzadas",
+            lessons: [
+              { id: 221, title: "Estudio del Diagrama Momento Curvatura - Acero en Tracción & Acero en Compresión", duration: "26 min", videoUrl: "" },
+              { id: 222, title: "Estado Elástico No Agrietado (EENA)", duration: "26 min", videoUrl: "" },
+              { id: 223, title: "Estado Elástico Agrietado (EEA)", duration: "26 min", videoUrl: "" },
+              { id: 224, title: "Estado de Fluencia", duration: "26 min", videoUrl: "" },
+              { id: 225, title: "Estado de Rotura o Último (EU)", duration: "26 min", videoUrl: "" },
+              { id: 226, title: "Cálculos en MathCad Prime", duration: "26 min", videoUrl: "" },
+              { id: 227, title: "Variación de la Ductilidad en Viga Doblemente Reforzada", duration: "26 min", videoUrl: "" },
+            ],
+          },
         ],
       },
       {
         id: 3,
-        title: "Tipos de Apoyos y Reacciones",
+        title: "Vigas T & L: Diseño y Análisis",
         description: "Apoyos fijos, móviles, empotramientos y articulaciones. Cálculo de reacciones en estructuras isostáticas.",
         lessonsCount: 2,
         duration: "1h 10min",
         price: 7.50,
-        lessons: [
-          { id: 301, title: "Apoyos Fijos, Móviles y Empotramientos", duration: "35 min", videoUrl: "" },
-          { id: 302, title: "Cálculo de Reacciones en Estructuras Isostáticas", duration: "35 min", videoUrl: "" },
+        chapters: [
+          {
+            id: 31,
+            title: "Capítulo VI: Diseño a Flexión en Vigas T & L",
+            lessons: [
+              { id: 311, title: "Hipótesis para el Diseño: ACI 318 – 2019 & NTP E060", duration: "35 min", videoUrl: "" },
+              { id: 312, title: "Introducción al Diseño a Flexión: ACI 318 – 2019 & NTP E060", duration: "35 min", videoUrl: "" },
+              { id: 313, title: "Disposiciones Generales de la Sección para el Diseño", duration: "35 min", videoUrl: "" },
+              { id: 314, title: "Cuantía Balanceada & Mínima & Máxima", duration: "35 min", videoUrl: "" },
+              { id: 315, title: "Deducción de las Ecuaciones de Diseño a Flexión – MathCad Prime", duration: "35 min", videoUrl: "" },
+              { id: 316, title: "Ejemplo I: Diseño de una Viga T Simplemente Reforzada – MathCad Prime & Etabs", duration: "35 min", videoUrl: "" },
+              { id: 317, title: "Ejemplo II: Verificación a Flexión de una Viga T Simplemente Reforzada – MathCad Prime & Etabs", duration: "35 min", videoUrl: "" },
+              { id: 318, title: "¿Es posible una Viga T Doblemente Reforzada?", duration: "35 min", videoUrl: "" },
+              { id: 319, title: "Ejemplo III: Diseño de una Viga T Doblemente Reforzada – MathCad Prime & Etabs", duration: "35 min", videoUrl: "" },
+              { id: 320, title: "Ejemplo IV: Verificación a Flexión de una Viga Doblemente Reforzada – MathCad Prime & Etabs", duration: "35 min", videoUrl: "" },
+            ],
+          },
+          {
+            id: 32,
+            title: "Capítulo VII: Estudio del Comportamiento en Vigas T & L",
+            lessons: [
+              { id: 321, title: "Estudio del Diagrama Momento Curvatura", duration: "35 min", videoUrl: "" },
+              { id: 322, title: "Estado Elástico No Agrietado (EENA)", duration: "35 min", videoUrl: "" },
+              { id: 323, title: "Estado Elástico Agrietado (EEA)", duration: "35 min", videoUrl: "" },
+              { id: 324, title: "Estado de Fluencia", duration: "35 min", videoUrl: "" },
+              { id: 325, title: "Estado de Rotura o Último (EU)", duration: "35 min", videoUrl: "" },
+              { id: 326, title: "Cálculos en MathCad Prime", duration: "35 min", videoUrl: "" },
+              { id: 327, title: "Variación de la Ductilidad en Vigas T", duration: "35 min", videoUrl: "" },
+            ],
+          },
         ],
       },
       {
         id: 4,
-        title: "Diagramas de Cuerpo Libre (DCL)",
+        title: "Comportamiento y Diseño a Cortante y Torsión",
         description: "Construcción de DCL para vigas, marcos y armaduras. Identificación de fuerzas internas y externas.",
         lessonsCount: 3,
         duration: "1h 30min",
         price: 7.49,
-        lessons: [
-          { id: 401, title: "Construcción de DCL para Vigas", duration: "30 min", videoUrl: "" },
-          { id: 402, title: "DCL para Marcos y Armaduras", duration: "30 min", videoUrl: "" },
-          { id: 403, title: "Fuerzas Internas y Externas", duration: "30 min", videoUrl: "" },
+        chapters: [
+          {
+            id: 41,
+            title: "Capítulo VIII: Comportamiento y Diseño a Cortante – ACI 318 – 2019 & NTP E060",
+            lessons: [
+              { id: 411, title: "Introducción al Diseño a Cortante: ACI 318 – 2019 & NTP E060", duration: "30 min", videoUrl: "" },
+              { id: 412, title: "Estudio de la Resistencia a Cortante Proporcionado por el Concreto", duration: "30 min", videoUrl: "" },
+              { id: 413, title: "Estudio de la Resistencia a Cortante Proporcionado por el Acero de Refuerzo", duration: "30 min", videoUrl: "" },
+              { id: 414, title: "Límites para el Espaciamiento del Refuerzo a Cortante", duration: "30 min", videoUrl: "" },
+              { id: 415, title: "Diagrama de Flujo para el Diseño a Cortante – Programación en MathCad Prime", duration: "30 min", videoUrl: "" },
+              { id: 416, title: "Diseño de una Viga a Cortante – MathCad Prime & Etabs", duration: "30 min", videoUrl: "" },
+              { id: 417, title: "Demanda/Capacidad a Corte", duration: "30 min", videoUrl: "" },
+            ],
+          },
+          {
+            id: 42,
+            title: "Capítulo IX: Comportamiento y Diseño a Torsión - ACI 318 – 2019 & NTP E060",
+            lessons: [
+              { id: 421, title: "Introducción al Diseño a Torsión: ACI 318 – 2019 & NTP E060", duration: "30 min", videoUrl: "" },
+              { id: 422, title: " ¿Cuándo se debe Diseñar a Torsión?", duration: "30 min", videoUrl: "" },
+              { id: 423, title: "Estudio de la Torsión Primaria & Torsión Secundaria", duration: "30 min", videoUrl: "" },
+              { id: 424, title: "Límites Máximos a Torsión: Umbral de Torsión & Torsión de Fisuración", duration: "30 min", videoUrl: "" },
+              { id: 425, title: "Estudio de las Ecuaciones a Torsión: Resistencia - Caos - Momento", duration: "30 min", videoUrl: "" },
+              { id: 426, title: "Diseño de una Viga a Torsión – MathCad Prime & Etabs", duration: "30 min", videoUrl: "" },
+              { id: 427, title: "¿Acero Longitudinal y Transversal a Torsión?", duration: "30 min", videoUrl: "" },
+              { id: 428, title: "Demanda/Capacidad a Torsión", duration: "30 min", videoUrl: "" },
+            ],
+          },
         ],
       },
     ],

@@ -31,7 +31,7 @@ export default function Home() {
       {/* Video de fondo solo en la sección principal */}
       <main className="relative w-full z-10">
         {/* Sección única fusionada */}
-        <section className="relative py-20 lg:py-32 flex flex-col items-center justify-center overflow-hidden">
+        <section className="relative pt-32 lg:pt-44 pb-20 lg:pb-32 flex flex-col items-center justify-center overflow-hidden">
           <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none" style={{maxHeight: '100vh'}}>
             <video
               autoPlay
@@ -42,25 +42,22 @@ export default function Home() {
               style={{maxHeight: '100vh'}}
               onCanPlayThrough={() => setVideoLoaded(true)}
             >
-              <source src="/images/Fondo2.mp4" type="video/mp4" />
+              <source src="/images/Fondo4.mp4" type="video/mp4" />
               Tu navegador no soporta el video de fondo.
             </video>
           </div>
           <div className="container relative z-10">
             {/* HERO */}
             <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-5xl lg:text-7xl font-bold tracking-tight mb-6 text-white leading-tight">
-                Domina el <br/>
-                <span className="bg-gradient-to-r from-indigo-50 to-cyan-400 bg-clip-text text-transparent">
-                  Análisis Estructural
+              <h1 className="text-5xl lg:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
+                <span className="block mb-8 bg-gradient-to-r from-indigo-50 to-cyan-400 bg-clip-text text-transparent">
+                   @Albert_Structural
                 </span>
-                <br/>
-                del Futuro
               </h1>
               <div className="bg-slate-900/40 backdrop-blur-sm border border-white rounded-xl px-6 py-6 max-w-2xl mx-auto mt-20 mb-20">
-                <p className="text-xl font-semibold text-white leading-relaxed">
-                  Aprende los fundamentos, técnicas avanzadas y herramientas profesionales 
-                  del Análisis Estructural con instructores expertos
+                <p className="text-3xl font-semibold text-white leading-relaxed">
+                  " La mejor manera de aprender  
+                  es enseñando"
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 mt-8">

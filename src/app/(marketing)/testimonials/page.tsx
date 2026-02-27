@@ -47,12 +47,20 @@ export default async function TestimonialsPage() {
     }
   ];
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100">
+    <div
+      className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100"
+      style={{
+        backgroundImage: 'url(/images/Fondo_ATm.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <main className="pt-20 pb-20 px-4">
         <div className="container mx-auto">
           {/* Header */}
           <div className="text-center mb-16 mt-20">
-            <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 text-cyan-700">
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 text-slate-800">
               Lo que dicen nuestros estudiantes
             </h1>
             <p className="text-slate-700 text-lg max-w-2xl mx-auto">
@@ -64,7 +72,7 @@ export default async function TestimonialsPage() {
             {testimonials.map((testimonial, index) => (
               <Card 
                 key={index} 
-                className="bg-slate-900/90 border-slate-800 backdrop-blur-sm hover:bg-slate-900 transition-all"
+                className="bg-slate-900/70 border-slate-800 backdrop-blur-sm hover:bg-slate-900 transition-all"
               >
                 <CardHeader>
                   <div className="flex items-start gap-4">
@@ -92,19 +100,19 @@ export default async function TestimonialsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
               <div className="text-center">
                 <div className="text-4xl font-bold text-blue-400 mb-2">4.9/5</div>
-                <div className="text-slate-400">Calificación promedio</div>
+                <div className="text-white">Calificación promedio</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-cyan-400 mb-2">500+</div>
-                <div className="text-slate-400">Estudiantes activos</div>
+                <div className="text-white">Estudiantes activos</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-purple-400 mb-2">1,200+</div>
-                <div className="text-slate-400">Reseñas positivas</div>
+                <div className="text-white">Reseñas positivas</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-green-400 mb-2">98%</div>
-                <div className="text-slate-400">Recomendarían</div>
+                <div className="text-white">Recomendarían</div>
               </div>
             </div>
           </div>

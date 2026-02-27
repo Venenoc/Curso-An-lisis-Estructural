@@ -8,14 +8,18 @@ import {
   Download,
   ExternalLink,
 } from "lucide-react";
+import QuizPanel from "./QuizPanel";
+import type { QuizWithQuestions } from "@/app/actions/quizzes";
 
 type TabType = "materiales" | "ejercicios" | "comentarios";
 
 interface ClassroomTabsProps {
   lessonTitle: string;
+  quiz?: QuizWithQuestions | null;
+  courseSlug?: string;
 }
 
-export default function ClassroomTabs({ lessonTitle }: ClassroomTabsProps) {
+export default function ClassroomTabs({ lessonTitle, quiz, courseSlug }: ClassroomTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("materiales");
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
@@ -93,16 +97,7 @@ export default function ClassroomTabs({ lessonTitle }: ClassroomTabsProps) {
         )}
 
         {activeTab === "ejercicios" && (
-          <div className="flex flex-col items-center justify-center py-10">
-            <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
-              <PenTool className="w-8 h-8 text-slate-600" />
-            </div>
-            <h3 className="text-white font-semibold mb-2">Próximamente</h3>
-            <p className="text-slate-500 text-sm text-center max-w-sm">
-              Los ejercicios prácticos de esta lección estarán disponibles
-              próximamente.
-            </p>
-          </div>
+          <QuizPanel quiz={quiz} courseSlug={courseSlug || ""} />
         )}
 
         {activeTab === "comentarios" && (

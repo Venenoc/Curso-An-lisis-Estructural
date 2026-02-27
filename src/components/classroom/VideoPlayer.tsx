@@ -16,7 +16,7 @@ import type { CourseLesson } from "@/data/courses-catalog";
 interface VideoPlayerProps {
   courseSlug: string;
   gradient: string;
-  moduleName: string;
+  chapterName: string;
   lesson: CourseLesson;
   isCompleted: boolean;
   hasNext: boolean;
@@ -28,7 +28,7 @@ interface VideoPlayerProps {
 export default function VideoPlayer({
   courseSlug,
   gradient,
-  moduleName,
+  chapterName,
   lesson,
   isCompleted,
   hasNext,
@@ -102,7 +102,7 @@ export default function VideoPlayer({
       {/* Module & Lesson Header */}
       <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/50">
         <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">
-          {moduleName}
+          {chapterName}
         </p>
         <h1 className="text-white text-xl font-bold">{lesson.title}</h1>
       </div>

@@ -17,12 +17,12 @@ export default function CommunityLandingPage() {
         }}
       >
         <div className="relative z-10 w-full">
-          <h1 className="text-5xl lg:text-6xl font-extrabold text-cyan-900 mb-20 drop-shadow-lg px-4 rounded">
+          <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-800 mb-20 drop-shadow-lg px-4 rounded">
             La Comunidad de <br />
             <span className="block mt-8">Análisis Estructural más Activa</span>
           </h1>
           <p className="text-xl text-cyan-900 max-w-2xl mx-auto mb-20 px-4 rounded">Conecta, aprende y crece junto a miles de ingenieros y estudiantes. Publicaciones, chats, mentoría, eventos y mucho más en un solo lugar.</p>
-          <a href="/register" className="inline-block bg-cyan-700 text-white font-bold px-8 py-4 rounded-full shadow-lg text-lg hover:bg-cyan-800 transition">Únete Aquí</a>
+          <a href="/register" className="inline-block bg-white text-cyan-700 font-bold px-8 py-4 rounded-full shadow-lg mb-20 mt-10 text-lg hover:bg-cyan-50 transition">Únete Aquí</a>
         </div>
       </section>
 
@@ -93,7 +93,7 @@ export default function CommunityLandingPage() {
       {/* CTA final */}
       <section className="w-full py-16 px-4 text-center">
         <h2 className="text-3xl font-bold text-cyan-700 mb-6">¿Listo para formar parte?</h2>
-        <a href="/community" className="inline-block bg-cyan-600 text-white font-bold px-10 py-5 rounded-full shadow-lg text-xl hover:bg-cyan-700 transition">Suscribete y accede</a>
+        <a href="/community" className="inline-block bg-white text-cyan-700 font-bold px-8 py-4 rounded-full shadow-lg mb-20 mt-10 text-lg hover:bg-cyan-50 transition">Suscribete y accede</a>
       </section>
     </div>
   );

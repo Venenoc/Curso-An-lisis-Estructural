@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createPost, uploadPostImage } from "@/app/actions/community";
 import PostCard from "./PostCard";
+import type { UserStats } from "@/lib/community-levels";
 
 interface PostAuthor {
   full_name: string | null;
@@ -39,9 +40,10 @@ interface CommunityFeedProps {
   likesMap: Record<string, { count: number; likedByMe: boolean }>;
   currentUserId: string;
   currentUserRole: string;
+  userStats: Record<string, UserStats>;
 }
 
-export default function CommunityFeed({ posts, replies, likesMap, currentUserId, currentUserRole }: CommunityFeedProps) {
+export default function CommunityFeed({ posts, replies, likesMap, currentUserId, currentUserRole, userStats }: CommunityFeedProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
@@ -201,6 +203,7 @@ export default function CommunityFeed({ posts, replies, likesMap, currentUserId,
             likes={likesMap[post.id] || { count: 0, likedByMe: false }}
             currentUserId={currentUserId}
             currentUserRole={currentUserRole}
+            userStats={userStats}
           />
         ))
       ) : (

@@ -328,7 +328,7 @@ export async function markLessonComplete(courseSlug: string, lessonId: number) {
 
     // Find or create the lesson in DB
     const lessonTitle = catalogCourse.modules
-      ?.flatMap((m) => m.lessons || [])
+      ?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons))
       .find((l) => l.id === lessonId)?.title;
 
     if (!lessonTitle) return { error: "Lección no encontrada" };
@@ -376,6 +376,122 @@ export async function markLessonComplete(courseSlug: string, lessonId: number) {
 
     return { success: true };
   } catch (error: any) {
+    return { error: "Error inesperado" };
+  }
+}
+
+// ── Lesson Management ──
+
+async function getInstructorProfile() {
+  const user = await getUser();
+  if (!user) return null;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("user_id", user.id)
+    .single();
+  return data;
+}
+
+export async function createLesson(
+  courseId: string,
+  formData: FormData
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    if (profile.role !== "instructor" && profile.role !== "admin") {
+      return { error: "Sin permisos" };
+    }
+
+    const title = (formData.get("title") as string)?.trim();
+    const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
+    const orderStr = formData.get("order") as string;
+    const order = orderStr ? parseInt(orderStr, 10) : 0;
+
+    if (!title) return { error: "El título es obligatorio" };
+
+    const supabase = await createClient();
+
+    // Verify instructor owns the course
+    const { data: course } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("id", courseId)
+      .eq("instructor_id", profile.id)
+      .single();
+
+    if (!course) return { error: "Curso no encontrado o sin permisos" };
+
+    const { error } = await supabase.from("lessons").insert({
+      course_id: courseId,
+      title,
+      video_url: videoUrl,
+      order,
+    });
+
+    if (error) return { error: "Error al crear la lección" };
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateLesson(
+  lessonId: string,
+  formData: FormData
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+
+    const title = (formData.get("title") as string)?.trim();
+    const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
+    const orderStr = formData.get("order") as string;
+    const order = orderStr ? parseInt(orderStr, 10) : undefined;
+
+    if (!title) return { error: "El título es obligatorio" };
+
+    const supabase = await createClient();
+
+    const updateData: Record<string, any> = { title, video_url: videoUrl };
+    if (order !== undefined) updateData.order = order;
+
+    const { error } = await supabase
+      .from("lessons")
+      .update(updateData)
+      .eq("id", lessonId);
+
+    if (error) return { error: "Error al actualizar la lección" };
+
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function deleteLesson(
+  lessonId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("lessons")
+      .delete()
+      .eq("id", lessonId);
+
+    if (error) return { error: "Error al eliminar la lección" };
+
+    revalidatePath("/admin/courses");
+    return { success: true };
+  } catch {
     return { error: "Error inesperado" };
   }
 }

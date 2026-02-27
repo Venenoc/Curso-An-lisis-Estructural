@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Trash2, ChevronDown, ChevronUp, Heart, Pin } from "lucide-react";
+import { MessageSquare, Trash2, ChevronDown, ChevronUp, Heart, Pin, GraduationCap, BookOpen, HardHat, Award } from "lucide-react";
 import { deletePost, toggleLike, togglePin } from "@/app/actions/community";
+import { levelConfig } from "@/lib/community-levels";
+import type { CommunityLevel, UserStats } from "@/lib/community-levels";
 import ReplySection from "./ReplySection";
 
 interface PostAuthor {
@@ -34,6 +36,7 @@ interface PostCardProps {
   likes: { count: number; likedByMe: boolean };
   currentUserId: string;
   currentUserRole: string;
+  userStats: Record<string, UserStats>;
 }
 
 function timeAgo(dateStr: string) {
@@ -47,13 +50,31 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
 }
 
+const levelIcons: Record<CommunityLevel, React.ReactNode> = {
+  estudiante: <GraduationCap className="w-3 h-3" />,
+  bachiller: <BookOpen className="w-3 h-3" />,
+  ingeniero: <HardHat className="w-3 h-3" />,
+  magister: <Award className="w-3 h-3" />,
+};
+
+function LevelBadge({ level }: { level: CommunityLevel }) {
+  const c = levelConfig[level];
+  return (
+    <span className={`${c.bg} ${c.text} text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1`}>
+      {levelIcons[level]}
+      {c.label}
+    </span>
+  );
+}
+
 function RoleBadge({ role }: { role: string }) {
+  if (role === "student") return null;
   const config: Record<string, { bg: string; text: string; label: string }> = {
     instructor: { bg: "bg-amber-500/20", text: "text-amber-400", label: "Instructor" },
     admin: { bg: "bg-red-500/20", text: "text-red-400", label: "Admin" },
-    student: { bg: "bg-cyan-500/20", text: "text-cyan-400", label: "Estudiante" },
   };
-  const c = config[role] || config.student;
+  const c = config[role];
+  if (!c) return null;
   return (
     <span className={`${c.bg} ${c.text} text-xs px-2 py-0.5 rounded-full font-medium`}>
       {c.label}
@@ -75,7 +96,7 @@ function Avatar({ name, url }: { name: string | null; url: string | null }) {
   );
 }
 
-export default function PostCard({ post, replies, likes, currentUserId, currentUserRole }: PostCardProps) {
+export default function PostCard({ post, replies, likes, currentUserId, currentUserRole, userStats }: PostCardProps) {
   const [showReplies, setShowReplies] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [likeCount, setLikeCount] = useState(likes.count);
@@ -86,6 +107,8 @@ export default function PostCard({ post, replies, likes, currentUserId, currentU
 
   const isOwner = post.user_id === currentUserId;
   const canPin = currentUserRole === "instructor" || currentUserRole === "admin";
+  const authorStats = userStats[post.user_id];
+  const authorLevel = authorStats?.level || "estudiante";
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -96,7 +119,6 @@ export default function PostCard({ post, replies, likes, currentUserId, currentU
   const handleLike = async () => {
     if (liking) return;
     setLiking(true);
-    // Optimistic update
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     await toggleLike(post.id);
@@ -114,14 +136,14 @@ export default function PostCard({ post, replies, likes, currentUserId, currentU
   };
 
   return (
-    <div className={`bg-slate-800/50 border rounded-xl overflow-hidden ${
+    <div className={`bg-slate-800/90 border rounded-xl overflow-hidden ${
       pinned ? "border-amber-500/50 ring-1 ring-amber-500/20" : "border-slate-700/50"
     }`}>
       {/* Pinned indicator */}
       {pinned && (
         <div className="px-5 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
           <Pin className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-amber-400 text-xs font-medium">Publicación fijada</span>
+          <span className="text-amber-400 text-xs font-medium">Publicacion fijada</span>
         </div>
       )}
 
@@ -135,6 +157,7 @@ export default function PostCard({ post, replies, likes, currentUserId, currentU
                 {post.profiles.full_name || "Usuario"}
               </span>
               <RoleBadge role={post.profiles.role} />
+              <LevelBadge level={authorLevel} />
               <span className="text-slate-500 text-xs">{timeAgo(post.created_at)}</span>
             </div>
 
@@ -221,10 +244,11 @@ export default function PostCard({ post, replies, likes, currentUserId, currentU
           postId={post.id}
           replies={replies}
           currentUserId={currentUserId}
+          userStats={userStats}
         />
       )}
     </div>
   );
 }
 
-export { Avatar, RoleBadge, timeAgo };
+export { Avatar, RoleBadge, LevelBadge, timeAgo, levelIcons };

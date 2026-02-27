@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Building2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { signout } from "@/app/actions/auth";
 
 interface HomeNavbarProps {
   user?: User | null | undefined;
+  profileAvatarUrl?: string | null;
+  profileName?: string | null;
 }
 
-export default function HomeNavbar({ user }: HomeNavbarProps) {
+export default function HomeNavbar({ user, profileAvatarUrl, profileName }: HomeNavbarProps) {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -28,55 +29,55 @@ export default function HomeNavbar({ user }: HomeNavbarProps) {
             <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
               <span className="text-white font-bold text-lg">ALBERT_STRUCTURAL</span>
-              <span className="text-dark font-bold text-lg">PRO</span>
+              <span className="text-cyan-400 font-bold text-lg">PRO</span>
             </div>
           </Link>
           {/* Navigation Menu */}
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="/"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Inicio
             </Link>
             <Link
               href="/cursos_m"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/cursos_m') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/cursos_m') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Cursos
             </Link>
             <Link
               href="/community_m"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/community_m') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/community_m') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Comunidad
             </Link>
             <Link
               href="/tools_m"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/tools_m') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/tools_m') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Herramientas
             </Link>
             <Link
               href="/about"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/about') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/about') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Sobre Nosotros
             </Link>
             <Link
               href="/testimonials"
-              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-black ${
-                isActive('/testimonials') ? 'border-black text-black' : 'border-transparent text-white'
+              className={`font-bold text-lg transition-colors pb-1 border-b-2 hover:text-cyan-400 ${
+                isActive('/testimonials') ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-white'
               }`}
             >
               Testimonios
@@ -88,12 +89,10 @@ export default function HomeNavbar({ user }: HomeNavbarProps) {
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 focus:outline-none">
                   <span className="hidden sm:inline text-lg text-white font-semibold">
-                    {user.user_metadata.full_name
-                      ? user.user_metadata.full_name.split(" ")[0]
-                      : user.email}
+                    {(profileName || user.user_metadata.full_name || "").split(" ")[0] || user.email}
                   </span>
                   <img
-                    src={user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                    src={profileAvatarUrl || user.user_metadata.avatar_url || "/images/Ingperfil.png"}
                     alt="Foto de perfil"
                     className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
                   />

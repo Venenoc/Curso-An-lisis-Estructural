@@ -53,7 +53,7 @@ export default async function CursosPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-black rounded-full px-4 py-2 mb-6">
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-black rounded-full px-4 py-2 mt-10 mb-20">
               <GraduationCap className="w-4 h-4 text-slate-800" />
               <span className="text-slate-800 text-sm font-medium">
                 Cursos especializados en Ingeniería Estructural
@@ -103,6 +103,7 @@ export default async function CursosPage() {
                 course={course}
                 purchased={purchasedSlugs.includes(course.slug)}
                 isAuthenticated={!!user}
+                variant="light"
               />
             ))}
           </div>

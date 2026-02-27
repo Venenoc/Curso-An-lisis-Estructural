@@ -7,9 +7,10 @@ import {
   PlayCircle,
   Clock,
   Lock,
+  BookOpen,
   X,
 } from "lucide-react";
-import type { CatalogCourse, CourseModule, CourseLesson } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseModule } from "@/data/courses-catalog";
 
 interface ClassroomSidebarProps {
   course: CatalogCourse;
@@ -36,17 +37,18 @@ export default function ClassroomSidebar({
   isOpen,
   onClose,
 }: ClassroomSidebarProps) {
-  // Find which module contains the current lesson to auto-expand it
-  const currentModuleId = modules.find((m) =>
-    m.lessons?.some((l) => l.id === currentLessonId)
-  )?.id;
+  // Find which module contains the current lesson
+  const activeModule = modules.find((m) =>
+    m.chapters?.some((ch) => ch.lessons.some((l) => l.id === currentLessonId))
+  ) ?? modules[0];
 
-  const [expandedModules, setExpandedModules] = useState<number[]>(
-    currentModuleId ? [currentModuleId] : [modules[0]?.id]
-  );
+  const activeModuleIndex = modules.findIndex((m) => m.id === activeModule?.id);
+
+  // Track collapsed modules (default: all expanded)
+  const [collapsedModules, setCollapsedModules] = useState<number[]>([]);
 
   const toggleModule = (moduleId: number) => {
-    setExpandedModules((prev) =>
+    setCollapsedModules((prev) =>
       prev.includes(moduleId)
         ? prev.filter((id) => id !== moduleId)
         : [...prev, moduleId]
@@ -63,11 +65,9 @@ export default function ClassroomSidebar({
     hasFullCourse || purchasedModuleIds.includes(moduleId);
 
   const getModuleProgress = (module: CourseModule) => {
-    if (!module.lessons) return { completed: 0, total: 0, percent: 0 };
-    const total = module.lessons.length;
-    const completed = module.lessons.filter((l) =>
-      isLessonCompleted(l.id)
-    ).length;
+    const allLessons = (module.chapters || []).flatMap((ch) => ch.lessons);
+    const total = allLessons.length;
+    const completed = allLessons.filter((l) => isLessonCompleted(l.id)).length;
     return { completed, total, percent: total > 0 ? (completed / total) * 100 : 0 };
   };
 
@@ -102,7 +102,7 @@ export default function ClassroomSidebar({
                 {course.title}
               </h2>
               <p className="text-slate-500 text-xs mt-1">
-                {modules.length} módulos
+                Módulo {activeModuleIndex + 1} de {modules.length}
               </p>
             </div>
             <button
@@ -114,10 +114,11 @@ export default function ClassroomSidebar({
           </div>
         </div>
 
-        {/* Modules list */}
+        {/* Single active module */}
         <div className="flex-1 overflow-y-auto">
-          {modules.map((module, index) => {
-            const isExpanded = expandedModules.includes(module.id);
+          {[activeModule].filter(Boolean).map((module) => {
+            const index = activeModuleIndex;
+            const isExpanded = !collapsedModules.includes(module.id);
             const progress = getModuleProgress(module);
             const status = getModuleStatus(module);
             const moduleLocked = status === "locked";
@@ -126,7 +127,7 @@ export default function ClassroomSidebar({
               <div key={module.id} className="border-b border-slate-800/50">
                 {/* Module header */}
                 <button
-                  onClick={() => toggleModule(module.id)}
+                  onClick={() => !moduleLocked && toggleModule(module.id)}
                   className={`w-full p-4 flex items-start gap-3 transition-colors text-left ${
                     moduleLocked
                       ? "opacity-50 cursor-not-allowed"
@@ -191,64 +192,75 @@ export default function ClassroomSidebar({
                   )}
                 </button>
 
-                {/* Lessons */}
-                {isExpanded && !moduleLocked && module.lessons && (
-                  <div className="pb-2">
-                    {module.lessons.map((lesson) => {
-                      const isActive = lesson.id === currentLessonId;
-                      const isCompleted = isLessonCompleted(lesson.id);
-                      const isUnlocked = isLessonUnlocked(lesson.id);
+                {/* Chapters and Lessons */}
+                {isExpanded && !moduleLocked && (module.chapters || []).map((chapter) => (
+                  <div key={chapter.id}>
+                    {/* Chapter header */}
+                    <div className="flex items-center gap-2 px-4 py-2 ml-4 border-l border-slate-700/50">
+                      <BookOpen className="w-3 h-3 text-cyan-500/70 shrink-0" />
+                      <span className="text-cyan-500/80 text-xs font-semibold uppercase tracking-wide truncate">
+                        {chapter.title}
+                      </span>
+                    </div>
 
-                      return (
-                        <button
-                          key={`${module.id}-${lesson.id}`}
-                          onClick={() => {
-                            if (!isUnlocked) return;
-                            onSelectLesson(module.id, lesson.id);
-                            onClose();
-                          }}
-                          disabled={!isUnlocked}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 pl-8 text-left transition-colors ${
-                            !isUnlocked
-                              ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
-                              : isActive
-                              ? "bg-cyan-500/10 border-l-2 border-cyan-500"
-                              : "hover:bg-slate-800/50 border-l-2 border-transparent"
-                          }`}
-                        >
-                          {!isUnlocked ? (
-                            <Lock className="w-4 h-4 text-slate-600 shrink-0" />
-                          ) : isCompleted ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
-                          ) : isActive ? (
-                            <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-                          ) : (
-                            <PlayCircle className="w-4 h-4 text-slate-600 shrink-0" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <span
-                              className={`text-sm block truncate ${
-                                !isUnlocked
-                                  ? "text-slate-600"
-                                  : isActive
-                                  ? "text-cyan-400 font-medium"
-                                  : isCompleted
-                                  ? "text-slate-400"
-                                  : "text-slate-300"
-                              }`}
-                            >
-                              {lesson.title}
+                    {/* Lessons */}
+                    <div className="pb-1">
+                      {chapter.lessons.map((lesson) => {
+                        const isActive = lesson.id === currentLessonId;
+                        const isCompleted = isLessonCompleted(lesson.id);
+                        const isUnlocked = isLessonUnlocked(lesson.id);
+
+                        return (
+                          <button
+                            key={`${chapter.id}-${lesson.id}`}
+                            onClick={() => {
+                              if (!isUnlocked) return;
+                              onSelectLesson(module.id, lesson.id);
+                              onClose();
+                            }}
+                            disabled={!isUnlocked}
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 pl-12 text-left transition-colors ${
+                              !isUnlocked
+                                ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
+                                : isActive
+                                ? "bg-cyan-500/10 border-l-2 border-cyan-500"
+                                : "hover:bg-slate-800/50 border-l-2 border-transparent"
+                            }`}
+                          >
+                            {!isUnlocked ? (
+                              <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+                            ) : isCompleted ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                            ) : isActive ? (
+                              <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+                            ) : (
+                              <PlayCircle className="w-4 h-4 text-slate-600 shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <span
+                                className={`text-sm block truncate ${
+                                  !isUnlocked
+                                    ? "text-slate-600"
+                                    : isActive
+                                    ? "text-cyan-400 font-medium"
+                                    : isCompleted
+                                    ? "text-slate-400"
+                                    : "text-slate-300"
+                                }`}
+                              >
+                                {lesson.title}
+                              </span>
+                            </div>
+                            <span className="text-slate-600 text-xs flex items-center gap-1 shrink-0">
+                              <Clock className="w-3 h-3" />
+                              {lesson.duration}
                             </span>
-                          </div>
-                          <span className="text-slate-600 text-xs flex items-center gap-1 shrink-0">
-                            <Clock className="w-3 h-3" />
-                            {lesson.duration}
-                          </span>
-                        </button>
-                      );
-                    })}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             );
           })}

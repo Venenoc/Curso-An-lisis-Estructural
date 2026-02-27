@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Building2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { signout } from "@/app/actions/auth";
 
 interface MarketingNavbarProps {
   user?: User | null | undefined;
+  profileAvatarUrl?: string | null;
+  profileName?: string | null;
 }
 
-export default function MarketingNavbar({ user }: MarketingNavbarProps) {
+export default function MarketingNavbar({ user, profileAvatarUrl, profileName }: MarketingNavbarProps) {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
@@ -88,12 +89,10 @@ export default function MarketingNavbar({ user }: MarketingNavbarProps) {
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 focus:outline-none">
                   <span className="hidden sm:inline text-lg text-white font-semibold">
-                    {user.user_metadata.full_name
-                      ? user.user_metadata.full_name.split(" ")[0]
-                      : user.email}
+                    {(profileName || user.user_metadata.full_name || "").split(" ")[0] || user.email}
                   </span>
                   <img
-                    src={user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                    src={profileAvatarUrl || user.user_metadata.avatar_url || "/images/Ingperfil.png"}
                     alt="Foto de perfil"
                     className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
                   />

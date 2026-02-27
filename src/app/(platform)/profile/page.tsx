@@ -1,17 +1,186 @@
-"use client";
+import { getUser } from "@/app/actions/auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { redirect } from "next/navigation";
+import { calcularNivel, calcularScore } from "@/lib/community-levels";
+import type { UserStats } from "@/lib/community-levels";
+import { coursesCatalog } from "@/data/courses-catalog";
+import ProfilePageClient from "@/components/profile/ProfilePageClient";
 
-import { Alert } from "@/components/ui/alert";
-import { Wrench } from "lucide-react";
+export default async function ProfilePage() {
+  const user = await getUser();
+  if (!user) redirect("/login");
 
-export default function ProfilePage() {
+  const supabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  // Get profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, bio, role, specialty, location, created_at")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!profile) redirect("/login");
+
+  // Community stats
+  const { data: userPosts } = await supabase
+    .from("community_posts")
+    .select("id")
+    .eq("user_id", profile.id);
+
+  const { data: userReplies } = await supabase
+    .from("community_replies")
+    .select("id")
+    .eq("user_id", profile.id);
+
+  // Likes received on user's posts
+  const postIds = (userPosts || []).map((p: any) => p.id);
+  let likesReceived = 0;
+  if (postIds.length > 0) {
+    const { data: likes } = await supabase
+      .from("community_likes")
+      .select("id")
+      .in("post_id", postIds);
+    likesReceived = likes?.length || 0;
+  }
+
+  const postsCount = userPosts?.length || 0;
+  const repliesCount = userReplies?.length || 0;
+
+  const communityStats: UserStats = {
+    posts: postsCount,
+    replies: repliesCount,
+    likesReceived,
+    level: calcularNivel(postsCount, repliesCount, likesReceived),
+    score: calcularScore(postsCount, repliesCount, likesReceived),
+  };
+
+  // Course progress
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select("course_id, courses(title)")
+    .eq("user_id", profile.id);
+
+  const { data: moduleEnrollments } = await supabase
+    .from("module_enrollments")
+    .select("course_id, module_id, courses(title)")
+    .eq("user_id", profile.id);
+
+  // Get completed lessons
+  const { data: progress } = await supabase
+    .from("progress")
+    .select("lesson_id, lessons(title, course_id)")
+    .eq("user_id", profile.id)
+    .eq("completed", true);
+
+  const completedTitles = new Set(
+    (progress || []).map((p: any) => p.lessons?.title).filter(Boolean)
+  );
+
+  // Build enrolled courses info
+  const enrolledCoursesTitles = new Set<string>();
+  (enrollments || []).forEach((e: any) => {
+    if (e.courses?.title) enrolledCoursesTitles.add(e.courses.title);
+  });
+  (moduleEnrollments || []).forEach((me: any) => {
+    if (me.courses?.title) enrolledCoursesTitles.add(me.courses.title);
+  });
+
+  const enrolledCoursesCount = enrolledCoursesTitles.size;
+  const completedLessonsCount = completedTitles.size;
+
+  // Compute course completion for badges
+  let completedCoursesCount = 0;
+  enrolledCoursesTitles.forEach((title) => {
+    const cat = coursesCatalog.find((c) => c.title === title);
+    if (cat?.modules) {
+      const allLessons = cat.modules.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons));
+      const allCompleted = allLessons.length > 0 && allLessons.every((l) => completedTitles.has(l.title));
+      if (allCompleted) completedCoursesCount++;
+    }
+  });
+
+  // Build achievements/badges
+  const achievements = [
+    {
+      id: "first_post",
+      label: "Primera Publicacion",
+      description: "Publicaste tu primer post en la comunidad",
+      earned: postsCount >= 1,
+      icon: "FileText",
+    },
+    {
+      id: "first_reply",
+      label: "Colaborador",
+      description: "Respondiste a tu primer post",
+      earned: repliesCount >= 1,
+      icon: "MessageSquare",
+    },
+    {
+      id: "popular",
+      label: "Popular",
+      description: "Recibiste 10 o mas likes en tus publicaciones",
+      earned: likesReceived >= 10,
+      icon: "Heart",
+    },
+    {
+      id: "active_poster",
+      label: "Autor Activo",
+      description: "Publicaste 10 o mas posts",
+      earned: postsCount >= 10,
+      icon: "PenTool",
+    },
+    {
+      id: "helper",
+      label: "Gran Ayudante",
+      description: "Respondiste 20 o mas veces",
+      earned: repliesCount >= 20,
+      icon: "HelpCircle",
+    },
+    {
+      id: "enrolled",
+      label: "Estudiante Inscrito",
+      description: "Te inscribiste en tu primer curso",
+      earned: enrolledCoursesCount >= 1,
+      icon: "BookOpen",
+    },
+    {
+      id: "lesson_complete",
+      label: "Primera Leccion",
+      description: "Completaste tu primera leccion",
+      earned: completedLessonsCount >= 1,
+      icon: "CheckCircle2",
+    },
+    {
+      id: "course_complete",
+      label: "Curso Completado",
+      description: "Completaste un curso entero",
+      earned: completedCoursesCount >= 1,
+      icon: "Trophy",
+    },
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black items-center justify-center">
-      <Alert className="max-w-lg mx-auto bg-slate-800/80 border-cyan-500/30 text-white text-center shadow-lg">
-        <Wrench className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-        <h2 className="text-2xl font-bold mb-2">¡Perfil en desarrollo!</h2>
-        <p className="text-slate-300 mb-2">Estamos creando nuevas funciones para tu perfil y experiencia profesional.</p>
-        <span className="text-cyan-400 font-semibold">Próximamente disponible</span>
-      </Alert>
-    </div>
+    <ProfilePageClient
+      email={user.email || ""}
+      profile={{
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        bio: profile.bio,
+        role: profile.role,
+        specialty: profile.specialty || "",
+        location: profile.location || "",
+        created_at: profile.created_at,
+      }}
+      communityStats={communityStats}
+      achievements={achievements}
+      enrolledCoursesCount={enrolledCoursesCount}
+      completedLessonsCount={completedLessonsCount}
+      completedCoursesCount={completedCoursesCount}
+    />
   );
 }
