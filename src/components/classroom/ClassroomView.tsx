@@ -139,13 +139,28 @@ export default function ClassroomView({
   if (!currentEntry) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-950 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-950 overflow-hidden relative">
       {/* Platform Navbar */}
       <div className="z-50">
         {/* <PlatformNavbar user={user} /> */}
       </div>
       {/* Body del classroom con padding-top para dejar espacio a la barra */}
-      <div className="flex flex-1 h-full pt-0 overflow-hidden">
+      <div className="flex flex-1 h-full pt-20 overflow-hidden relative">
+        {/* Fondo fijo detrás del video */}
+        <div
+          className="absolute z-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url(/images/Albert.jpg)",
+            opacity: 0.60,
+            pointerEvents: "none",
+            top: 0,
+            bottom: 0,
+            left: '300px', // ancho típico del sidebar
+            right: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
         {/* Sidebar */}
         <ClassroomSidebar
           course={course}
@@ -161,7 +176,7 @@ export default function ClassroomView({
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
           {/* Top bar (mobile) */}
           <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/80 border-b border-slate-700/50 lg:hidden">
             <button
@@ -201,9 +216,9 @@ export default function ClassroomView({
             />
             {/* Tabs */}
             <ClassroomTabs
-              lessonTitle={currentEntry.lesson.title}
               quiz={quizzesByCatalogLessonId?.[currentLessonId]}
-              courseSlug={course.slug}
+              lessonMaterials={currentEntry.lesson.materials}
+              lessonDbId={currentEntry.lesson.dbId}
             />
           </div>
         </div>

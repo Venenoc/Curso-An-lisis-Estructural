@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2, XCircle, AlertCircle, Loader2, RotateCcw } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   submitQuizAttempt,
@@ -12,23 +12,20 @@ import {
 
 interface QuizPanelProps {
   quiz: QuizWithQuestions | null | undefined;
-  courseSlug: string;
 }
 
-export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
+export default function QuizPanel({ quiz }: QuizPanelProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<QuizAttemptResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loadingPrev, setLoadingPrev] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showRetry, setShowRetry] = useState(false);
 
   useEffect(() => {
     if (!quiz) return;
     setAnswers({});
     setResult(null);
     setError(null);
-    setShowRetry(false);
     setLoadingPrev(true);
     getLastAttempt(quiz.id).then((prev) => {
       if (prev) setResult(prev);
@@ -64,15 +61,8 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
       setError(res.error);
     } else if (res.result) {
       setResult(res.result);
-      setShowRetry(false);
     }
     setSubmitting(false);
-  };
-
-  const handleRetry = () => {
-    setAnswers({});
-    setResult(null);
-    setShowRetry(false);
   };
 
   if (loadingPrev) {
@@ -83,12 +73,13 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
     );
   }
 
-  // Show result
-  if (result && !showRetry) {
+  // Resultado final — sin opción de reintento
+  if (result) {
     const percent = result.score;
     const passed = result.passed;
     return (
       <div className="space-y-4">
+        {/* Resultado global */}
         <div
           className={`rounded-xl p-5 border ${
             passed
@@ -102,13 +93,13 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
             ) : (
               <XCircle className="w-6 h-6 text-red-400 shrink-0" />
             )}
-            <h3
-              className={`font-semibold text-lg ${
-                passed ? "text-emerald-300" : "text-red-300"
-              }`}
-            >
+            <h3 className={`font-semibold text-lg ${passed ? "text-emerald-300" : "text-red-300"}`}>
               {passed ? "¡Aprobado!" : "No aprobado"}
             </h3>
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
+              <Lock className="w-3 h-3" />
+              Intento finalizado
+            </span>
           </div>
           <p className="text-slate-300 text-sm">
             Obtuviste{" "}
@@ -117,11 +108,11 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
           </p>
         </div>
 
-        {/* Review answers */}
+        {/* Revisión de respuestas */}
         <div className="space-y-3">
           {quiz.questions.map((q) => {
             const correct = result.correctAnswers[q.id];
-            const given = answers[q.id] ?? "(sin respuesta)";
+            const given = answers[q.id] ?? "(sin respuesta guardada)";
             const isCorrect =
               given.trim().toLowerCase() === correct.trim().toLowerCase();
             return (
@@ -133,9 +124,7 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
                     : "bg-red-900/10 border-red-700/40"
                 }`}
               >
-                <p className="text-white text-sm font-medium mb-1">
-                  {q.question}
-                </p>
+                <p className="text-white text-sm font-medium mb-1">{q.question}</p>
                 {!isCorrect && (
                   <p className="text-slate-400 text-xs mb-1">
                     Tu respuesta:{" "}
@@ -150,27 +139,17 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
             );
           })}
         </div>
-
-        <Button
-          onClick={handleRetry}
-          variant="outline"
-          size="sm"
-          className="border-slate-600 text-slate-300 hover:text-white"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Intentar de nuevo
-        </Button>
       </div>
     );
   }
 
-  // Show quiz form
+  // Formulario del quiz
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="text-white font-semibold">{quiz.title}</h3>
         <span className="text-slate-500 text-xs">
-          Aprobado con {quiz.passing_score}%
+          Aprobado con {quiz.passing_score}% · 1 intento
         </span>
       </div>
 
@@ -233,7 +212,11 @@ export default function QuizPanel({ quiz, courseSlug }: QuizPanelProps) {
         </div>
       ))}
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && (
+        <p className="text-red-400 text-sm bg-red-950/30 border border-red-800/40 rounded-lg px-4 py-2">
+          {error}
+        </p>
+      )}
 
       <Button
         onClick={handleSubmit}

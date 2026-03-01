@@ -1,7 +1,6 @@
 import { getUser } from "@/app/actions/auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { coursesCatalog } from "@/data/courses-catalog";
 import SettingsPageClient from "@/components/settings/SettingsPageClient";
 
 export default async function SettingsPage() {

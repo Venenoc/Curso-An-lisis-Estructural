@@ -162,7 +162,7 @@ export default function ProfilePageClient({
     .toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+    <div className="min-h-screen">
       {/* Cover */}
       <div className="relative h-48 md:h-56 bg-gradient-to-r from-cyan-900/60 via-blue-900/60 to-purple-900/60 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
@@ -171,7 +171,7 @@ export default function ProfilePageClient({
 
       <div className="container mx-auto px-4 -mt-20 relative z-10 pb-16">
         {/* Profile Header Card */}
-        <div className="bg-slate-800/70 border border-slate-700/50 rounded-2xl overflow-hidden backdrop-blur-sm">
+        <div className="bg-slate-800/95 border border-slate-700/70 rounded-2xl overflow-hidden">
           <div className="p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Avatar */}
@@ -185,6 +185,7 @@ export default function ProfilePageClient({
                     </div>
                   )}
                 </div>
+                <p className="text-xs text-slate-400 mt-2 text-left">Máximo: 1 MB</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingAvatar}
@@ -214,21 +215,21 @@ export default function ProfilePageClient({
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                       placeholder="Nombre completo"
-                      className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-lg font-bold"
+                      className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-lg font-bold"
                     />
                     <input
                       type="text"
                       value={formData.specialty}
                       onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
                       placeholder="Profesion o area (Ej: Ingeniero Civil, Estudiante de estructuras)"
-                      className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
+                      className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
                     />
                     <input
                       type="text"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       placeholder="Ciudad, Pais"
-                      className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
+                      className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm"
                     />
                     <Textarea
                       value={formData.bio}
@@ -323,7 +324,7 @@ export default function ProfilePageClient({
 
             {/* Role + Level badges */}
             <div className="flex items-center gap-3 mt-6 flex-wrap">
-              <span className="bg-slate-700/60 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+              <span className="bg-slate-700/90 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" />
                 {roleLabels[profile.role] || profile.role}
               </span>
@@ -331,7 +332,7 @@ export default function ProfilePageClient({
                 {levelIcons[communityStats.level]}
                 Nivel: {lc.label}
               </span>
-              <span className="bg-slate-700/60 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+              <span className="bg-slate-700/90 text-slate-300 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5 text-amber-400" />
                 {earnedCount} / {achievements.length} logros
               </span>
@@ -344,7 +345,7 @@ export default function ProfilePageClient({
           {/* Left column - Stats + Level */}
           <div className="space-y-6">
             {/* Level Card */}
-            <div className={`bg-slate-800/50 border rounded-xl overflow-hidden ${lc.border}`}>
+            <div className={`bg-slate-800/90 border rounded-xl overflow-hidden ${lc.border}`}>
               <div className={`px-5 py-4 ${lc.bg}`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-14 h-14 rounded-xl ${lc.bg} flex items-center justify-center ${lc.text}`}>
@@ -364,7 +365,7 @@ export default function ProfilePageClient({
                       <span className="text-slate-400 text-xs">Progreso a {levelConfig[nextLevel].label}</span>
                       <span className={`text-xs font-medium ${levelConfig[nextLevel].text}`}>{progress.percent}%</span>
                     </div>
-                    <div className="w-full bg-slate-700/50 rounded-full h-2.5">
+                    <div className="w-full bg-slate-700/90 rounded-full h-2.5">
                       <div
                         className={`h-2.5 rounded-full transition-all ${
                           nextLevel === "bachiller" ? "bg-blue-500" :
@@ -385,20 +386,20 @@ export default function ProfilePageClient({
 
                 {/* Community stats */}
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center py-2 bg-slate-900/30 rounded-lg">
+                  <div className="text-center py-2 bg-slate-900/90 rounded-lg">
                     <div className="text-white font-bold text-lg">{communityStats.posts}</div>
                     <div className="text-slate-500 text-xs">Posts</div>
                   </div>
-                  <div className="text-center py-2 bg-slate-900/30 rounded-lg">
+                  <div className="text-center py-2 bg-slate-900/90 rounded-lg">
                     <div className="text-white font-bold text-lg">{communityStats.replies}</div>
                     <div className="text-slate-500 text-xs">Respuestas</div>
                   </div>
-                  <div className="text-center py-2 bg-slate-900/30 rounded-lg">
+                  <div className="text-center py-2 bg-slate-900/90 rounded-lg">
                     <div className="text-white font-bold text-lg">{communityStats.likesReceived}</div>
                     <div className="text-slate-500 text-xs">Likes</div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-3 py-2 px-3 bg-slate-900/30 rounded-lg">
+                <div className="flex items-center justify-between mt-3 py-2 px-3 bg-slate-900/90 rounded-lg">
                   <span className="text-slate-400 text-xs flex items-center gap-1">
                     <TrendingUp className="w-3.5 h-3.5" />
                     Puntos totales
@@ -409,7 +410,7 @@ export default function ProfilePageClient({
             </div>
 
             {/* Academic stats */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
               <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-cyan-400" />
                 Progreso Academico
@@ -433,7 +434,7 @@ export default function ProfilePageClient({
 
           {/* Right column - Achievements */}
           <div className="lg:col-span-2">
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-700/50">
                 <h3 className="text-white font-semibold flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-amber-400" />

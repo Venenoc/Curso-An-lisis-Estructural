@@ -125,7 +125,7 @@ export default function CommunityPageClient({
 
       {/* Tabs */}
       <div className="container mx-auto px-4">
-        <div className="flex gap-1 mb-8 bg-slate-800/90 border border-slate-700/50 rounded-lg p-1 w-fit">
+        <div className="flex gap-1 mb-8 bg-slate-800 border border-slate-700/50 rounded-lg p-1 w-fit">
           <button
             onClick={() => setActiveTab("feed")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
@@ -192,7 +192,7 @@ export default function CommunityPageClient({
                 />
                 {/* Mini leaderboard */}
                 {leaderboard.length > 0 && (
-                  <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-4">
+                  <div className="bg-slate-800 border border-slate-700/80 rounded-xl p-4">
                     <h4 className="text-white font-semibold text-sm flex items-center gap-2 mb-3">
                       <Trophy className="w-4 h-4 text-amber-400" />
                       Top Contribuidores

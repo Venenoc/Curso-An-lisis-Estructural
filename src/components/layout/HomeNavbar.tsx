@@ -28,8 +28,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg">ALBERT_STRUCTURAL</span>
-              <span className="text-cyan-400 font-bold text-lg">PRO</span>
+              <span className="text-white font-bold text-lg">@Albert_Structural</span>
             </div>
           </Link>
           {/* Navigation Menu */}

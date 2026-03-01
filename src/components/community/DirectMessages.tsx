@@ -113,15 +113,15 @@ export default function DirectMessages({
   }
 
   return (
-    <div className="flex h-[600px] bg-slate-800/30 border border-slate-700/50 rounded-xl overflow-hidden">
+    <div className="flex h-[600px] bg-slate-800/80 border border-slate-700/80 rounded-xl overflow-hidden">
       {/* Left: Users list */}
       <div
-        className={`w-full lg:w-80 border-r border-slate-700/50 flex flex-col shrink-0 ${
+        className={`w-full lg:w-80 border-r border-slate-700/80 flex flex-col shrink-0 ${
           selectedUserId ? "hidden lg:flex" : "flex"
         }`}
       >
         {/* Search */}
-        <div className="p-3 border-b border-slate-700/50">
+        <div className="p-3 border-b border-slate-700/80">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input

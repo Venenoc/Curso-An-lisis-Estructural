@@ -84,7 +84,7 @@ export default function ChatWindow({
   return (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700/50 bg-slate-900/50 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700/80 bg-slate-900/80 shrink-0">
         <button
           onClick={onBack}
           className="lg:hidden p-1 text-slate-400 hover:text-white"
@@ -115,7 +115,7 @@ export default function ChatWindow({
         {groupedMessages.map((group) => (
           <div key={group.date}>
             <div className="flex justify-center mb-3">
-              <span className="text-slate-500 text-xs bg-slate-800/50 px-3 py-1 rounded-full">
+              <span className="text-slate-500 text-xs bg-slate-800/80 px-3 py-1 rounded-full">
                 {group.date}
               </span>
             </div>
@@ -160,7 +160,7 @@ export default function ChatWindow({
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t border-slate-700/50 bg-slate-900/50 shrink-0">
+      <div className="p-3 border-t border-slate-700/80 bg-slate-900/80 shrink-0">
         <div className="flex gap-2">
           <Textarea
             value={content}

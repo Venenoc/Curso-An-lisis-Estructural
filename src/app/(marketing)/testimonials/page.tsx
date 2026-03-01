@@ -72,13 +72,13 @@ export default async function TestimonialsPage() {
             {testimonials.map((testimonial, index) => (
               <Card 
                 key={index} 
-                className="bg-slate-900/70 border-slate-800 backdrop-blur-sm hover:bg-slate-900 transition-all"
+                className="bg-white border-slate-800 backdrop-blur-sm transition-all"
               >
                 <CardHeader>
                   <div className="flex items-start gap-4">
                     <div className="text-4xl">{testimonial.image}</div>
                     <div className="flex-1">
-                      <h3 className="text-white font-semibold text-lg">{testimonial.name}</h3>
+                      <h3 className="text-black font-semibold text-lg">{testimonial.name}</h3>
                       <p className="text-slate-400 text-sm">{testimonial.role}</p>
                       <div className="flex gap-1 mt-2">
                         {[...Array(testimonial.rating)].map((_, i) => (
@@ -89,7 +89,7 @@ export default async function TestimonialsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-300">&ldquo;{testimonial.content}&rdquo;</p>
+                  <p className="text-slate-800">&ldquo;{testimonial.content}&rdquo;</p>
                 </CardContent>
               </Card>
             ))}

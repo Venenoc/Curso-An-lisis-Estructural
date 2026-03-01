@@ -57,15 +57,15 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
     return () => { supabase.removeChannel(channel); };
   }, [profileId]);
   return (
-    <nav className="fixed w-full top-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-white/30">
+    <nav className="fixed w-full top-0 z-50 bg-black/90 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo y marca */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
-              <span className="text-blue-400 font-bold text-lg">PRO</span>
+              <span className="text-white font-bold text-lg">@Albert_Structural</span>
+              <span className="text-blue-400 font-bold text-lg">Plataforma</span>
             </div>
           </Link>
 

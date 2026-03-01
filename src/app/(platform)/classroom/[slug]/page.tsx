@@ -2,10 +2,15 @@ import { notFound, redirect } from "next/navigation";
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { coursesCatalog } from "@/data/courses-catalog";
 import ClassroomView from "@/components/classroom/ClassroomView";
 import { getQuizzesForCourse } from "@/app/actions/quizzes";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
+import type { CatalogCourse, CourseLesson, CourseChapter, CourseModule } from "@/data/courses-catalog";
+
+function fmtMin(minutes: number | null): string {
+  if (!minutes) return "";
+  return minutes >= 60 ? `${(minutes / 60).toFixed(1)}h` : `${minutes} min`;
+}
 
 export default async function ClassroomPage({
   params,
@@ -16,17 +21,136 @@ export default async function ClassroomPage({
 }) {
   const { slug } = await params;
   const { module: moduleParam } = await searchParams;
-  const course = coursesCatalog.find((c) => c.slug === slug);
 
-  if (!course) notFound();
-  if (!course.modules || course.modules.length === 0) notFound();
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
 
+  // ── Fetch course from Supabase ──────────────────────────────────────────────
+  const { data: dbCourse } = await admin
+    .from("courses")
+    .select("id, slug, title, description, price, gradient, level, total_duration, total_lessons")
+    .eq("slug", slug)
+    .single();
+
+  if (!dbCourse) notFound();
+
+  // ── Fetch modules, chapters, lessons (flat queries — no FK dependency) ─────────
+  const { data: rawModules } = await admin
+    .from("modules")
+    .select("id, title, order, price")
+    .eq("course_id", dbCourse.id)
+    .order("order");
+
+  const moduleIds = (rawModules || []).map((m: any) => m.id as string);
+
+  const { data: rawChapters } = moduleIds.length
+    ? await admin
+        .from("chapters")
+        .select("id, title, order, module_id")
+        .in("module_id", moduleIds)
+        .order("order")
+    : { data: [] as any[] };
+
+  const chapterIds = (rawChapters || []).map((ch: any) => ch.id as string);
+
+  // Lessons are linked to chapters via chapter_uuid (set by createLesson in courses.ts)
+  let rawLessons: any[] | null = null;
+  if (chapterIds.length) {
+    const { data } = await admin
+      .from("lessons")
+      .select("id, title, video_url, duration, order, chapter_uuid, materials")
+      .in("chapter_uuid", chapterIds)
+      .order("order");
+    rawLessons = data;
+  }
+
+  // ── Build course structure with sequential numeric IDs ───────────────────────
+  // dbIdToNumericId maps lesson UUID → sequential integer for progress tracking
+  const dbIdToNumericId = new Map<string, number>();
+  let lessonCounter = 0;
+  let chapterCounter = 0;
+
+  // Group lessons by chapter UUID
+  const lessonsByChapter = new Map<string, any[]>();
+  for (const l of rawLessons || []) {
+    const chKey = l.chapter_uuid as string;
+    if (!chKey) continue;
+    if (!lessonsByChapter.has(chKey)) lessonsByChapter.set(chKey, []);
+    lessonsByChapter.get(chKey)!.push(l);
+  }
+
+  // Group chapters by module UUID
+  const chaptersByModule = new Map<string, any[]>();
+  for (const ch of rawChapters || []) {
+    if (!chaptersByModule.has(ch.module_id)) chaptersByModule.set(ch.module_id, []);
+    chaptersByModule.get(ch.module_id)!.push(ch);
+  }
+
+  const modules: CourseModule[] = (rawModules || []).map((m: any) => {
+    const sortedChapters = [...(chaptersByModule.get(m.id) || [])].sort(
+      (a: any, b: any) => a.order - b.order
+    );
+
+    const chapters: CourseChapter[] = sortedChapters.map((ch: any) => {
+      chapterCounter++;
+      const chId = chapterCounter;
+      const sortedLessons = [...(lessonsByChapter.get(ch.id) || [])].sort(
+        (a: any, b: any) => a.order - b.order
+      );
+
+      const lessons: CourseLesson[] = sortedLessons.map((l: any) => {
+        lessonCounter++;
+        dbIdToNumericId.set(l.id as string, lessonCounter);
+        return {
+          id: lessonCounter,
+          dbId: l.id as string,
+          title: l.title as string,
+          videoUrl: (l.video_url as string) || "",
+          duration: fmtMin(l.duration),
+          materials: (l.materials as { title: string; url: string }[]) || [],
+        };
+      });
+
+      return { id: chId, title: ch.title as string, lessons };
+    });
+
+    const allLessons = chapters.flatMap((ch) => ch.lessons);
+
+    return {
+      id: (m.order as number) + 1,
+      title: m.title as string,
+      description: "",
+      price: Number(m.price) || 0,
+      lessonsCount: allLessons.length,
+      duration: "",
+      chapters,
+    };
+  });
+
+  // Only 404 if course has no modules at all — empty chapters/lessons is OK
+  if ((rawModules || []).length === 0) notFound();
+
+  const course: CatalogCourse = {
+    slug: dbCourse.slug as string,
+    title: dbCourse.title as string,
+    description: (dbCourse.description as string) || "",
+    price: Number(dbCourse.price),
+    gradient: (dbCourse.gradient as string) || "from-cyan-500 to-blue-600",
+    level: (dbCourse.level as CatalogCourse["level"]) || "Principiante",
+    lessonsCount: lessonCounter,
+    duration: (dbCourse.total_duration as string) || "",
+    modules,
+    inDb: true,
+  };
+
+  // ── Auth ─────────────────────────────────────────────────────────────────────
   const user = await getUser();
   if (!user) redirect(`/login?redirectTo=/classroom/${slug}`);
 
   const supabase = await createClient();
-
-  // Check enrollment
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
@@ -35,80 +159,55 @@ export default async function ClassroomPage({
 
   if (!profile) redirect(`/cursos/${slug}`);
 
-  // Check full course enrollment
+  // ── Enrollment check by course_id (reliable, no title matching) ──────────────
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("course_id, courses(title)")
-    .eq("user_id", profile.id);
-
-  const hasFullCourse = enrollments?.some(
-    (e: any) => e.courses?.title === course.title
-  );
-
-  // Use admin client to bypass RLS (needed for module-only purchases)
-  const supabaseAdmin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
-  // Find course in DB (needed for module enrollments and progress filtering)
-  const { data: dbCourse } = await supabaseAdmin
-    .from("courses")
     .select("id")
-    .eq("slug", slug)
-    .single();
+    .eq("user_id", profile.id)
+    .eq("course_id", dbCourse.id);
 
-  // Check module enrollments
+  const hasFullCourse = (enrollments?.length ?? 0) > 0;
+
+  // ── Module enrollments ────────────────────────────────────────────────────────
   let purchasedModuleIds: number[] = [];
-  if (!hasFullCourse && dbCourse) {
-    const { data: moduleEnrollments } = await supabaseAdmin
+  if (!hasFullCourse) {
+    const { data: moduleEnrollments } = await admin
       .from("module_enrollments")
       .select("module_id")
       .eq("user_id", profile.id)
       .eq("course_id", dbCourse.id);
 
-    purchasedModuleIds = (moduleEnrollments || []).map((me: any) => me.module_id);
+    purchasedModuleIds = (moduleEnrollments || []).map((me: any) => Number(me.module_id));
   }
 
-  // If no full course and no modules purchased, redirect
   if (!hasFullCourse && purchasedModuleIds.length === 0) {
     redirect(`/cursos/${slug}`);
   }
 
-  // Get progress — join with lessons to get titles, filter by course
-  const { data: progressData } = await supabaseAdmin
+  // ── Progress (by lesson UUID, mapped to sequential numeric IDs) ───────────────
+  const { data: progressData } = await admin
     .from("progress")
-    .select("lesson_id, completed, lessons(title, course_id)")
+    .select("lesson_id")
     .eq("user_id", profile.id)
     .eq("completed", true);
 
-  // Build a set of completed lesson titles for this course only
-  const completedTitles = new Set(
-    (progressData || [])
-      .filter((p: any) => !dbCourse || p.lessons?.course_id === dbCourse.id)
-      .map((p: any) => p.lessons?.title)
-      .filter(Boolean)
-  );
+  const completedLessonIds = (progressData || [])
+    .map((p: any) => {
+      const numId = dbIdToNumericId.get(p.lesson_id as string);
+      return numId !== undefined ? String(numId) : null;
+    })
+    .filter((id): id is string => id !== null);
 
-  // Map completed titles back to catalog lesson IDs (traversing module → chapter → lesson)
-  const allCatalogLessons = course.modules?.flatMap((m) =>
-    (m.chapters || []).flatMap((ch) => ch.lessons)
-  ) || [];
-  const completedLessonIds = allCatalogLessons
-    .filter((l) => completedTitles.has(l.title))
-    .map((l) => String(l.id));
-
-  // Find the first lesson of the requested module (if param provided)
+  // ── Initial lesson (if module query param provided) ───────────────────────────
   const moduleId = moduleParam ? parseInt(moduleParam, 10) : null;
   let initialLessonId: number | undefined;
-  if (moduleId && course.modules) {
-    const targetModule = course.modules.find((m) => m.id === moduleId);
+  if (moduleId) {
+    const targetModule = modules.find((m) => m.id === moduleId);
     const firstLesson = targetModule?.chapters?.[0]?.lessons?.[0];
     if (firstLesson) initialLessonId = firstLesson.id;
   }
 
-  // Fetch quizzes for this course and build a map by catalog lesson ID
+  // ── Quizzes (keyed by catalog_lesson_id which maps to sequential numeric ID) ──
   const quizList = await getQuizzesForCourse(slug);
   const quizzesByCatalogLessonId: Record<number, QuizWithQuestions> = {};
   quizList.forEach((quiz) => {

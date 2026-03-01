@@ -1,7 +1,6 @@
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { coursesCatalog } from "@/data/courses-catalog";
 import { getUserCertificates, checkAndIssueCertificate } from "@/app/actions/certificates";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,153 +25,283 @@ import {
 
 export default async function DashboardPage() {
   const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const supabase = await createClient();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-
-  const { data: enrollments } = await supabase
-    .from("enrollments")
-    .select(`
-      id,
-      payment_type,
-      enrolled_at,
-      course_id,
-      courses(title, description, price, slug)
-    `)
-    .eq("user_id", profile?.id);
-
-  // Use admin client to bypass RLS (needed for module-only purchases and progress)
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
-  // Fetch module enrollments
-  const { data: moduleEnrollments } = await supabaseAdmin
-    .from("module_enrollments")
-    .select("id, course_id, module_id, courses(title, description, price, slug)")
-    .eq("user_id", profile?.id) as { data: any[] | null };
+  // ── Profile ───────────────────────────────────────────────────────────────────
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
 
-  const { data: progress } = await supabaseAdmin
-    .from("progress")
-    .select("*, lessons(title, course_id)")
-    .eq("user_id", profile?.id)
-    .eq("completed", true);
+  // ── Fetch enrollments, module-enrollments, progress and published courses in parallel ──
+  const [enrollmentsRes, moduleEnrollmentsRes, progressRes, publishedCoursesRes] = await Promise.all([
+    supabase
+      .from("enrollments")
+      .select("id, payment_type, enrolled_at, course_id, courses(id, title, description, price, slug, gradient)")
+      .eq("user_id", profile?.id),
+    supabaseAdmin
+      .from("module_enrollments")
+      .select("id, course_id, module_id, courses(id, title, description, price, slug, gradient)")
+      .eq("user_id", profile?.id),
+    supabaseAdmin
+      .from("progress")
+      .select("lesson_id")
+      .eq("user_id", profile?.id)
+      .eq("completed", true),
+    supabaseAdmin
+      .from("courses")
+      .select("id, slug, title, description, price, gradient", { count: "exact" })
+      .eq("status", "published")
+      .order("created_at", { ascending: true }),
+  ]);
 
-  const completedLessons = progress?.length || 0;
+  const allPublishedCourses = (publishedCoursesRes.data || []) as Array<{ id: string; slug: string; title: string; description: string; price: number; gradient: string }>;
+  const totalPublishedCourses = publishedCoursesRes.count ?? allPublishedCourses.length;
+
+  const enrollments = enrollmentsRes.data;
+  const moduleEnrollments = moduleEnrollmentsRes.data as any[] | null;
+  const progressRows = progressRes.data;
+
   const firstName = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0];
+  const completedLessonIds = new Set((progressRows || []).map((p: any) => p.lesson_id as string));
+  const totalCompletedLessons = completedLessonIds.size;
 
-  // Build a set of completed lesson titles
-  const completedByTitle = new Set(
-    (progress || []).map((p: any) => p.lessons?.title).filter(Boolean)
-  );
-
-  // Group module enrollments by course_id
+  // Group module enrollments by course_id → list of integer module positions
   const modulesByCourseId = new Map<string, number[]>();
   (moduleEnrollments || []).forEach((me: any) => {
     const list = modulesByCourseId.get(me.course_id) || [];
-    list.push(me.module_id);
+    list.push(Number(me.module_id));
     modulesByCourseId.set(me.course_id, list);
   });
 
-  // Set of course_ids that have full enrollment
-  const fullEnrollmentCourseIds = new Set(
-    (enrollments || []).map((e: any) => e.course_id)
+  const fullEnrollmentCourseIds = new Set((enrollments || []).map((e: any) => e.course_id as string));
+
+  const allEnrolledCourseIds = [
+    ...new Set([
+      ...(enrollments || []).map((e: any) => e.course_id as string),
+      ...(moduleEnrollments || []).map((me: any) => me.course_id as string),
+    ]),
+  ].filter(Boolean);
+
+  // ── Fetch Supabase modules for all enrolled courses ───────────────────────────
+  const { data: dbModulesRaw } = allEnrolledCourseIds.length
+    ? await supabaseAdmin
+        .from("modules")
+        .select("id, course_id, title, order, price")
+        .in("course_id", allEnrolledCourseIds)
+        .order("order")
+    : { data: [] as any[] };
+
+  const dbModuleIds = (dbModulesRaw || []).map((m: any) => m.id as string);
+
+  // ── Fetch chapters for those modules ─────────────────────────────────────────
+  const { data: dbChaptersRaw } = dbModuleIds.length
+    ? await supabaseAdmin
+        .from("chapters")
+        .select("id, module_id")
+        .in("module_id", dbModuleIds)
+    : { data: [] as any[] };
+
+  const dbChapterIds = (dbChaptersRaw || []).map((ch: any) => ch.id as string);
+  const chapterToModule = new Map<string, string>();
+  (dbChaptersRaw || []).forEach((ch: any) =>
+    chapterToModule.set(ch.id as string, ch.module_id as string)
   );
 
-  // Build unified course list: full enrollments + module-only enrollments (no duplicates)
+  // ── Fetch lessons for those chapters ─────────────────────────────────────────
+  const { data: dbLessonsRaw } = dbChapterIds.length
+    ? await supabaseAdmin
+        .from("lessons")
+        .select("id, chapter_uuid, course_id, duration")
+        .in("chapter_uuid", dbChapterIds)
+    : { data: [] as any[] };
+
+  // Build lookup maps: lesson UUID → module UUID, course UUID, duration (minutes)
+  const lessonModule = new Map<string, string>();
+  const lessonCourse = new Map<string, string>();
+  const lessonDurationMin = new Map<string, number>();
+  (dbLessonsRaw || []).forEach((l: any) => {
+    const lid = l.id as string;
+    const mId = l.chapter_uuid ? chapterToModule.get(l.chapter_uuid as string) : undefined;
+    if (mId) lessonModule.set(lid, mId);
+    if (l.course_id) lessonCourse.set(lid, l.course_id as string);
+    if (l.duration) lessonDurationMin.set(lid, Number(l.duration));
+  });
+
+  // ── Count totals and completed per module / per course ────────────────────────
+  const totalByModule = new Map<string, number>();
+  const completedByModule = new Map<string, number>();
+  const totalByCourse = new Map<string, number>();
+  const completedByCourse = new Map<string, number>();
+  const totalMinByModule = new Map<string, number>();
+  const completedMinByModule = new Map<string, number>();
+
+  (dbLessonsRaw || []).forEach((l: any) => {
+    const lid = l.id as string;
+    const mId = lessonModule.get(lid);
+    const cId = lessonCourse.get(lid);
+    const dur = lessonDurationMin.get(lid) || 0;
+
+    if (mId) totalByModule.set(mId, (totalByModule.get(mId) || 0) + 1);
+    if (cId) totalByCourse.set(cId, (totalByCourse.get(cId) || 0) + 1);
+    if (mId) totalMinByModule.set(mId, (totalMinByModule.get(mId) || 0) + dur);
+
+    if (completedLessonIds.has(lid)) {
+      if (mId) completedByModule.set(mId, (completedByModule.get(mId) || 0) + 1);
+      if (cId) completedByCourse.set(cId, (completedByCourse.get(cId) || 0) + 1);
+      if (mId) completedMinByModule.set(mId, (completedMinByModule.get(mId) || 0) + dur);
+    }
+  });
+
+  // Group Supabase modules by course_id
+  const dbModulesByCourse = new Map<string, any[]>();
+  (dbModulesRaw || []).forEach((m: any) => {
+    if (!dbModulesByCourse.has(m.course_id)) dbModulesByCourse.set(m.course_id, []);
+    dbModulesByCourse.get(m.course_id)!.push(m);
+  });
+
+  // ── Build unified dashboard course list ───────────────────────────────────────
   type DashboardCourse = {
     id: string;
+    courseId: string;
+    /** Slug from Supabase — used for ALL navigation links */
+    dbSlug: string;
     courseTitle: string;
     courseDescription: string;
-    catalog: (typeof coursesCatalog)[number] | undefined;
+    gradient: string;
     hasFullCourse: boolean;
+    /** Integer module positions (order + 1) that are purchased */
     purchasedModuleIds: number[];
+    /** Module rows from Supabase */
+    dbModules: any[];
     progress: number;
   };
 
   const dashboardCourses: DashboardCourse[] = [];
 
-  // Add full course enrollments
+  // Full course enrollments
   (enrollments || []).forEach((enrollment: any) => {
-    const catalogMatch = coursesCatalog.find(
-      (c) => c.slug === enrollment.courses?.slug || c.title === enrollment.courses?.title
-    );
-    let courseProgress = 0;
-    if (catalogMatch) {
-      const allLessons = catalogMatch.modules?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons)) || [];
-      const totalLessons = allLessons.length;
-      const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
-      courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
-    }
+    const courseId = enrollment.course_id as string;
+    const dbSlug = (enrollment.courses?.slug as string) || "";
+    const gradient =
+      (enrollment.courses?.gradient as string) ||
+      "from-cyan-500 to-blue-600";
+
+    const dbMods = dbModulesByCourse.get(courseId) || [];
+    const total = totalByCourse.get(courseId) || 0;
+    const completed = completedByCourse.get(courseId) || 0;
+    const courseProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
     dashboardCourses.push({
-      id: enrollment.id,
-      courseTitle: enrollment.courses?.title || "",
-      courseDescription: enrollment.courses?.description || "",
-      catalog: catalogMatch,
+      id: enrollment.id as string,
+      courseId,
+      dbSlug,
+      courseTitle: (enrollment.courses?.title as string) || "",
+      courseDescription: (enrollment.courses?.description as string) || "",
+      gradient,
       hasFullCourse: true,
-      purchasedModuleIds: catalogMatch?.modules?.map((m) => m.id) || [],
+      purchasedModuleIds: dbMods.map((m: any) => (m.order as number) + 1),
+      dbModules: dbMods,
       progress: courseProgress,
     });
   });
 
-  // Add module-only courses (not already in full enrollments)
-  modulesByCourseId.forEach((moduleIds, courseId) => {
+  // Module-only enrollments (not already in full enrollments)
+  modulesByCourseId.forEach((purchasedModulePos, courseId) => {
     if (fullEnrollmentCourseIds.has(courseId)) return;
     const sampleME = (moduleEnrollments || []).find((me: any) => me.course_id === courseId);
-    const catalogMatch = coursesCatalog.find(
-      (c) => c.slug === sampleME?.courses?.slug || c.title === sampleME?.courses?.title
-    );
+    const dbSlug = (sampleME?.courses?.slug as string) || "";
+    const gradient =
+      (sampleME?.courses?.gradient as string) ||
+      "from-cyan-500 to-blue-600";
 
-    // Check if all modules are purchased -> treat as full course
-    const totalModules = catalogMatch?.modules?.length || 0;
-    const allModulesPurchased = totalModules > 0 && moduleIds.length >= totalModules;
+    const dbMods = dbModulesByCourse.get(courseId) || [];
+    const allModulesPurchased = dbMods.length > 0 && purchasedModulePos.length >= dbMods.length;
 
-    let courseProgress = 0;
-    if (catalogMatch) {
-      const relevantModules = allModulesPurchased
-        ? catalogMatch.modules || []
-        : catalogMatch.modules?.filter((m) => moduleIds.includes(m.id)) || [];
-      const allLessons = relevantModules.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons));
-      const totalLessons = allLessons.length;
-      const completedCount = allLessons.filter((l) => completedByTitle.has(l.title)).length;
-      courseProgress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
-    }
+    // Progress = only over purchased modules
+    let total = 0;
+    let completed = 0;
+    dbMods.forEach((m: any) => {
+      const mPos = (m.order as number) + 1;
+      if (!allModulesPurchased && !purchasedModulePos.includes(mPos)) return;
+      total += totalByModule.get(m.id as string) || 0;
+      completed += completedByModule.get(m.id as string) || 0;
+    });
+    const courseProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
     dashboardCourses.push({
       id: `module-${courseId}`,
-      courseTitle: sampleME?.courses?.title || "",
-      courseDescription: sampleME?.courses?.description || "",
-      catalog: catalogMatch,
+      courseId,
+      dbSlug,
+      courseTitle: (sampleME?.courses?.title as string) || "",
+      courseDescription: (sampleME?.courses?.description as string) || "",
+      gradient,
       hasFullCourse: allModulesPurchased,
       purchasedModuleIds: allModulesPurchased
-        ? catalogMatch?.modules?.map((m) => m.id) || moduleIds
-        : moduleIds,
+        ? dbMods.map((m: any) => (m.order as number) + 1)
+        : purchasedModulePos,
+      dbModules: dbMods,
       progress: courseProgress,
     });
   });
 
   const enrolledCount = dashboardCourses.length;
 
-  // Auto-issue certificates for 100% completed courses and fetch all certificates
-  const completedCourseSlugs = dashboardCourses
-    .filter((dc) => dc.progress === 100 && dc.catalog?.slug)
-    .map((dc) => dc.catalog!.slug);
+  // ── Recommended courses: published courses not yet enrolled ──────────────────
+  const enrolledSlugSet = new Set(dashboardCourses.map((dc) => dc.dbSlug).filter(Boolean));
+  const recommendedCourses = allPublishedCourses.filter((c) => !enrolledSlugSet.has(c.slug)).slice(0, 2);
 
-  await Promise.all(
-    completedCourseSlugs.map((slug) => checkAndIssueCertificate(slug))
-  );
+  // ── Auto-issue certificates for completed courses ─────────────────────────────
+  const completedCourseSlugs = dashboardCourses
+    .filter((dc) => dc.progress === 100 && dc.dbSlug)
+    .map((dc) => dc.dbSlug);
+
+  await Promise.all(completedCourseSlugs.map((slug) => checkAndIssueCertificate(slug)));
 
   const certificates = await getUserCertificates();
+
+  // ── Stats helpers ─────────────────────────────────────────────────────────────
+  const totalEnrolledLessons = dashboardCourses.reduce((acc, dc) => {
+    dc.dbModules.forEach((m: any) => {
+      const mPos = (m.order as number) + 1;
+      if (!dc.hasFullCourse && !dc.purchasedModuleIds.includes(mPos)) return;
+      acc += totalByModule.get(m.id as string) || 0;
+    });
+    return acc;
+  }, 0);
+
+  const totalCompletedMinutes = dashboardCourses.reduce((acc, dc) => {
+    dc.dbModules.forEach((m: any) => {
+      const mPos = (m.order as number) + 1;
+      if (!dc.hasFullCourse && !dc.purchasedModuleIds.includes(mPos)) return;
+      acc += completedMinByModule.get(m.id as string) || 0;
+    });
+    return acc;
+  }, 0);
+
+  const totalEnrolledMinutes = dashboardCourses.reduce((acc, dc) => {
+    dc.dbModules.forEach((m: any) => {
+      const mPos = (m.order as number) + 1;
+      if (!dc.hasFullCourse && !dc.purchasedModuleIds.includes(mPos)) return;
+      acc += totalMinByModule.get(m.id as string) || 0;
+    });
+    return acc;
+  }, 0);
+
+  const fmtTime = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0 && m === 0) return "0h";
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+  };
 
   return (
     <div className="min-h-screen">
@@ -215,94 +344,43 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
             <BookOpen className="w-6 h-6 text-cyan-400 mb-3" />
-            <div className="text-3xl font-bold"><span className="text-slate-400">{enrolledCount}</span><span className="text-white"> / {coursesCatalog.length}</span></div>
+            <div className="text-3xl font-bold">
+              <span className="text-slate-400">{enrolledCount}</span>
+              <span className="text-white"> / {totalPublishedCourses}</span>
+            </div>
             <div className="text-xs text-slate-400 mt-1">
               {enrolledCount === 1 ? "Curso inscrito" : "Cursos inscritos"}
             </div>
           </div>
+
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
             <Trophy className="w-6 h-6 text-amber-400 mb-3" />
-            {
-              (() => {
-                const totalLessonsEnrolled = dashboardCourses.reduce((acc: number, dc) => {
-                  if (dc.catalog && dc.catalog.modules) {
-                    const modules = dc.hasFullCourse
-                      ? dc.catalog.modules
-                      : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
-                    return acc + modules.reduce((sum: number, m: any) => sum + (m.chapters || []).flatMap((ch: any) => ch.lessons || []).length, 0);
-                  }
-                  return acc;
-                }, 0);
-                return (
-                  <div className="text-3xl font-bold">
-                    <span className="text-slate-400">{completedLessons}</span>
-                    <span className="text-white"> / {totalLessonsEnrolled}</span>
-                  </div>
-                );
-              })()
-            }
+            <div className="text-3xl font-bold">
+              <span className="text-slate-400">{totalCompletedLessons}</span>
+              <span className="text-white"> / {totalEnrolledLessons}</span>
+            </div>
             <div className="text-xs text-slate-400 mt-1">
-              {completedLessons === 1 ? "Lección completada" : "Lecciones completadas"}
+              {totalCompletedLessons === 1 ? "Lección completada" : "Lecciones completadas"}
             </div>
           </div>
-            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-              <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
-              <div className="text-3xl font-bold">
-                <span className="text-slate-400">{certificates.length}</span>
-                <span className="text-white"> / {dashboardCourses.length}</span>
-              </div>
-              <div className="text-xs text-slate-400 mt-1">Certificados</div>
+
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
+            <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
+            <div className="text-3xl font-bold">
+              <span className="text-slate-400">{certificates.length}</span>
+              <span className="text-white"> / {dashboardCourses.length}</span>
             </div>
-            <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-              <Clock className="w-6 h-6 text-purple-400 mb-3" />
-              {(() => {
-                // Sumar la duración de las lecciones completadas de los cursos inscritos
-                function parseMin(str: string) {
-                  if (!str) return 0;
-                  const h = /([0-9]+)\s*h/.exec(str);
-                  const m = /([0-9]+)\s*min/.exec(str);
-                  return (h ? parseInt(h[1], 10) * 60 : 0) + (m ? parseInt(m[1], 10) : 0);
-                }
-                // Total minutos completados
-                let minutosCompletados = 0;
-                let minutosTotales = 0;
-                dashboardCourses.forEach((dc) => {
-                  if (dc.catalog) {
-                    if (dc.catalog.duration) {
-                      const match = dc.catalog.duration.match(/(\d+)\s*h/);
-                      if (match) {
-                        minutosTotales += parseInt(match[1], 10) * 60;
-                      }
-                    }
-                    if (dc.catalog.modules) {
-                      const modules = dc.hasFullCourse
-                        ? dc.catalog.modules
-                        : dc.catalog.modules.filter((m) => dc.purchasedModuleIds.includes(m.id));
-                      modules.forEach((mod: any) => {
-                        (mod.chapters || []).flatMap((ch: any) => ch.lessons || []).forEach((lesson: any) => {
-                          const min = parseMin(lesson.duration);
-                          if (completedByTitle.has(lesson.title)) {
-                            minutosCompletados += min;
-                          }
-                        });
-                      });
-                    }
-                  }
-                });
-                const horasCompletadas = Math.floor(minutosCompletados / 60);
-                const minCompletados = minutosCompletados % 60;
-                const horasTotales = Math.floor(minutosTotales / 60);
-                const minTotales = minutosTotales % 60;
-                const format = (h: number, m: number) => m > 0 ? `${h}h ${m}min` : `${h}h`;
-                return (
-                  <div className="text-3xl font-bold">
-                    <span className="text-slate-400">{format(horasCompletadas, minCompletados)}</span>
-                    <span className="text-white"> / {format(horasTotales, minTotales)}</span>
-                  </div>
-                );
-              })()}
-              <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
+            <div className="text-xs text-slate-400 mt-1">Certificados</div>
+          </div>
+
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
+            <Clock className="w-6 h-6 text-purple-400 mb-3" />
+            <div className="text-3xl font-bold">
+              <span className="text-slate-400">{fmtTime(totalCompletedMinutes)}</span>
+              <span className="text-white"> / {fmtTime(totalEnrolledMinutes)}</span>
             </div>
+            <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
+          </div>
         </div>
       </section>
 
@@ -313,26 +391,26 @@ export default async function DashboardPage() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-cyan-400" />
+                  <BookOpen className="w-6 h-6 text-amber-400" />
                   Mis Cursos
                 </h2>
                 {enrolledCount > 0 && (
-                  <Link
-                    href="/cursos"
-                    className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-1 transition-colors"
-                  >
-                    Ver todos
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="bg-white/80 border border-slate-800 rounded px-3 py-1 flex items-center">
+                    <Link
+                      href="/cursos"
+                      className="text-slate-800 hover:text-amber-500 text-sm flex items-center gap-1 transition-colors"
+                    >
+                      Ver todos
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
                 )}
               </div>
 
               {dashboardCourses.length > 0 ? (
                 <div className="space-y-6">
                   {dashboardCourses.map((dc) => {
-                    const gradient = dc.catalog?.gradient || "from-cyan-500 to-blue-600";
-                    const slug = dc.catalog?.slug;
-                    const modules = dc.catalog?.modules || [];
+                    const { dbSlug, dbModules } = dc;
 
                     return (
                       <div
@@ -340,7 +418,7 @@ export default async function DashboardPage() {
                         className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden"
                       >
                         {/* Course Header */}
-                        <div className={`bg-gradient-to-r ${gradient} px-5 py-4`}>
+                        <div className={`bg-gradient-to-r ${dc.gradient} px-5 py-4`}>
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="text-white font-bold text-lg">
@@ -352,15 +430,17 @@ export default async function DashboardPage() {
                                     ? "bg-white/20 text-white"
                                     : "bg-amber-500/20 text-amber-200"
                                 }`}>
-                                  {dc.hasFullCourse ? "Curso Completo" : `${dc.purchasedModuleIds.length} de ${modules.length} módulos`}
+                                  {dc.hasFullCourse
+                                    ? "Curso Completo"
+                                    : `${dc.purchasedModuleIds.length} de ${dbModules.length} módulos`}
                                 </span>
                                 <span className="text-white/70 text-xs">
                                   {dc.progress}% completado
                                 </span>
                               </div>
                             </div>
-                            {slug && dc.hasFullCourse && (
-                              <Link href={`/classroom/${slug}`}>
+                            {dbSlug && dc.hasFullCourse && (
+                              <Link href={`/classroom/${dbSlug}`}>
                                 <Button
                                   size="sm"
                                   className="bg-white/20 hover:bg-white/30 text-white border-none"
@@ -383,19 +463,28 @@ export default async function DashboardPage() {
                         </div>
 
                         {/* Modules List */}
-                        {modules.length > 0 && (
+                        {dbModules.length > 0 && (
                           <div className="divide-y divide-slate-700/50">
-                            {modules.map((mod) => {
-                              const isUnlocked = dc.hasFullCourse || dc.purchasedModuleIds.includes(mod.id);
-                              const moduleLessons = (mod.chapters || []).flatMap((ch: any) => ch.lessons || []);
-                              const completedInModule = moduleLessons.filter((l) => completedByTitle.has(l.title)).length;
-                              const moduleProgress = moduleLessons.length > 0
-                                ? Math.round((completedInModule / moduleLessons.length) * 100)
+                            {dbModules.map((mod: any) => {
+                              // mod.order is 0-based; module position is order + 1
+                              const modPos = (mod.order as number) + 1;
+                              const isUnlocked = dc.hasFullCourse || dc.purchasedModuleIds.includes(modPos);
+                              const modId = mod.id as string;
+                              const totalInMod = totalByModule.get(modId) || 0;
+                              const completedInMod = completedByModule.get(modId) || 0;
+                              const moduleProgress = totalInMod > 0
+                                ? Math.round((completedInMod / totalInMod) * 100)
                                 : 0;
+                              const modDurMin = totalMinByModule.get(modId) || 0;
+                              const modDurLabel = modDurMin >= 60
+                                ? `${(modDurMin / 60).toFixed(1)}h`
+                                : modDurMin > 0
+                                ? `${modDurMin} min`
+                                : "";
 
                               return (
                                 <div
-                                  key={mod.id}
+                                  key={modId}
                                   className={`px-5 py-4 flex items-center gap-4 ${
                                     isUnlocked
                                       ? "hover:bg-slate-800/70 transition-colors"
@@ -433,13 +522,15 @@ export default async function DashboardPage() {
                                     }`}>
                                       <span className="flex items-center gap-1">
                                         <PlayCircle className="w-3 h-3" />
-                                        {mod.lessonsCount} lecciones
+                                        {totalInMod} lecciones
                                       </span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {mod.duration}
-                                      </span>
-                                      {isUnlocked && moduleLessons.length > 0 && (
+                                      {modDurLabel && (
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {modDurLabel}
+                                        </span>
+                                      )}
+                                      {isUnlocked && totalInMod > 0 && (
                                         <span className={moduleProgress === 100 ? "text-green-400" : "text-cyan-400"}>
                                           {moduleProgress}%
                                         </span>
@@ -450,8 +541,8 @@ export default async function DashboardPage() {
                                   {/* Action */}
                                   <div className="shrink-0">
                                     {isUnlocked ? (
-                                      slug ? (
-                                        <Link href={`/classroom/${slug}`}>
+                                      dbSlug ? (
+                                        <Link href={`/classroom/${dbSlug}?module=${modPos}`}>
                                           <Button
                                             size="sm"
                                             className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs h-8 px-3"
@@ -466,8 +557,8 @@ export default async function DashboardPage() {
                                         </Button>
                                       )
                                     ) : (
-                                      slug ? (
-                                        <Link href={`/checkout/${slug}?module=${mod.id}`}>
+                                      dbSlug ? (
+                                        <Link href={`/checkout/${dbSlug}?module=${modPos}`}>
                                           <Button
                                             size="sm"
                                             className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 px-3"
@@ -494,7 +585,7 @@ export default async function DashboardPage() {
                   })}
                 </div>
               ) : (
-                <div className="bg-slate-800/30 border border-slate-700/50 border-dashed rounded-xl p-12 text-center">
+                <div className="bg-slate-800/80 border border-slate-700/50 border-dashed rounded-xl p-12 text-center">
                   <BookOpen className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                   <h3 className="text-white font-semibold text-lg mb-2">
                     Aún no tienes cursos
@@ -553,19 +644,15 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            {/* Cursos recomendados */}
-            {(() => {
-              const enrolledSlugs = new Set(dashboardCourses.map((dc) => dc.catalog?.slug).filter(Boolean));
-              const recommended = coursesCatalog.filter((c) => !enrolledSlugs.has(c.slug)).slice(0, 2);
-              if (recommended.length === 0) return null;
-              return (
-                <div>
+            {/* Cursos recomendados — publicados en Supabase y no inscritos */}
+            {recommendedCourses.length > 0 && (
+              <div>
                   <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-amber-400" />
                     Recomendados para ti
                   </h2>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    {recommended.map((course) => (
+                    {recommendedCourses.map((course) => (
                       <Link
                         key={course.slug}
                         href={`/cursos/${course.slug}`}
@@ -595,9 +682,8 @@ export default async function DashboardPage() {
                       </Link>
                     ))}
                   </div>
-                </div>
-              );
-            })()}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -608,9 +694,7 @@ export default async function DashboardPage() {
                 <div className="absolute -bottom-8 left-5">
                   <div className="w-16 h-16 rounded-full border-4 border-slate-900 overflow-hidden">
                     <img
-                      src={
-                        user.user_metadata?.avatar_url || "/images/Ingperfil.png"
-                      }
+                      src={user.user_metadata?.avatar_url || "/images/Ingperfil.png"}
                       alt="Avatar"
                       className="w-full h-full object-cover"
                     />
@@ -645,13 +729,18 @@ export default async function DashboardPage() {
                 </div>
 
                 <Link href="/profile" className="block mt-5">
-                  <Button
-                    className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md"
-                  >
+                  <Button className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md">
                     <Settings className="w-4 h-4 mr-2 text-white" />
                     Editar Perfil
                   </Button>
                 </Link>
+                {profile?.role === "instructor" && (
+                  <Link href="/admin" className="block mt-3">
+                    <Button className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-400 text-white font-semibold hover:from-purple-700 hover:to-pink-700 border-none shadow-md">
+                      Panel Admin
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -660,25 +749,19 @@ export default async function DashboardPage() {
               <h3 className="text-white font-semibold mb-4">Acciones Rápidas</h3>
               <div className="space-y-2">
                 <Link href="/cursos" className="block">
-                  <Button
-                    className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md"
-                  >
+                  <Button className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md">
                     <BookOpen className="h-4 w-4 mr-2 text-white" />
                     Explorar Cursos
                   </Button>
                 </Link>
                 <Link href="/community" className="block">
-                  <Button
-                    className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md"
-                  >
+                  <Button className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md">
                     <GraduationCap className="h-4 w-4 mr-2 text-white" />
                     Comunidad
                   </Button>
                 </Link>
                 <Link href="/tools" className="block">
-                  <Button
-                    className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md"
-                  >
+                  <Button className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md">
                     <Sparkles className="h-4 w-4 mr-2 text-white" />
                     Herramientas
                   </Button>

@@ -181,6 +181,17 @@ export async function submitQuizAttempt(
   const score = totalPoints > 0 ? Math.round((earned / totalPoints) * 100) : 0;
   const passed = score >= (quiz?.passing_score || 70);
 
+  // Solo se permite 1 intento por quiz
+  const { count: prevCount } = await supabase
+    .from("quiz_attempts")
+    .select("*", { count: "exact", head: true })
+    .eq("quiz_id", quizId)
+    .eq("user_id", profile.id);
+
+  if ((prevCount ?? 0) > 0) {
+    return { error: "Solo se permite un intento por ejercicio." };
+  }
+
   const { error } = await supabase.from("quiz_attempts").insert({
     user_id: profile.id,
     quiz_id: quizId,
@@ -288,4 +299,44 @@ export async function deleteQuiz(
 
   if (error) return { error: "Error al eliminar el quiz" };
   return { success: true };
+}
+
+// ── Admin: fetch quiz for a specific lesson (by course_slug + catalog_lesson_id) ──
+
+export async function getQuizForLesson(
+  courseSlug: string,
+  catalogLessonId: number
+): Promise<QuizWithQuestions | null> {
+  const supabase = getAdmin();
+
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("id, title, passing_score, course_slug, catalog_lesson_id")
+    .eq("course_slug", courseSlug)
+    .eq("catalog_lesson_id", catalogLessonId)
+    .single();
+
+  if (!quiz) return null;
+
+  const { data: questions } = await supabase
+    .from("quiz_questions")
+    .select("id, question, type, options, correct_answer, points")
+    .eq("quiz_id", quiz.id)
+    .order("created_at");
+
+  return {
+    id: quiz.id,
+    title: quiz.title,
+    passing_score: quiz.passing_score,
+    course_slug: quiz.course_slug,
+    catalog_lesson_id: quiz.catalog_lesson_id,
+    questions: (questions || []).map((q: any) => ({
+      id: q.id,
+      question: q.question,
+      type: q.type,
+      options: q.options,
+      correct_answer: q.correct_answer,
+      points: q.points,
+    })),
+  };
 }

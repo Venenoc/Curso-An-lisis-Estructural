@@ -13,10 +13,20 @@ export const registerSchema = z
     password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
     confirmPassword: z.string(),
     role: z.enum(["student", "instructor"]),
+    instructorCode: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],
+  })
+  .refine((data) => {
+    if (data.role === "instructor") {
+      return data.instructorCode === "DANLOS";
+    }
+    return true;
+  }, {
+    message: "El código de instructor es incorrecto",
+    path: ["instructorCode"],
   });
 
 // Course schemas

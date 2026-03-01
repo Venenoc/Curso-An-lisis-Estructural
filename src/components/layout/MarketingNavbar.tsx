@@ -21,15 +21,14 @@ export default function MarketingNavbar({ user, profileAvatarUrl, profileName }:
   };
 
   return (
-    <nav className="fixed w-full top-0 z-50 bg-slate-950/40 backdrop-blur-sm border-b-2 border-white/30">
+    <nav className="fixed w-full top-0 z-50 bg-slate-950/40 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/images/Logo.jpg" alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg">ANÁLISIS ESTRUCTURAL</span>
-              <span className="text-black font-bold text-lg">PRO</span>
+              <span className="text-white font-bold text-lg">@Albert_Structural</span>
             </div>
           </Link>
           {/* Navigation Menu */}

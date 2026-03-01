@@ -25,6 +25,7 @@ export default function RegisterForm() {
   });
 
   const role = watch("role");
+  const instructorCode = watch("instructorCode");
 
   async function onSubmit(data: RegisterInput) {
     setError(null);
@@ -33,6 +34,9 @@ export default function RegisterForm() {
     formData.append("email", data.email);
     formData.append("password", data.password);
     formData.append("role", data.role);
+    if (data.role === "instructor") {
+      formData.append("instructorCode", data.instructorCode || "");
+    }
 
     const result = await signup(formData);
     if (result?.error) {
@@ -71,8 +75,8 @@ export default function RegisterForm() {
       {/* Texto inferior derecho */}
       <div className="absolute bottom-8 right-8 z-20">
         <h2 className="text-white text-2xl font-bold leading-tight">
-          Aprende con los mejores<br/>
-          Instructores especializados
+          La mejor manera de aprender<br/>
+          Es enseñando
         </h2>
       </div>
 
@@ -87,15 +91,15 @@ export default function RegisterForm() {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="text-6xl font-bold text-cyan-400">
-              AS
+            <div className="text-3xl font-bold text-white">
+              @Albert_Structural
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className="text-2xl font-bold text-cyan-400 mb-2">
             CREAR CUENTA
           </h1>
-          <p className="text-cyan-300 text-sm font-semibold">
-            COMPLETA EL FORMULARIO
+          <p className="text-white text-sm font-semibold">
+            COMPLETA TUS DATOS
           </p>
         </div>
 
@@ -172,6 +176,21 @@ export default function RegisterForm() {
             )}
           </div>
 
+          {/* Código Instructor (solo si selecciona instructor) */}
+          {role === "instructor" && (
+            <div className="relative">
+              <Input
+                id="instructorCode"
+                placeholder="Código de instructor"
+                disabled={isSubmitting}
+                {...register("instructorCode")}
+                className="pl-4 py-3 rounded-full bg-cyan-900/30 border border-cyan-500/50 text-white placeholder-cyan-300 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+              />
+              {errors.instructorCode && (
+                <p className="text-sm text-red-300 mt-1">{errors.instructorCode.message}</p>
+              )}
+            </div>
+          )}
           {/* Password Input */}
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-300" />

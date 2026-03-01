@@ -31,7 +31,7 @@ export default function Home() {
       {/* Video de fondo solo en la sección principal */}
       <main className="relative w-full z-10">
         {/* Sección única fusionada */}
-        <section className="relative pt-32 lg:pt-44 pb-20 lg:pb-32 flex flex-col items-center justify-center overflow-hidden">
+        <section className="relative pt-32 lg:pt-44 pb-10 lg:pb-5 flex flex-col items-center justify-center overflow-hidden">
           <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none" style={{maxHeight: '100vh'}}>
             <video
               autoPlay
@@ -48,32 +48,32 @@ export default function Home() {
           </div>
           <div className="container relative z-10">
             {/* HERO */}
-            <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-5xl lg:text-8xl font-bold tracking-tight mb-8 text-white leading-tight">
-                <span className="block mb-8 bg-gradient-to-r from-indigo-50 to-cyan-400 bg-clip-text text-transparent">
-                   @Albert_Structural
+            <div className="pt-10 mx-auto max-w-4xl text-center">
+              <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl px-10 py-4 w-full max-w-4xl mx-auto flex flex-col items-center justify-center mb-16 mt-8">
+                <span
+                  className="mb-6 bg-gradient-to-r from-indigo-50 to-cyan-400 bg-clip-text text-transparent text-4xl lg:text-8xl font-bold tracking-tight py-2"
+                  style={{ fontFamily: 'Segoe UI, Arial, sans-serif' }}
+                >
+                  @Albert_Structural
                 </span>
-              </h1>
-              <div className="bg-slate-900/40 backdrop-blur-sm border border-white rounded-xl px-6 py-6 max-w-2xl mx-auto mt-20 mb-20">
-                <p className="text-3xl font-semibold text-white leading-relaxed">
-                  " La mejor manera de aprender  
-                  es enseñando"
+                <p className="text-2xl font-semibold text-white leading-relaxed mb-8">
+                  " La mejor manera de aprender es enseñando"
                 </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 mt-8">
-                <Link href="/register">
-                  <Button size="lg" variant="outline"className="border-2 border-white bg-blue-400/60 hover:bg-black-700 hover:text-white transition-colors text-black px-8 py-5 text-lg">
-                    Comenzar Ahora
-                  </Button>
-                </Link>
-                <Link href="/cursos_m">
-                  <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
-                    Ver Cursos
-                  </Button>
-                </Link>
+                <div className="mb-6 flex flex-col sm:flex-row gap-6 justify-center">
+                  <Link href="/register">
+                    <Button size="lg" variant="outline" className="border-2 border-white bg-blue-400/60 hover:bg-black-700 hover:text-white transition-colors text-black px-8 py-5 text-lg">
+                      Comenzar Ahora
+                    </Button>
+                  </Link>
+                  <Link href="/cursos_m">
+                    <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
+                      Ver Cursos
+                    </Button>
+                  </Link>
+                </div>
               </div>
               {/* Stats in Hero */}
-              <div className="flex flex-col sm:flex-row justify-center items-stretch gap-0 mt-20 pt-10 pb-10">
+              <div className="flex flex-col sm:flex-row justify-center items-stretch gap-0 mt-10 pt-10">
                 <div className="flex-1 px-6 py-4 border-l-2 border-r-2 border-blue-400/60 bg-slate-900/40 backdrop-blur-sm">
                   <div className="text-3xl font-bold text-white">1000+</div>
                   <div className="text-slate-300 text-sm mt-1">Estudiantes</div>
@@ -93,19 +93,19 @@ export default function Home() {
               </div>
             </div>
             {/* ¿QUÉ APRENDERÁS? */}
-            <div className="text-center mb-24 mt-32">
+            <div className="text-center mt-20">
               <h2 className="text-4xl lg:text-6xl font-bold mb-4 text-white">
                 ¿Qué aprenderás?
               </h2>
             </div>
-            <div className="bg-slate-900/40 backdrop-blur-sm border border-white rounded-xl px-12 py-3 max-w-4xl mx-auto mt-20 mb-20">
-              <p className="text-xl font-semibold text-white leading-relaxed">
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-white rounded-xl px-12 py-3 max-w-4xl mx-auto mt-10 mb-10">
+              <p className="text-xl font-semibold text-slate-200 leading-relaxed">
                 Contenido especializado en Análisis Estructural desde lo básico hasta lo avanzado
               </p>
             </div>
-            <div className="max-w-6xl mx-auto mb-24">
+            <div className="max-w-6xl mx-auto mb-10">
               <div className="grid md:grid-cols-2 gap-12 mb-24">
-                <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm hover:bg-slate-800/70 transition-all">
+                <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-sm hover:bg-slate-900/80 transition-all">
                   <CardHeader>
                     <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4">
                       <Calculator className="w-6 h-6 text-blue-400" />
@@ -120,7 +120,7 @@ export default function Home() {
                     métodos numéricos aplicados a la ingeniería estructural.
                   </CardContent>
                 </Card>
-                <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm hover:bg-slate-800/70 transition-all">
+                <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-sm hover:bg-slate-900/80 transition-all">
                   <CardHeader>
                     <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-4">
                       <Layers className="w-6 h-6 text-cyan-400" />
@@ -135,7 +135,7 @@ export default function Home() {
                     y análisis avanzado de estructuras complejas.
                   </CardContent>
                 </Card>
-                <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm hover:bg-slate-800/70 transition-all">
+                <Card className="bg-slate-900/70 border-slate-700 backdrop-blur-sm hover:bg-slate-900/80 transition-all">
                   <CardHeader>
                     <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
                       <BarChart3 className="w-6 h-6 text-purple-400" />
@@ -153,27 +153,26 @@ export default function Home() {
               </div>
             </div>
             {/* CTA */}
-            <div className="max-w-3xl text-center mx-auto mt-32 mb-24">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-                Comienza tu Carrera en Análisis Estructural
-              </h2>
-              <div className="bg-slate-900/40 backdrop-blur-sm border border-white rounded-xl px-6 py-4 max-w-4xl mx-auto mt-20 mb-20">
-                <p className="text-xl font-semibold text-white leading-relaxed">
-                  Únete a cientos de ingenieros y estudiantes que están dominando 
-                  el análisis estructural con nuestros cursos especializados
+            <div className="max-w-4xl text-center mx-auto mt-10">
+              <div className="bg-slate-900/60 backdrop-blur-sm rounded-2xl px-10 py-10 w-full max-w-4xl mx-auto flex flex-col items-center justify-center mb-24">
+                <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white text-center">
+                  Comienza tu Carrera en Análisis Estructural
+                </h2>
+                <p className="text-xl font-semibold text-slate-200 leading-relaxed mb-8 text-center">
+                  Únete a cientos de ingenieros y estudiantes que están dominando el análisis estructural con nuestros cursos especializados
                 </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-8 justify-center mt-8 mb-8">
-                <Link href="/register">
-                  <Button size="lg" variant="outline"className="border-2 border-white bg-blue-400/60 hover:bg-black-700 hover:text-white transition-colors text-black px-8 py-5 text-lg">
-                    Registrarse Gratis
-                  </Button>
-                </Link>
-                <Link href="/cursos_m">
-                  <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
-                    Ver Todos los Cursos
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-8 justify-center mt-4">
+                  <Link href="/register">
+                    <Button size="lg" variant="outline" className="border-2 border-white bg-blue-400/60 hover:bg-black-700 hover:text-white transition-colors text-black px-8 py-5 text-lg">
+                      Registrarse Gratis
+                    </Button>
+                  </Link>
+                  <Link href="/cursos_m">
+                    <Button size="lg" variant="outline" className="border-2 bg-black/30 border-white text-white hover:bg-black/50 hover:text-white transition-colors px-8 py-5 text-lg">
+                      Ver Todos los Cursos
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

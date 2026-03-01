@@ -6,7 +6,74 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
 import { courseSchema } from "@/lib/schemas";
-import { coursesCatalog } from "@/data/courses-catalog";
+import type { CatalogCourse } from "@/data/courses-catalog";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fetch the full course catalog from Supabase (ALL courses: published + draft).
+// Published courses are shown normally; draft courses get isDraft: true so the
+// UI can display them as locked / "en desarrollo".
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getCatalogCoursesFromDB(): Promise<CatalogCourse[]> {
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Fetch ALL courses regardless of status
+  const { data: courses } = await admin
+    .from("courses")
+    .select("id, slug, title, description, price, gradient, level, total_duration, total_lessons, image_url, status")
+    .order("created_at", { ascending: true });
+
+  if (!courses || courses.length === 0) return [];
+
+  const courseIds = courses.map((c: any) => c.id).filter(Boolean);
+
+  // Fetch modules for all courses
+  const { data: dbModulesRaw } = courseIds.length
+    ? await admin.from("modules").select("id, course_id, title, order, price").in("course_id", courseIds).order("order")
+    : { data: [] };
+
+  // Group modules by course_id
+  const modulesByCourseId: Record<string, CatalogCourse["modules"]> = {};
+  for (const m of (dbModulesRaw ?? []) as any[]) {
+    if (!modulesByCourseId[m.course_id]) modulesByCourseId[m.course_id] = [];
+    modulesByCourseId[m.course_id]!.push({
+      id: (m.order as number) + 1,
+      title: m.title as string,
+      description: "",
+      price: Number(m.price) || 0,
+      lessonsCount: 0,
+      duration: "",
+      chapters: [],
+    });
+  }
+
+  return courses.map((c: any) => ({
+    slug: (c.slug as string) ?? (c.id as string),
+    title: c.title as string,
+    description: (c.description as string) ?? "",
+    price: Number(c.price),
+    gradient: (c.gradient as string) ?? "from-cyan-500 to-blue-600",
+    level: ((c.level as string) ?? "Principiante") as CatalogCourse["level"],
+    lessonsCount: Number(c.total_lessons) || 0,
+    duration: (c.total_duration as string) || "",
+    modules: modulesByCourseId[c.id as string] ?? [],
+    image_url: (c.image_url as string) ?? undefined,
+    inDb: true,
+    isDraft: (c.status as string) !== "published",
+  }));
+}
+
+// Helper used by enrollment lookup: returns slugs of courses enrolled by a profile
+export async function getEnrolledSlugs(profileId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("enrollments")
+    .select("courses(slug)")
+    .eq("user_id", profileId);
+  return (data ?? []).map((e: any) => e.courses?.slug).filter(Boolean) as string[];
+}
 
 export async function createCourse(formData: FormData) {
   try {
@@ -28,10 +95,10 @@ export async function createCourse(formData: FormData) {
 
     // Validar datos
     const data = {
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(formData.get("price") as string) || 0,
-      subscriptionOnly: formData.get("subscriptionOnly") === "true",
+      title: formData.get("title") ?? undefined,
+      description: formData.get("description") ?? undefined,
+      price: formData.get("price") ? parseFloat(formData.get("price") as string) : undefined,
+      subscription_only: formData.get("subscriptionOnly") === "true",
     };
 
     const validation = courseSchema.safeParse(data);
@@ -39,11 +106,21 @@ export async function createCourse(formData: FormData) {
       return { error: validation.error.issues[0].message };
     }
 
+    // Generar slug desde el título
+    const slug = (validation.data as any).title
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .substring(0, 80);
+
     // Crear curso
     const { error: insertError } = await supabase
       .from("courses")
       .insert({
         ...validation.data,
+        slug,
         instructor_id: profile.id,
         status: "draft",
       });
@@ -65,46 +142,51 @@ export async function updateCourse(courseId: string, formData: FormData) {
 
     const supabase = await createClient();
 
-    // Validar datos
-    const data = {
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(formData.get("price") as string) || 0,
-      subscriptionOnly: formData.get("subscriptionOnly") === "true",
-    };
+    const title = (formData.get("title") as string)?.trim();
+    const description = (formData.get("description") as string)?.trim();
+    const price = parseFloat(formData.get("price") as string) || 0;
+    const level = (formData.get("level") as string) || "Principiante";
+    const subscription_only = formData.get("subscription_only") === "true";
+    const image_url = (formData.get("image_url") as string)?.trim() || null;
+    const presentation_video_url = (formData.get("presentation_video_url") as string)?.trim() || null;
 
-    const validation = courseSchema.safeParse(data);
-    if (!validation.success) {
-      return { error: validation.error.issues[0].message };
-    }
+    if (!title || title.length < 3)
+      return { error: "El título debe tener al menos 3 caracteres" };
+    if (!description || description.length < 10)
+      return { error: "La descripción debe tener al menos 10 caracteres" };
 
-    // Actualizar curso
+    // Actualizar curso — total_duration y total_lessons se calculan automáticamente en syncCourseStats
     const { error: updateError } = await supabase
       .from("courses")
-      .update(validation.data)
+      .update({ title, description, price, level, subscription_only, image_url, presentation_video_url })
       .eq("id", courseId);
 
     if (updateError) {
       return { error: "Error al actualizar el curso" };
     }
 
+    // Sincronizar total_duration y total_lessons desde las lecciones reales en DB
+    await syncCourseStats(courseId);
+
+    revalidatePath(`/admin/courses/${courseId}`);
+    revalidatePath("/admin/courses");
     return { success: true };
   } catch (error: any) {
     return { error: "Error inesperado" };
   }
 }
 
-export async function publishCourse(courseId: string) {
+export async function publishCourse(courseId: string, publish: boolean = true) {
   try {
     const supabase = await createClient();
-
+    const newStatus = publish ? "published" : "draft";
     const { error } = await supabase
       .from("courses")
-      .update({ status: "published" })
+      .update({ status: newStatus })
       .eq("id", courseId);
 
     if (error) {
-      return { error: "Error al publicar el curso" };
+      return { error: publish ? "Error al publicar el curso" : "Error al despublicar el curso" };
     }
 
     return { success: true };
@@ -130,6 +212,33 @@ export async function deleteCourse(courseId: string) {
   } catch (error: any) {
     return { error: "Error inesperado" };
   }
+}
+
+// ── syncCourseStats: recalculates total_duration and total_lessons from lessons ──
+async function syncCourseStats(courseId: string): Promise<void> {
+  if (!courseId) return;
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: lessons } = await admin
+    .from("lessons")
+    .select("duration")
+    .eq("course_id", courseId);
+
+  const totalLessons = lessons?.length ?? 0;
+  const totalMinutes = (lessons ?? []).reduce((sum: number, l: any) => sum + (l.duration || 0), 0);
+  const formattedDuration =
+    totalMinutes >= 60
+      ? `${(totalMinutes / 60).toFixed(1)}h`
+      : totalMinutes > 0
+      ? `${totalMinutes} min`
+      : "";
+
+  await admin
+    .from("courses")
+    .update({ total_duration: formattedDuration, total_lessons: totalLessons })
+    .eq("id", courseId);
 }
 
 export async function purchaseCourse(slug: string) {
@@ -221,12 +330,18 @@ export async function purchaseModule(slug: string, moduleId: number) {
       return { error: "El curso no está disponible. Contacta al administrador." };
     }
 
-    // Buscar el módulo en el catálogo para obtener precio y título
-    const catalogCourse = coursesCatalog.find((c) => c.slug === slug);
-    if (!catalogCourse) return { error: "Curso no encontrado en catálogo" };
-
-    const catalogModule = catalogCourse.modules?.find((m) => m.id === moduleId);
-    if (!catalogModule) return { error: "Módulo no encontrado" };
+    // Buscar el módulo por posición: moduleId es índice 1-based del catálogo, NO un UUID
+    const adminForModule = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data: allModules } = await adminForModule
+      .from("modules")
+      .select("id, title, price")
+      .eq("course_id", existingCourse.id)
+      .order("order", { ascending: true });
+    const dbModule = (allModules ?? [])[moduleId - 1] ?? null;
+    if (!dbModule) return { error: "Módulo no encontrado" };
 
     // Verificar que el usuario no tenga el curso completo
     const { data: existingEnrollment } = await supabase
@@ -260,8 +375,8 @@ export async function purchaseModule(slug: string, moduleId: number) {
         user_id: profile.id,
         course_id: existingCourse.id,
         module_id: moduleId,
-        module_title: catalogModule.title,
-        price: catalogModule.price,
+        module_title: dbModule.title,
+        price: dbModule.price,
         payment_type: "one_time",
       });
 
@@ -279,7 +394,7 @@ export async function purchaseModule(slug: string, moduleId: number) {
   }
 }
 
-export async function markLessonComplete(courseSlug: string, lessonId: number) {
+export async function markLessonComplete(courseSlug: string, _lessonId: number, lessonDbId?: string) {
   try {
     const user = await getUser();
     if (!user) return { error: "No autenticado" };
@@ -304,77 +419,32 @@ export async function markLessonComplete(courseSlug: string, lessonId: number) {
 
     if (!profile) return { error: "Perfil no encontrado" };
 
-    // Find the course in catalog to get its title
-    const catalogCourse = coursesCatalog.find((c) => c.slug === courseSlug);
-    if (!catalogCourse) return { error: "Curso no encontrado en catálogo" };
+    // ── Fast path: lesson UUID provided directly (Supabase-based classroom) ──
+    if (lessonDbId) {
+      const { error: progressError } = await supabaseAdmin
+        .from("progress")
+        .upsert(
+          {
+            user_id: profile.id,
+            lesson_id: lessonDbId,
+            completed: true,
+            watched_duration: 0,
+            last_watched_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,lesson_id" }
+        );
 
-    // Find the course in DB — try by slug first, then by title
-    let { data: dbCourse } = await supabaseAdmin
-      .from("courses")
-      .select("id")
-      .eq("slug", courseSlug)
-      .single();
+      if (progressError) return { error: `Error al guardar progreso: ${progressError.message}` };
 
-    if (!dbCourse) {
-      const { data: byTitle } = await supabaseAdmin
-        .from("courses")
-        .select("id")
-        .eq("title", catalogCourse.title)
-        .single();
-      dbCourse = byTitle;
+      revalidatePath(`/classroom/${courseSlug}`);
+      revalidatePath("/dashboard");
+      return { success: true };
     }
 
-    if (!dbCourse) return { error: `Curso no encontrado en BD (slug: ${courseSlug})` };
-
-    // Find or create the lesson in DB
-    const lessonTitle = catalogCourse.modules
-      ?.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons))
-      .find((l) => l.id === lessonId)?.title;
-
-    if (!lessonTitle) return { error: "Lección no encontrada" };
-
-    let { data: dbLesson } = await supabaseAdmin
-      .from("lessons")
-      .select("id")
-      .eq("course_id", dbCourse.id)
-      .eq("title", lessonTitle)
-      .single();
-
-    if (!dbLesson) {
-      const { data: newLesson, error: lessonError } = await supabaseAdmin
-        .from("lessons")
-        .insert({
-          course_id: dbCourse.id,
-          title: lessonTitle,
-          order: lessonId,
-        })
-        .select("id")
-        .single();
-
-      if (lessonError || !newLesson) return { error: `Error al registrar lección: ${lessonError?.message}` };
-      dbLesson = newLesson;
-    }
-
-    // Upsert progress
-    const { error: progressError } = await supabaseAdmin
-      .from("progress")
-      .upsert(
-        {
-          user_id: profile.id,
-          lesson_id: dbLesson.id,
-          completed: true,
-          watched_duration: 0,
-          last_watched_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id,lesson_id" }
-      );
-
-    if (progressError) return { error: `Error al guardar progreso: ${progressError.message}` };
-
-    revalidatePath(`/classroom/${courseSlug}`);
-    revalidatePath("/dashboard");
-
-    return { success: true };
+    // ── Legacy path: lessonDbId not provided — no longer supported ───────────
+    // All classrooms now pass lessonDbId directly from DB. If this path is hit,
+    // it means the call is from outdated code.
+    return { error: "Identificador de lección requerido (lessonDbId)" };
   } catch (error: any) {
     return { error: "Error inesperado" };
   }
@@ -394,47 +464,59 @@ async function getInstructorProfile() {
   return data;
 }
 
+// ── createLesson: now takes chapterId — also sets course_id for classroom compat ──
 export async function createLesson(
-  courseId: string,
+  chapterId: string,
   formData: FormData
-): Promise<{ success?: boolean; error?: string }> {
+): Promise<{ lesson?: { id: string; title: string; video_url: string | null; order: number; duration: number | null; chapter_uuid: string }; error?: string }> {
   try {
     const profile = await getInstructorProfile();
     if (!profile) return { error: "No autenticado" };
-    if (profile.role !== "instructor" && profile.role !== "admin") {
-      return { error: "Sin permisos" };
-    }
 
     const title = (formData.get("title") as string)?.trim();
     const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
-    const orderStr = formData.get("order") as string;
-    const order = orderStr ? parseInt(orderStr, 10) : 0;
+    const durationStr = formData.get("duration") as string;
+    const duration = durationStr ? parseInt(durationStr, 10) : null;
 
     if (!title) return { error: "El título es obligatorio" };
 
     const supabase = await createClient();
 
-    // Verify instructor owns the course
-    const { data: course } = await supabase
-      .from("courses")
-      .select("id")
-      .eq("id", courseId)
-      .eq("instructor_id", profile.id)
+    // Resolve chapter → module → course_id
+    const { data: chapter } = await supabase
+      .from("chapters")
+      .select("module_id")
+      .eq("id", chapterId)
+      .single();
+    if (!chapter) return { error: "Capítulo no encontrado" };
+
+    const { data: module } = await supabase
+      .from("modules")
+      .select("course_id")
+      .eq("id", chapter.module_id)
+      .single();
+    if (!module) return { error: "Módulo no encontrado" };
+
+    // Get next order within the chapter (uses chapter_uuid FK)
+    const { data: last } = await supabase
+      .from("lessons")
+      .select("order")
+      .eq("chapter_uuid", chapterId)
+      .order("order", { ascending: false })
+      .limit(1);
+    const order = (last?.[0]?.order ?? -1) + 1;
+
+    const { data: lesson, error } = await supabase
+      .from("lessons")
+      .insert({ course_id: module.course_id, chapter_uuid: chapterId, title, video_url: videoUrl, duration, order })
+      .select("id, title, video_url, order, duration, chapter_uuid")
       .single();
 
-    if (!course) return { error: "Curso no encontrado o sin permisos" };
+    if (error || !lesson) return { error: "Error al crear la lección" };
 
-    const { error } = await supabase.from("lessons").insert({
-      course_id: courseId,
-      title,
-      video_url: videoUrl,
-      order,
-    });
-
-    if (error) return { error: "Error al crear la lección" };
-
-    revalidatePath(`/admin/courses/${courseId}`);
-    return { success: true };
+    revalidatePath(`/admin/courses/${module.course_id}`);
+    await syncCourseStats(module.course_id);
+    return { lesson };
   } catch {
     return { error: "Error inesperado" };
   }
@@ -450,24 +532,29 @@ export async function updateLesson(
 
     const title = (formData.get("title") as string)?.trim();
     const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
-    const orderStr = formData.get("order") as string;
-    const order = orderStr ? parseInt(orderStr, 10) : undefined;
+    const durationStr = formData.get("duration") as string;
+    const duration = durationStr ? parseInt(durationStr, 10) : null;
 
     if (!title) return { error: "El título es obligatorio" };
 
     const supabase = await createClient();
 
-    const updateData: Record<string, any> = { title, video_url: videoUrl };
-    if (order !== undefined) updateData.order = order;
+    // Look up course_id before update so we can sync stats after
+    const { data: lessonRef } = await supabase
+      .from("lessons")
+      .select("course_id")
+      .eq("id", lessonId)
+      .single();
 
     const { error } = await supabase
       .from("lessons")
-      .update(updateData)
+      .update({ title, video_url: videoUrl, duration })
       .eq("id", lessonId);
 
     if (error) return { error: "Error al actualizar la lección" };
 
     revalidatePath("/admin/courses");
+    if (lessonRef?.course_id) await syncCourseStats(lessonRef.course_id);
     return { success: true };
   } catch {
     return { error: "Error inesperado" };
@@ -482,6 +569,15 @@ export async function deleteLesson(
     if (!profile) return { error: "No autenticado" };
 
     const supabase = await createClient();
+
+    // Look up course_id before deleting
+    const { data: lessonRef } = await supabase
+      .from("lessons")
+      .select("course_id")
+      .eq("id", lessonId)
+      .single();
+    const courseId = lessonRef?.course_id;
+
     const { error } = await supabase
       .from("lessons")
       .delete()
@@ -490,6 +586,195 @@ export async function deleteLesson(
     if (error) return { error: "Error al eliminar la lección" };
 
     revalidatePath("/admin/courses");
+    if (courseId) await syncCourseStats(courseId);
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateLessonMaterials(
+  lessonId: string,
+  materials: { title: string; url: string }[]
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("lessons")
+      .update({ materials })
+      .eq("id", lessonId);
+
+    if (error) return { error: "Error al actualizar los materiales" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+// ── Module Management ────────────────────────────────────────────────────────
+
+export async function createModule(
+  courseId: string,
+  title: string,
+  presentationVideoUrl?: string,
+  price?: number
+): Promise<{ module?: { id: string; course_id: string; title: string; order: number; presentation_video_url: string | null; price: number }; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+
+    const supabase = await createClient();
+
+    const { data: course } = await supabase
+      .from("courses").select("id").eq("id", courseId).eq("instructor_id", profile.id).single();
+    if (!course) return { error: "Curso no encontrado o sin permisos" };
+
+    const { count } = await supabase
+      .from("modules").select("id", { count: "exact", head: true }).eq("course_id", courseId);
+    if ((count ?? 0) >= 4) return { error: "Máximo 4 módulos por curso" };
+
+    const { data: last } = await supabase
+      .from("modules").select("order").eq("course_id", courseId)
+      .order("order", { ascending: false }).limit(1);
+    const order = (last?.[0]?.order ?? -1) + 1;
+
+    const { data: mod, error } = await supabase
+      .from("modules")
+      .insert({ course_id: courseId, title: title.trim(), order, presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0 })
+      .select("id, course_id, title, order, presentation_video_url, price")
+      .single();
+
+    if (error || !mod) return { error: "Error al crear el módulo" };
+    revalidatePath(`/admin/courses/${courseId}`);
+    return { module: mod };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateModule(
+  moduleId: string,
+  title: string,
+  presentationVideoUrl?: string,
+  price?: number
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("modules")
+      .update({ title: title.trim(), presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0 })
+      .eq("id", moduleId);
+    if (error) return { error: "Error al actualizar el módulo" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function deleteModule(
+  moduleId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const supabase = await createClient();
+
+    // Look up course_id before cascade delete
+    const { data: mod } = await supabase
+      .from("modules")
+      .select("course_id")
+      .eq("id", moduleId)
+      .single();
+    const courseId = mod?.course_id;
+
+    const { error } = await supabase.from("modules").delete().eq("id", moduleId);
+    if (error) return { error: "Error al eliminar el módulo" };
+
+    if (courseId) await syncCourseStats(courseId);
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+// ── Chapter Management ───────────────────────────────────────────────────────
+
+export async function createChapter(
+  moduleId: string,
+  title: string
+): Promise<{ chapter?: { id: string; module_id: string; title: string; order: number }; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const supabase = await createClient();
+
+    const { data: last } = await supabase
+      .from("chapters").select("order").eq("module_id", moduleId)
+      .order("order", { ascending: false }).limit(1);
+    const order = (last?.[0]?.order ?? -1) + 1;
+
+    const { data: chapter, error } = await supabase
+      .from("chapters")
+      .insert({ module_id: moduleId, title: title.trim(), order })
+      .select("id, module_id, title, order")
+      .single();
+
+    if (error || !chapter) return { error: "Error al crear el capítulo" };
+    return { chapter };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateChapter(
+  chapterId: string,
+  title: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const supabase = await createClient();
+    const { error } = await supabase.from("chapters").update({ title: title.trim() }).eq("id", chapterId);
+    if (error) return { error: "Error al actualizar el capítulo" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function deleteChapter(
+  chapterId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const supabase = await createClient();
+
+    // Look up course_id via chapter → module before cascade delete
+    const { data: ch } = await supabase
+      .from("chapters")
+      .select("module_id")
+      .eq("id", chapterId)
+      .single();
+    let courseId: string | undefined;
+    if (ch?.module_id) {
+      const { data: mod } = await supabase
+        .from("modules")
+        .select("course_id")
+        .eq("id", ch.module_id)
+        .single();
+      courseId = mod?.course_id;
+    }
+
+    const { error } = await supabase.from("chapters").delete().eq("id", chapterId);
+    if (error) return { error: "Error al eliminar el capítulo" };
+
+    if (courseId) await syncCourseStats(courseId);
     return { success: true };
   } catch {
     return { error: "Error inesperado" };

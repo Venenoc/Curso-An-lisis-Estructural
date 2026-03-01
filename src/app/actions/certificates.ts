@@ -2,7 +2,6 @@
 
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getUser } from "./auth";
-import { coursesCatalog } from "@/data/courses-catalog";
 
 export interface Certificate {
   id: string;
@@ -76,9 +75,6 @@ export async function checkAndIssueCertificate(
   const profile = await getProfile();
   if (!profile) return { error: "No autenticado" };
 
-  const catalogCourse = coursesCatalog.find((c) => c.slug === courseSlug);
-  if (!catalogCourse) return { error: "Curso no encontrado" };
-
   const supabase = getAdmin();
 
   // Check if certificate already exists
@@ -91,42 +87,37 @@ export async function checkAndIssueCertificate(
 
   if (existing) return { certificate: existing, alreadyIssued: true };
 
-  // Get all lesson titles for this course from catalog
-  const allLessonTitles =
-    catalogCourse.modules?.flatMap((m) =>
-      (m.chapters || []).flatMap((ch) => ch.lessons.map((l) => l.title))
-    ) || [];
-
-  if (allLessonTitles.length === 0) return { error: "El curso no tiene lecciones" };
-
   // Find course in DB
   const { data: dbCourse } = await supabase
     .from("courses")
-    .select("id")
+    .select("id, title")
     .eq("slug", courseSlug)
     .single();
 
   if (!dbCourse) return { error: "Curso no encontrado en base de datos" };
 
-  // Get completed lesson titles for this course
-  const { data: progressData } = await supabase
+  // Get only lessons that are in the chapter hierarchy (chapter_uuid IS NOT NULL).
+  // This matches exactly the set the dashboard uses for progress calculation —
+  // lessons without chapter_uuid can't appear in the classroom so can never be completed.
+  const { data: courseLessons } = await supabase
+    .from("lessons")
+    .select("id")
+    .eq("course_id", dbCourse.id)
+    .not("chapter_uuid", "is", null);
+
+  const lessonIds = (courseLessons || []).map((l: any) => l.id as string);
+  if (lessonIds.length === 0) return { notComplete: true };
+
+  // Count how many of those lessons the user has completed
+  // Note: progress PK is (user_id, lesson_id) — no standalone "id" column
+  const { count: completedCount } = await supabase
     .from("progress")
-    .select("lessons(title, course_id)")
+    .select("lesson_id", { count: "exact", head: true })
     .eq("user_id", profile.id)
-    .eq("completed", true);
+    .eq("completed", true)
+    .in("lesson_id", lessonIds);
 
-  const completedTitles = new Set(
-    (progressData || [])
-      .filter((p: any) => p.lessons?.course_id === dbCourse.id)
-      .map((p: any) => p.lessons?.title)
-      .filter(Boolean)
-  );
-
-  const completedCount = allLessonTitles.filter((t) =>
-    completedTitles.has(t)
-  ).length;
-
-  if (completedCount < allLessonTitles.length) {
+  if ((completedCount ?? 0) < lessonIds.length) {
     return { notComplete: true };
   }
 
@@ -136,7 +127,7 @@ export async function checkAndIssueCertificate(
     .insert({
       user_id: profile.id,
       course_slug: courseSlug,
-      course_title: catalogCourse.title,
+      course_title: dbCourse.title as string,
     })
     .select("*")
     .single();

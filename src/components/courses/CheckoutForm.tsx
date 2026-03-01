@@ -12,6 +12,7 @@ import {
   BookOpen,
   Clock,
   Signal,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { purchaseCourse, purchaseModule } from "@/app/actions/courses";
@@ -21,20 +22,45 @@ interface CheckoutFormProps {
   course: CatalogCourse;
   userEmail: string;
   selectedModule?: CourseModule | null;
+  /** Modules the user already owns (full-course upgrade scenario) */
+  alreadyOwnedModules?: { id: number; title: string }[];
+  /** Modules still to purchase (full-course upgrade scenario) */
+  remainingModules?: { id: number; title: string; price: number }[];
+  /** Effective price to charge — may differ from course.price when upgrading */
+  effectivePrice?: number;
 }
 
 type CheckoutStep = "review" | "processing" | "success";
 
-export default function CheckoutForm({ course, userEmail, selectedModule }: CheckoutFormProps) {
+export default function CheckoutForm({
+  course,
+  userEmail,
+  selectedModule,
+  alreadyOwnedModules = [],
+  remainingModules = [],
+  effectivePrice,
+}: CheckoutFormProps) {
   const [step, setStep] = useState<CheckoutStep>("review");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const isModulePurchase = !!selectedModule;
-  const checkoutPrice = isModulePurchase ? selectedModule.price : course.price;
+  // Partial ownership: buying full course but user already has some modules
+  const isUpgrade = !isModulePurchase && remainingModules.length > 0;
+
+  // Price to show and charge
+  const displayPrice = isModulePurchase
+    ? selectedModule.price
+    : effectivePrice !== undefined
+    ? effectivePrice
+    : course.price;
+
   const checkoutTitle = isModulePurchase
     ? `Módulo: ${selectedModule.title}`
+    : isUpgrade
+    ? `Completar: ${course.title}`
     : course.title;
+
   const checkoutLessons = isModulePurchase ? selectedModule.lessonsCount : course.lessonsCount;
   const checkoutDuration = isModulePurchase ? selectedModule.duration : course.duration;
 
@@ -42,13 +68,14 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
     setStep("processing");
     setError(null);
 
-    // Simular delay de procesamiento de MercadoPago
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     try {
+      // Single module or upgrade both resolve to a full course enrollment
       const result = isModulePurchase
         ? await purchaseModule(course.slug, selectedModule.id)
         : await purchaseCourse(course.slug);
+
       if (result?.error) {
         setError(result.error);
         setStep("review");
@@ -61,18 +88,18 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
     }
   };
 
-  // Pantalla de éxito
+  // ── Pantalla de éxito ────────────────────────────────────────────────────────
   if (step === "success") {
     return (
       <div className="max-w-lg mx-auto text-center py-12">
         <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="w-10 h-10 text-green-400" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-3">
-          Pago Confirmado
-        </h1>
+        <h1 className="text-3xl font-bold text-white mb-3">Pago Confirmado</h1>
         <p className="text-slate-400 mb-2">
-          Tu compra de <span className="text-white font-medium">{checkoutTitle}</span> se ha procesado exitosamente.
+          Tu compra de{" "}
+          <span className="text-white font-medium">{checkoutTitle}</span> se ha
+          procesado exitosamente.
         </p>
         <p className="text-slate-500 text-sm mb-8">
           Se envió un recibo a {userEmail}
@@ -82,11 +109,11 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
           <h3 className="text-white font-semibold mb-3">Resumen de compra</h3>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-400">{checkoutTitle}</span>
-            <span className="text-white">${checkoutPrice} USD</span>
+            <span className="text-white">${displayPrice} USD</span>
           </div>
           <div className="flex justify-between text-sm pt-2 border-t border-slate-700/50">
             <span className="text-white font-medium">Total pagado</span>
-            <span className="text-green-400 font-bold">${checkoutPrice} USD</span>
+            <span className="text-green-400 font-bold">${displayPrice} USD</span>
           </div>
         </div>
 
@@ -95,13 +122,10 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
             onClick={() => router.push("/dashboard")}
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-cyan-600 hover:to-blue-700 text-white h-12 text-base font-bold shadow-lg border-2 border-cyan-400/40 hover:border-cyan-500/80 transition-all"
           >
-            <span className="flex items-center gap-2 justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m0 0H7m6 0h6" /></svg>
-              Ir al Dashboard
-            </span>
+            Ir al Dashboard
           </Button>
           <Button
-            onClick={() => router.push("/courses")}
+            onClick={() => router.push("/cursos")}
             className="w-full bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-600 h-12 transition-colors"
           >
             Seguir comprando
@@ -111,12 +135,11 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
     );
   }
 
-  // Pantalla de procesamiento
+  // ── Pantalla de procesamiento ────────────────────────────────────────────────
   if (step === "processing") {
     return (
       <div className="max-w-lg mx-auto text-center py-20">
         <div className="mb-8">
-          {/* MercadoPago logo spinner */}
           <div className="w-24 h-24 mx-auto relative">
             <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
             <div className="absolute inset-0 rounded-full border-4 border-[#009EE3] border-t-transparent animate-spin" />
@@ -135,7 +158,7 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
     );
   }
 
-  // Pantalla de review / checkout
+  // ── Pantalla de review / checkout ────────────────────────────────────────────
   return (
     <div>
       <Link
@@ -189,7 +212,6 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
               <h3 className="text-white font-semibold text-sm uppercase tracking-wider">
                 Método de Pago
               </h3>
-
               <div className="space-y-3">
                 <label className="flex items-center gap-3 bg-slate-900/50 border-2 border-[#009EE3] rounded-lg p-4 cursor-pointer">
                   <div className="w-5 h-5 rounded-full border-2 border-[#009EE3] flex items-center justify-center">
@@ -198,7 +220,6 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
                   <CreditCard className="w-5 h-5 text-slate-400" />
                   <span className="text-white text-sm">Tarjeta de crédito / débito</span>
                 </label>
-
                 <label className="flex items-center gap-3 bg-slate-900/50 border border-slate-700 rounded-lg p-4 cursor-pointer opacity-50">
                   <div className="w-5 h-5 rounded-full border-2 border-slate-600" />
                   <svg className="w-5 h-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -243,13 +264,12 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
               </div>
             )}
 
-            {/* Botón de pago */}
             <Button
               onClick={handlePayment}
               className="w-full bg-[#009EE3] hover:bg-[#0087CC] text-white h-14 text-lg font-semibold rounded-xl"
             >
               <Lock className="w-5 h-5 mr-2" />
-              Pagar ${checkoutPrice} USD
+              Pagar ${displayPrice} USD
             </Button>
 
             <div className="flex items-center justify-center gap-2 mt-4 text-xs text-slate-500">
@@ -266,53 +286,107 @@ export default function CheckoutForm({ course, userEmail, selectedModule }: Chec
               Resumen del Pedido
             </h2>
 
-            {/* Item */}
+            {/* Course thumbnail */}
             <div className="flex gap-4 mb-6">
-              <div
-                className={`w-16 h-16 bg-gradient-to-br ${course.gradient} rounded-xl flex items-center justify-center shrink-0`}
-              >
+              <div className={`w-16 h-16 bg-gradient-to-br ${course.gradient} rounded-xl flex items-center justify-center shrink-0`}>
                 <BookOpen className="w-7 h-7 text-white/80" />
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm leading-tight">
                   {checkoutTitle}
                 </h3>
-                {isModulePurchase && (
+                {(isModulePurchase || isUpgrade) && (
                   <p className="text-slate-500 text-xs mt-0.5">{course.title}</p>
                 )}
-                <div className="flex gap-3 mt-2 text-xs text-slate-500">
-                  <span className="flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" />
-                    {checkoutLessons} lecciones
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {checkoutDuration}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Signal className="w-3 h-3" />
-                    {course.level}
-                  </span>
-                </div>
+                {!isUpgrade && (
+                  <div className="flex gap-3 mt-2 text-xs text-slate-500">
+                    {checkoutLessons > 0 && (
+                      <span className="flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" />
+                        {checkoutLessons} lecciones
+                      </span>
+                    )}
+                    {checkoutDuration && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {checkoutDuration}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Signal className="w-3 h-3" />
+                      {course.level}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="border-t border-slate-700/50 pt-4 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">
-                  {isModulePurchase ? "Módulo individual" : "Curso completo"}
-                </span>
-                <span className="text-white">${checkoutPrice} USD</span>
+            {/* ── Upgrade scenario: owned + remaining breakdown ─────────────── */}
+            {isUpgrade ? (
+              <div className="space-y-4">
+                {/* Already owned */}
+                {alreadyOwnedModules.length > 0 && (
+                  <div className="bg-slate-900/40 rounded-lg p-3">
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                      Ya tienes
+                    </p>
+                    <div className="space-y-1.5">
+                      {alreadyOwnedModules.map((m) => (
+                        <div key={m.id} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500/70 shrink-0" />
+                          <span className="text-slate-500 text-sm line-through">{m.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Remaining to purchase */}
+                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-3">
+                  <p className="text-xs text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5" />
+                    A adquirir ahora
+                  </p>
+                  <div className="space-y-2">
+                    {remainingModules.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between">
+                        <span className="text-slate-300 text-sm">{m.title}</span>
+                        <span className="text-white text-sm font-medium">${m.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-700/50 pt-3">
+                  <div className="flex justify-between text-base">
+                    <span className="text-white font-bold">Total</span>
+                    <span className="text-white font-bold">${displayPrice} USD</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Solo pagas lo que aún no tienes
+                  </p>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Impuestos</span>
-                <span className="text-slate-500">$0.00</span>
+            ) : (
+              /* ── Standard checkout: module or full course ──────────────────── */
+              <div className="border-t border-slate-700/50 pt-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">
+                    {isModulePurchase ? "Módulo individual" : "Curso completo"}
+                  </span>
+                  <span className="text-white">${displayPrice} USD</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Impuestos</span>
+                  <span className="text-slate-500">$0.00</span>
+                </div>
+                <div className="flex justify-between text-base pt-3 border-t border-slate-700/50">
+                  <span className="text-white font-bold">Total</span>
+                  <span className="text-white font-bold">${displayPrice} USD</span>
+                </div>
               </div>
-              <div className="flex justify-between text-base pt-3 border-t border-slate-700/50">
-                <span className="text-white font-bold">Total</span>
-                <span className="text-white font-bold">${checkoutPrice} USD</span>
-              </div>
-            </div>
+            )}
 
             {/* Beneficios */}
             <div className="mt-6 pt-6 border-t border-slate-700/50 space-y-2.5">

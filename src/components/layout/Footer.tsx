@@ -2,10 +2,8 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-black bg-gradient-to-r from-slate-800/90 to-slate-900/90 text-slate-300 w-full overflow-hidden">
-      {/* Capa semitransparente encima del footer */}
-      <div className="absolute inset-0 bg-black/70 pointer-events-none z-10" />
-      <div className="relative w-full py-6 md:py-8 px-60 z-20">
+    <footer className="relative z-10 bg-slate-950/60 backdrop-blur-sm border-t border-slate-800/60 text-slate-300 w-full">
+      <div className="w-full py-6 md:py-8 px-60">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 w-full text-center">
           <div>
             <h3 className="font-semibold mb-2 text-blue-400 text-sm">Plataforma</h3>
@@ -80,7 +78,7 @@ export default function Footer() {
         </div>
         <div className="mt-6 border-t border-blue-600 pt-4 text-center w-full">
           <p className="text-xs text-blue-100">
-            © 2026 Albert Structural Academy. Todos los derechos reservados.
+            © 2026 Albert_Structural Academy. Todos los derechos reservados.
           </p>
         </div>
       </div>

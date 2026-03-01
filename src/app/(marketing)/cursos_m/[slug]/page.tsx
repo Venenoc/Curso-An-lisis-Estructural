@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
-import { coursesCatalog } from "@/data/courses-catalog";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+// import { coursesCatalog } from "@/data/courses-catalog";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -31,18 +32,7 @@ function getLevelColor(level: string) {
   }
 }
 
-function getFirstVideoUrl(course: (typeof coursesCatalog)[number]): string {
-  if (!course.modules) return "";
-  for (const mod of course.modules) {
-    if (!mod.chapters) continue;
-    for (const chapter of mod.chapters) {
-      for (const lesson of chapter.lessons) {
-        if (lesson.videoUrl) return lesson.videoUrl;
-      }
-    }
-  }
-  return "";
-}
+// Eliminar función getFirstVideoUrl, no se usa y depende de coursesCatalog
 
 export default async function CourseSyllabusPage({
   params,
@@ -50,8 +40,43 @@ export default async function CourseSyllabusPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const course = coursesCatalog.find((c) => c.slug === slug);
+  const supabase = await createClient();
+
+  // Step 1: fetch course metadata (no deep nesting to avoid Supabase quirks)
+  const { data: course } = await supabase
+    .from("courses")
+    .select("id, title, description, price, level, gradient, total_duration, total_lessons, image_url, slug, presentation_video_url, status")
+    .eq("slug", slug)
+    .single();
   if (!course) notFound();
+
+  // Step 2: fetch modules → chapters → lessons using admin client to bypass RLS
+  // (lessons RLS only allows enrolled users/instructors; marketing page is public)
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: modulesRaw } = await admin
+    .from("modules")
+    .select(`
+      id, title, order, price,
+      chapters(
+        id, title, order,
+        lessons(id, title, order, duration, duration_text, chapter_uuid)
+      )
+    `)
+    .eq("course_id", course.id)
+    .order("order", { ascending: true });
+
+  const modules = (modulesRaw || []).map((m: any) => ({
+    ...m,
+    chapters: [...(m.chapters || [])]
+      .sort((a: any, b: any) => a.order - b.order)
+      .map((c: any) => ({
+        ...c,
+        lessons: [...(c.lessons || [])].sort((a: any, b: any) => a.order - b.order),
+      })),
+  }));
 
   const user = await getUser();
   let purchased = false;
@@ -79,18 +104,17 @@ export default async function CourseSyllabusPage({
     }
   }
 
-  const introVideoUrl = getFirstVideoUrl(course);
+  // Usar el video de presentación de la tabla courses si existe
+  const introVideoUrl = course.presentation_video_url || "";
   const buyLink = user
     ? `/checkout/${course.slug}`
     : `/login?redirectTo=/checkout/${course.slug}`;
 
   const totalLessons =
-    course.modules?.reduce((acc, mod) => {
-      const count =
-        mod.chapters?.reduce((a, ch) => a + ch.lessons.length, 0) ??
-        mod.lessonsCount;
-      return acc + count;
-    }, 0) ?? course.lessonsCount;
+    modules.length > 0
+      ? modules.reduce((acc: number, mod: any) =>
+          acc + mod.chapters.reduce((a: number, ch: any) => a + ch.lessons.length, 0), 0)
+      : (course.total_lessons ?? 0);
 
   const isFirstCourse =
     course.title ===
@@ -121,36 +145,38 @@ export default async function CourseSyllabusPage({
       {/* Hero */}
       <section className="py-10 border-b border-slate-300/60">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="max-w-3xl mx-auto text-center">
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border mb-5 ${getLevelColor(course.level)}`}
-            >
-              <Signal className="w-3 h-3" />
-              {course.level}
-            </span>
-            <h1 className="text-3xl lg:text-5xl font-bold text-slate-900 mb-5 leading-tight">
-              {course.title}
-            </h1>
-            <p className="text-slate-700 text-lg mb-7 leading-relaxed max-w-2xl">
-              {course.description}
-            </p>
-            <div className="flex flex-wrap gap-5 text-sm text-slate-700">
-              <span className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-cyan-700" />
-                {totalLessons} lecciones
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-lg px-8 py-8 text-center">
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border mb-5 ${getLevelColor(course.level)}`}
+              >
+                <Signal className="w-3 h-3" />
+                {course.level}
               </span>
-              <span className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-cyan-700" />
-                {course.duration}
-              </span>
-              <span className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-cyan-700" />
-                Certificado incluido
-              </span>
-              <span className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-cyan-700" />
-                Acceso de por vida
-              </span>
+              <h1 className="text-3xl lg:text-5xl font-bold text-slate-900 mb-5 leading-tight">
+                {course.title}
+              </h1>
+              <p className="text-slate-700 text-lg mb-7 leading-relaxed max-w-2xl mx-auto">
+                {course.description}
+              </p>
+              <div className="flex flex-wrap justify-center gap-5 text-sm text-slate-700">
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-cyan-700" />
+                  {totalLessons} lecciones
+                </span>
+                <span className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-cyan-700" />
+                  {course.total_duration}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-cyan-700" />
+                  Certificado incluido
+                </span>
+                <span className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-cyan-700" />
+                  Acceso de por vida
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -180,13 +206,13 @@ export default async function CourseSyllabusPage({
               )}
 
               {/* Syllabus */}
-              {course.modules && course.modules.length > 0 && (
+              {modules.length > 0 && (
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 mb-5">
                     Contenido del curso
                   </h2>
                   <div className="space-y-3">
-                    {course.modules.map((mod, modIndex) => (
+                    {modules.map((mod: any, modIndex: number) => (
                       <details
                         key={mod.id}
                         className="group bg-slate-800/90 border border-slate-700/60 rounded-xl overflow-hidden"
@@ -203,9 +229,9 @@ export default async function CourseSyllabusPage({
                               </div>
                               <div className="text-xs text-slate-500 mt-0.5">
                                 {mod.chapters?.reduce(
-                                  (a, ch) => a + ch.lessons.length,
+                                  (a: number, ch: any) => a + ch.lessons.length,
                                   0
-                                ) ?? mod.lessonsCount}{" "}
+                                ) ?? mod.lessonsCount} {" "}
                                 lecciones · {mod.duration}
                               </div>
                             </div>
@@ -221,13 +247,13 @@ export default async function CourseSyllabusPage({
                               {mod.description}
                             </p>
                           )}
-                          {mod.chapters?.map((chapter) => (
+                          {mod.chapters?.map((chapter: any) => (
                             <div key={chapter.id} className="mt-4">
                               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 pl-2">
                                 {chapter.title}
                               </div>
                               <div className="space-y-0.5">
-                                {chapter.lessons.map((lesson) => (
+                                {chapter.lessons.map((lesson: any) => (
                                   <div
                                     key={lesson.id}
                                     className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-slate-700/25 transition-colors"
@@ -237,7 +263,7 @@ export default async function CourseSyllabusPage({
                                       {lesson.title}
                                     </span>
                                     <span className="text-xs text-slate-600 flex-shrink-0">
-                                      {lesson.duration}
+                                      {lesson.duration_text ?? ""}
                                     </span>
                                   </div>
                                 ))}
@@ -252,7 +278,7 @@ export default async function CourseSyllabusPage({
               )}
 
               {/* What you'll learn — shown when no modules detail available */}
-              {!course.modules && (
+              {modules.length === 0 && (
                 <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6">
                   <h2 className="text-lg font-bold text-white mb-4">
                     Acerca de este curso
@@ -267,7 +293,7 @@ export default async function CourseSyllabusPage({
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                      {course.duration} de contenido
+                      {course.total_duration} de contenido
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
@@ -283,7 +309,7 @@ export default async function CourseSyllabusPage({
             </div>
 
             {/* Right column: price card (sticky) */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 pt-10">
               <div className="sticky top-24">
                 <div className="bg-slate-800/70 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
                   {/* Thumbnail */}
@@ -351,7 +377,7 @@ export default async function CourseSyllabusPage({
                       </div>
                       <div className="flex items-center gap-2.5 text-sm text-slate-400">
                         <Clock className="w-4 h-4 text-cyan-500 flex-shrink-0" />
-                        {course.duration} de contenido
+                        {course.total_duration} de contenido
                       </div>
                       <div className="flex items-center gap-2.5 text-sm text-slate-400">
                         <CheckCircle2 className="w-4 h-4 text-cyan-500 flex-shrink-0" />
@@ -364,19 +390,33 @@ export default async function CourseSyllabusPage({
                     </div>
 
                     {/* Compra por módulos */}
-                    {!purchased && course.modules && course.modules.length > 0 && (
+                    {!purchased && modules.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-slate-700/50">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
                           O compra solo un módulo
                         </p>
                         <div className="space-y-3">
-                          {course.modules.map((mod, modIndex) => (
+                          {modules.map((mod: any, modIndex: number) => (
                             <div key={mod.id} className="bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-3 flex flex-col items-start">
                               <div>
                                 <div className="font-semibold text-white text-sm">{mod.title}</div>
-                                <div className="text-xs text-slate-400">{mod.lessonsCount} lecciones · {mod.duration}</div>
+                                <div className="text-xs text-slate-400">
+                                  {mod.chapters?.reduce((a: number, ch: any) => a + ch.lessons.length, 0)} lecciones · {
+                                    (() => {
+                                      const totalMinutes = mod.chapters?.reduce((sum: number, ch: any) => {
+                                        return sum + ch.lessons.reduce((s: number, l: any) => s + (typeof l.duration === "number" ? l.duration : 0), 0);
+                                      }, 0) ?? 0;
+                                      if (totalMinutes >= 60) {
+                                        const hours = Math.floor(totalMinutes / 60);
+                                        const minutes = totalMinutes % 60;
+                                        return `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}`;
+                                      }
+                                      return `${totalMinutes} min`;
+                                    })()
+                                  }
+                                </div>
                               </div>
-                              <span className="text-base font-bold text-cyan-400 mt-2">${mod.price}</span>
+                                <span className="text-base font-bold text-cyan-400 mt-2">{mod.price !== undefined ? `$${mod.price}` : "Sin precio"}</span>
                               <Link
                                 href={user
                                   ? `/checkout/${course.slug}?module=${mod.id}`

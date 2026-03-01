@@ -125,7 +125,7 @@ export default function CommunityFeed({ posts, replies, likesMap, currentUserId,
   return (
     <div className="space-y-6">
       {/* Create post form */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+      <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-5">
         <input
           type="text"
           value={title}

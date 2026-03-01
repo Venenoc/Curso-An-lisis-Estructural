@@ -3,7 +3,6 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { calcularNivel, calcularScore } from "@/lib/community-levels";
 import type { UserStats } from "@/lib/community-levels";
-import { coursesCatalog } from "@/data/courses-catalog";
 import ProfilePageClient from "@/components/profile/ProfilePageClient";
 
 export default async function ProfilePage() {
@@ -92,16 +91,12 @@ export default async function ProfilePage() {
   const enrolledCoursesCount = enrolledCoursesTitles.size;
   const completedLessonsCount = completedTitles.size;
 
-  // Compute course completion for badges
-  let completedCoursesCount = 0;
-  enrolledCoursesTitles.forEach((title) => {
-    const cat = coursesCatalog.find((c) => c.title === title);
-    if (cat?.modules) {
-      const allLessons = cat.modules.flatMap((m) => (m.chapters || []).flatMap((ch) => ch.lessons));
-      const allCompleted = allLessons.length > 0 && allLessons.every((l) => completedTitles.has(l.title));
-      if (allCompleted) completedCoursesCount++;
-    }
-  });
+  // Compute course completion for badges — use certificates table
+  const { count: _certCount } = await supabase
+    .from("certificates")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id);
+  const completedCoursesCount = _certCount ?? 0;
 
   // Build achievements/badges
   const achievements = [
@@ -164,23 +159,39 @@ export default async function ProfilePage() {
   ];
 
   return (
-    <ProfilePageClient
-      email={user.email || ""}
-      profile={{
-        id: profile.id,
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-        bio: profile.bio,
-        role: profile.role,
-        specialty: profile.specialty || "",
-        location: profile.location || "",
-        created_at: profile.created_at,
-      }}
-      communityStats={communityStats}
-      achievements={achievements}
-      enrolledCoursesCount={enrolledCoursesCount}
-      completedLessonsCount={completedLessonsCount}
-      completedCoursesCount={completedCoursesCount}
-    />
+    <div className="flex min-h-screen flex-col overflow-hidden relative mt-16">
+      {/* Fondo fijo */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0,
+        backgroundImage: 'url(/images/FondoPlatform_p.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        pointerEvents: 'none',
+      }} />
+      <ProfilePageClient
+        email={user.email || ""}
+        profile={{
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+          bio: profile.bio,
+          role: profile.role,
+          specialty: profile.specialty || "",
+          location: profile.location || "",
+          created_at: profile.created_at,
+        }}
+        communityStats={communityStats}
+        achievements={achievements}
+        enrolledCoursesCount={enrolledCoursesCount}
+        completedLessonsCount={completedLessonsCount}
+        completedCoursesCount={completedCoursesCount}
+      />
+    </div>
   );
 }

@@ -81,7 +81,7 @@ export default function VideoPlayer({
     setMarking(true);
     setError(null);
     try {
-      const result = await markLessonComplete(courseSlug, lesson.id);
+      const result = await markLessonComplete(courseSlug, lesson.id, lesson.dbId);
       if (result?.error) {
         setError(result.error);
       } else {
@@ -100,11 +100,11 @@ export default function VideoPlayer({
   return (
     <div className="flex flex-col items-center">
       {/* Module & Lesson Header */}
-      <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/50">
+      <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/90 text-center">
         <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">
           {chapterName}
         </p>
-        <h1 className="text-white text-xl font-bold">{lesson.title}</h1>
+        <h1 className="text-white text-xl font-bold drop-shadow-lg text-center">{lesson.title}</h1>
       </div>
 
       {/* Video Area */}
@@ -148,7 +148,7 @@ export default function VideoPlayer({
       )}
 
       {/* Action Bar */}
-      <div className="px-6 py-4 border-t border-slate-700/50 bg-slate-900/50 flex items-center justify-between gap-4">
+      <div className="px-6 py-4 border-t border-slate-700/90 bg-slate-900/90 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <BookOpen className="w-5 h-5 text-slate-500" />
           <span className="text-slate-400 text-sm">{lesson.duration}</span>
@@ -181,7 +181,7 @@ export default function VideoPlayer({
           ) : (
             <Button
               disabled
-              className="bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+              className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg"
               size="sm"
             >
               <PlayCircle className="w-4 h-4 mr-2" />
@@ -202,7 +202,7 @@ export default function VideoPlayer({
             ) : (
               <Button
                 disabled
-                className="bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg"
                 size="sm"
               >
                 <Lock className="w-4 h-4 mr-2" />

@@ -12,7 +12,7 @@ interface LeaderboardProps {
 export default function Leaderboard({ leaderboard, currentUserId }: LeaderboardProps) {
   if (leaderboard.length === 0) {
     return (
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-12 text-center">
+      <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-12 text-center">
         <Trophy className="w-12 h-12 text-slate-600 mx-auto mb-4" />
         <h3 className="text-white font-semibold text-lg mb-2">Sin actividad aun</h3>
         <p className="text-slate-400 text-sm">

@@ -29,37 +29,21 @@ export default function CourseCard({ course, purchased, isAuthenticated, variant
             : "group bg-slate-800/80 border border-slate-700/50 rounded-xl overflow-hidden hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1 flex flex-col h-full"
         }
       >
-        {/* Header solo imagen o gradiente */}
-        {course.title === "Conceptos Fundamentales en el Comportamiento y Diseño de Vigas" ? (
-          <div
-            className={isLight
-              ? "h-44 relative flex items-center justify-center p-6 bg-cover bg-center"
-              : "h-44 relative flex items-center justify-center p-6 bg-cover bg-center"}
-            style={{ backgroundImage: 'url(/images/Fondocurso1.jpg)' }}
-          >
-            {purchased && (
-              <div className={isLight ? "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow" : "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"}>
-                <CheckCircle2 className="w-3 h-3" />
-                Adquirido
-              </div>
-            )}
-          </div>
-        ) : (
-          <div
-            className={
-              isLight
-                ? `h-44 bg-gradient-to-br from-cyan-100 to-blue-100 relative flex items-center justify-center p-6`
-                : `h-44 bg-gradient-to-br ${course.gradient} relative flex items-center justify-center p-6`
-            }
-          >
-            {purchased && (
-              <div className={isLight ? "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow" : "absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"}>
-                <CheckCircle2 className="w-3 h-3" />
-                Adquirido
-              </div>
-            )}
-          </div>
-        )}
+        {/* Header: image_url tiene prioridad, luego gradiente */}
+        <div
+          className="h-44 relative flex items-center justify-center p-6 bg-cover bg-center"
+          style={course.image_url ? { backgroundImage: `url(${course.image_url})` } : undefined}
+        >
+          {!course.image_url && (
+            <div className={`absolute inset-0 ${isLight ? "bg-gradient-to-br from-cyan-100 to-blue-100" : `bg-gradient-to-br ${course.gradient}`}`} />
+          )}
+          {purchased && (
+            <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow z-10">
+              <CheckCircle2 className="w-3 h-3" />
+              Adquirido
+            </div>
+          )}
+        </div>
 
         {/* Content */}
         <div className={isLight ? "p-5 flex flex-col flex-1" : "p-5 flex flex-col flex-1"}>
