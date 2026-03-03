@@ -476,7 +476,7 @@ export default async function CourseSyllabusPage({
                       </svg>
                     ))}
                   </div>
-                  <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">"{t.text}"</p>
+                  <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">&ldquo;{t.text}&rdquo;</p>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
                       {t.name[0]}

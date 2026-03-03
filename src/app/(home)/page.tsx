@@ -84,7 +84,7 @@ export default function Home() {
                   @Albert_Structural
                 </span>
                 <p className="text-2xl font-semibold text-white leading-relaxed mb-8">
-                  "La mejor manera de aprender es enseñando"
+                  &ldquo;La mejor manera de aprender es enseñando&rdquo;
                 </p>
                 <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/register">
