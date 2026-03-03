@@ -65,6 +65,56 @@ export async function getCatalogCoursesFromDB(): Promise<CatalogCourse[]> {
   }));
 }
 
+// Returns a map of course_slug → completion percentage (0-100) for a given profile
+export async function getCourseProgressMap(profileId: string): Promise<Record<string, number>> {
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Get all completed lesson IDs for this user
+  const { data: completedRows } = await admin
+    .from("progress")
+    .select("lesson_id")
+    .eq("user_id", profileId)
+    .eq("completed", true);
+
+  if (!completedRows?.length) return {};
+
+  const lessonIds = completedRows.map((r: any) => r.lesson_id as string);
+
+  // Map lesson → course_id
+  const { data: lessons } = await admin
+    .from("lessons")
+    .select("id, course_id")
+    .in("id", lessonIds);
+
+  if (!lessons?.length) return {};
+
+  const countByCourseId: Record<string, number> = {};
+  for (const l of lessons as any[]) {
+    countByCourseId[l.course_id] = (countByCourseId[l.course_id] || 0) + 1;
+  }
+
+  // Get slug and total_lessons for those courses
+  const courseIds = Object.keys(countByCourseId);
+  const { data: courses } = await admin
+    .from("courses")
+    .select("id, slug, total_lessons")
+    .in("id", courseIds);
+
+  const progressMap: Record<string, number> = {};
+  for (const c of (courses || []) as any[]) {
+    if (c.slug && c.total_lessons > 0) {
+      progressMap[c.slug] = Math.min(
+        100,
+        Math.round((countByCourseId[c.id] / c.total_lessons) * 100)
+      );
+    }
+  }
+  return progressMap;
+}
+
 // Helper used by enrollment lookup: returns slugs of courses enrolled by a profile
 export async function getEnrolledSlugs(profileId: string): Promise<string[]> {
   const supabase = await createClient();
@@ -467,8 +517,9 @@ async function getInstructorProfile() {
 // ── createLesson: now takes chapterId — also sets course_id for classroom compat ──
 export async function createLesson(
   chapterId: string,
-  formData: FormData
-): Promise<{ lesson?: { id: string; title: string; video_url: string | null; order: number; duration: number | null; chapter_uuid: string }; error?: string }> {
+  formData: FormData,
+  sessionId?: string
+): Promise<{ lesson?: { id: string; title: string; video_url: string | null; order: number; duration: number | null; chapter_uuid: string; session_id: string | null }; error?: string }> {
   try {
     const profile = await getInstructorProfile();
     if (!profile) return { error: "No autenticado" };
@@ -477,6 +528,7 @@ export async function createLesson(
     const videoUrl = (formData.get("videoUrl") as string)?.trim() || null;
     const durationStr = formData.get("duration") as string;
     const duration = durationStr ? parseInt(durationStr, 10) : null;
+    const resolvedSessionId = sessionId || (formData.get("sessionId") as string) || null;
 
     if (!title) return { error: "El título es obligatorio" };
 
@@ -497,19 +549,25 @@ export async function createLesson(
       .single();
     if (!module) return { error: "Módulo no encontrado" };
 
-    // Get next order within the chapter (uses chapter_uuid FK)
-    const { data: last } = await supabase
-      .from("lessons")
-      .select("order")
-      .eq("chapter_uuid", chapterId)
-      .order("order", { ascending: false })
-      .limit(1);
+    // Get next order within the session (or chapter if no session)
+    const orderQuery = resolvedSessionId
+      ? supabase.from("lessons").select("order").eq("session_id", resolvedSessionId)
+      : supabase.from("lessons").select("order").eq("chapter_uuid", chapterId);
+    const { data: last } = await orderQuery.order("order", { ascending: false }).limit(1);
     const order = (last?.[0]?.order ?? -1) + 1;
 
     const { data: lesson, error } = await supabase
       .from("lessons")
-      .insert({ course_id: module.course_id, chapter_uuid: chapterId, title, video_url: videoUrl, duration, order })
-      .select("id, title, video_url, order, duration, chapter_uuid")
+      .insert({
+        course_id: module.course_id,
+        chapter_uuid: chapterId,
+        session_id: resolvedSessionId,
+        title,
+        video_url: videoUrl,
+        duration,
+        order,
+      })
+      .select("id, title, video_url, order, duration, chapter_uuid, session_id")
       .single();
 
     if (error || !lesson) return { error: "Error al crear la lección" };
@@ -775,6 +833,204 @@ export async function deleteChapter(
     if (error) return { error: "Error al eliminar el capítulo" };
 
     if (courseId) await syncCourseStats(courseId);
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+// ── Session Management ───────────────────────────────────────────────────────
+
+export async function createSession(
+  chapterId: string,
+  title: string,
+  type: 'session' | 'taller',
+  videoUrl?: string
+): Promise<{ session?: { id: string; chapter_id: string; title: string; type: string; video_url: string | null; order: number }; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { data: last } = await admin
+      .from("sessions")
+      .select("order")
+      .eq("chapter_id", chapterId)
+      .order("order", { ascending: false })
+      .limit(1);
+    const order = (last?.[0]?.order ?? -1) + 1;
+
+    const { data: session, error } = await admin
+      .from("sessions")
+      .insert({
+        chapter_id: chapterId,
+        title: title.trim(),
+        type,
+        video_url: type === 'session' ? (videoUrl?.trim() || null) : null,
+        order,
+      })
+      .select("id, chapter_id, title, type, video_url, order")
+      .single();
+
+    if (error || !session) return { error: "Error al crear la sesión" };
+    return { session };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateSession(
+  sessionId: string,
+  title: string,
+  type: 'session' | 'taller',
+  videoUrl?: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { error } = await admin
+      .from("sessions")
+      .update({
+        title: title.trim(),
+        type,
+        video_url: type === 'session' ? (videoUrl?.trim() || null) : null,
+      })
+      .eq("id", sessionId);
+
+    if (error) return { error: "Error al actualizar la sesión" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function deleteSession(
+  sessionId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { error } = await admin
+      .from("sessions")
+      .delete()
+      .eq("id", sessionId);
+
+    if (error) return { error: "Error al eliminar la sesión" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+// ── Lesson FAQs ───────────────────────────────────────────────────────────────
+
+export interface LessonFaq {
+  id: string;
+  lesson_id: string;
+  question: string;
+  video_url: string | null;
+  order: number;
+}
+
+function adminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
+export async function getFaqsByLessonIds(
+  lessonIds: string[]
+): Promise<Record<string, LessonFaq[]>> {
+  if (!lessonIds.length) return {};
+  const { data } = await adminClient()
+    .from("lesson_faqs")
+    .select("id, lesson_id, question, video_url, order")
+    .in("lesson_id", lessonIds)
+    .order("order", { ascending: true });
+  const map: Record<string, LessonFaq[]> = {};
+  for (const faq of data || []) {
+    if (!map[faq.lesson_id]) map[faq.lesson_id] = [];
+    map[faq.lesson_id].push(faq as LessonFaq);
+  }
+  return map;
+}
+
+export async function createFaq(
+  lessonId: string,
+  question: string,
+  videoUrl?: string
+): Promise<{ faq?: LessonFaq; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const admin = adminClient();
+    const { data: last } = await admin
+      .from("lesson_faqs")
+      .select("order")
+      .eq("lesson_id", lessonId)
+      .order("order", { ascending: false })
+      .limit(1);
+    const order = (last?.[0]?.order ?? -1) + 1;
+    const { data, error } = await admin
+      .from("lesson_faqs")
+      .insert({ lesson_id: lessonId, question: question.trim(), video_url: videoUrl?.trim() || null, order })
+      .select("id, lesson_id, question, video_url, order")
+      .single();
+    if (error || !data) return { error: "Error al crear la pregunta" };
+    return { faq: data as LessonFaq };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function updateFaq(
+  faqId: string,
+  question: string,
+  videoUrl?: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const { error } = await adminClient()
+      .from("lesson_faqs")
+      .update({ question: question.trim(), video_url: videoUrl?.trim() || null })
+      .eq("id", faqId);
+    if (error) return { error: "Error al actualizar la pregunta" };
+    return { success: true };
+  } catch {
+    return { error: "Error inesperado" };
+  }
+}
+
+export async function deleteFaq(
+  faqId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const profile = await getInstructorProfile();
+    if (!profile) return { error: "No autenticado" };
+    const { error } = await adminClient()
+      .from("lesson_faqs")
+      .delete()
+      .eq("id", faqId);
+    if (error) return { error: "Error al eliminar la pregunta" };
     return { success: true };
   } catch {
     return { error: "Error inesperado" };

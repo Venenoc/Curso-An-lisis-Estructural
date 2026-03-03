@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   Users,
 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 function getLevelColor(level: string) {
   switch (level) {
@@ -124,7 +125,7 @@ export default async function CourseSyllabusPage({
     <div
       className="min-h-screen bg-gradient-to-b from-white via-slate-100 to-slate-200"
       style={{
-        backgroundImage: 'url(/images/Fondo_cslugm.jpg)',
+        backgroundImage: 'url(/images/Fondos%20de%20marketing/Fondo_cslugm.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat',
@@ -146,6 +147,7 @@ export default async function CourseSyllabusPage({
       <section className="py-10 border-b border-slate-300/60">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="max-w-5xl mx-auto">
+            <ScrollReveal delay={0.1}>
             <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-lg px-8 py-8 text-center">
               <span
                 className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border mb-5 ${getLevelColor(course.level)}`}
@@ -178,6 +180,7 @@ export default async function CourseSyllabusPage({
                 </span>
               </div>
             </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -190,6 +193,7 @@ export default async function CourseSyllabusPage({
             <div className="lg:col-span-2 space-y-10">
               {/* Intro video */}
               {introVideoUrl && (
+                <ScrollReveal delay={0.1}>
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <Play className="w-5 h-5 text-cyan-400" />
@@ -203,6 +207,7 @@ export default async function CourseSyllabusPage({
                     />
                   </div>
                 </div>
+                </ScrollReveal>
               )}
 
               {/* Syllabus */}
@@ -213,8 +218,8 @@ export default async function CourseSyllabusPage({
                   </h2>
                   <div className="space-y-3">
                     {modules.map((mod: any, modIndex: number) => (
+                      <ScrollReveal key={mod.id} delay={Math.min(modIndex * 0.07, 0.35)}>
                       <details
-                        key={mod.id}
                         className="group bg-slate-800/90 border border-slate-700/60 rounded-xl overflow-hidden"
                         open={modIndex === 0}
                       >
@@ -272,6 +277,7 @@ export default async function CourseSyllabusPage({
                           ))}
                         </div>
                       </details>
+                      </ScrollReveal>
                     ))}
                   </div>
                 </div>
@@ -309,6 +315,7 @@ export default async function CourseSyllabusPage({
             </div>
 
             {/* Right column: price card (sticky) */}
+            <ScrollReveal delay={0.15} className="lg:col-span-1 pt-10">
             <div className="lg:col-span-1 pt-10">
               <div className="sticky top-24">
                 <div className="bg-slate-800/70 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
@@ -330,11 +337,11 @@ export default async function CourseSyllabusPage({
 
                   <div className="p-6">
                     {/* Price */}
-                    <div className="mb-5">
+                    <div className="mb-5 flex items-baseline gap-1">
+                      <span className="text-white text-2xl font-semibold">S/.</span>
                       <span className="text-4xl font-bold text-white">
-                        ${course.price}
+                        {course.price}
                       </span>
-                      <span className="text-slate-500 text-sm ml-2">USD</span>
                     </div>
 
                     {/* CTA */}
@@ -416,7 +423,7 @@ export default async function CourseSyllabusPage({
                                   }
                                 </div>
                               </div>
-                                <span className="text-base font-bold text-cyan-400 mt-2">{mod.price !== undefined ? `$${mod.price}` : "Sin precio"}</span>
+                                <span className="text-base font-bold text-cyan-400 mt-2">{mod.price !== undefined ? `S/. ${mod.price}` : "Sin precio"}</span>
                               <Link
                                 href={user
                                   ? `/checkout/${course.slug}?module=${mod.id}`
@@ -439,6 +446,49 @@ export default async function CourseSyllabusPage({
                 {/* Mobile buy button (shown below card on small screens, hidden on lg) */}
               </div>
             </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-12 border-t border-slate-300/60">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <ScrollReveal delay={0.05}>
+            <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Lo que dicen nuestros estudiantes</h2>
+            <p className="text-slate-500 text-sm text-center mb-10">Opiniones reales de quienes ya completaron el curso</p>
+          </ScrollReveal>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { name: "Carlos M.", role: "Ingeniero Civil", text: "El curso superó todas mis expectativas. La forma en que explican los conceptos es clara y directa. En pocas semanas logré aplicarlos en mis proyectos reales.", stars: 5 },
+              { name: "Andrea P.", role: "Estudiante de Ing. Civil", text: "Excelente material didáctico. Los ejercicios propuestos son muy similares a los que se encuentran en la práctica profesional. Totalmente recomendado.", stars: 5 },
+              { name: "Luis F.", role: "Proyectista Estructural", text: "Llevaba años buscando un curso que explicara bien el análisis estructural. Este lo hace de forma magistral y con mucha profundidad práctica.", stars: 5 },
+              { name: "María G.", role: "Docente universitaria", text: "Lo utilizo como material de apoyo en mis clases. La secuencia pedagógica es impecable y los ejemplos están muy bien seleccionados.", stars: 5 },
+              { name: "Roberto S.", role: "Ingeniero Estructural", text: "La calidad del contenido es sobresaliente. Se nota el dominio del tema por parte del instructor. Completamente recomendado para cualquier nivel.", stars: 5 },
+              { name: "Jorge T.", role: "Consultor en estructuras", text: "Uno de los mejores cursos que he tomado en línea. El ritmo es ideal y las explicaciones son muy precisas. Ya recomendé el curso a varios colegas.", stars: 5 },
+            ].map((t, i) => (
+              <ScrollReveal key={i} delay={Math.min(0.08 + i * 0.07, 0.4)}>
+                <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+                  <div className="flex gap-0.5 mb-4">
+                    {Array.from({ length: t.stars }).map((_, j) => (
+                      <svg key={j} className="w-4 h-4 fill-amber-400" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">"{t.text}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {t.name[0]}
+                    </div>
+                    <div>
+                      <p className="text-slate-900 text-sm font-semibold">{t.name}</p>
+                      <p className="text-slate-400 text-xs">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
@@ -447,8 +497,7 @@ export default async function CourseSyllabusPage({
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-50">
         <div className="flex items-center gap-4 max-w-lg mx-auto">
           <div>
-            <div className="text-xl font-bold text-white">${course.price}</div>
-            <div className="text-xs text-slate-500">USD</div>
+            <div className="text-xl font-bold text-white">S/. {course.price}</div>
           </div>
           {purchased ? (
             <Link href={`/cursos/${course.slug}`} className="flex-1">

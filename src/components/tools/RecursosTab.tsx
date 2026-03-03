@@ -11,30 +11,30 @@ const CATEGORY_META: Record<string, { label: string; icon: React.ReactNode; grad
   structural_checklist: {
     label: "Lista de Verificación Estructural",
     icon: <CheckSquare className="w-6 h-6" />,
-    gradient: "from-emerald-600/20 to-teal-600/20",
-    border: "border-emerald-500/30",
-    accent: "text-emerald-400",
+    gradient: "from-emerald-50 to-teal-50",
+    border: "border-emerald-200",
+    accent: "text-emerald-700",
   },
   calculation_templates: {
     label: "Plantillas de Cálculo",
     icon: <Calculator className="w-6 h-6" />,
-    gradient: "from-blue-600/20 to-cyan-600/20",
-    border: "border-blue-500/30",
-    accent: "text-blue-400",
+    gradient: "from-blue-50 to-cyan-50",
+    border: "border-blue-200",
+    accent: "text-blue-700",
   },
   report_templates: {
     label: "Plantillas de Memoria",
     icon: <FileText className="w-6 h-6" />,
-    gradient: "from-violet-600/20 to-purple-600/20",
-    border: "border-violet-500/30",
-    accent: "text-violet-400",
+    gradient: "from-violet-50 to-purple-50",
+    border: "border-violet-200",
+    accent: "text-violet-700",
   },
   budget_templates: {
     label: "Plantillas de Presupuesto",
     icon: <DollarSign className="w-6 h-6" />,
-    gradient: "from-orange-600/20 to-amber-600/20",
-    border: "border-orange-500/30",
-    accent: "text-orange-400",
+    gradient: "from-orange-50 to-amber-50",
+    border: "border-orange-200",
+    accent: "text-orange-700",
   },
 };
 
@@ -85,12 +85,12 @@ export default function RecursosTab({ resources }: Props) {
     <div className="space-y-8">
       {/* Hero */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-white">Recursos de Productividad</h1>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-slate-800">Recursos de Productividad</h1>
+        <p className="text-slate-500 max-w-2xl mx-auto">
           Plantillas, checklists y documentos listos para usar en tu práctica profesional.
         </p>
         {isEmpty && (
-          <p className="text-amber-400/80 text-sm mt-1">
+          <p className="text-amber-600 text-sm mt-1">
             Vista previa — los recursos se habilitarán próximamente.
           </p>
         )}
@@ -102,35 +102,33 @@ export default function RecursosTab({ resources }: Props) {
           const meta = CATEGORY_META[item.category] ?? {
             label: item.category,
             icon: <FileText className="w-6 h-6" />,
-            gradient: "from-slate-600/20 to-slate-700/20",
-            border: "border-slate-500/30",
-            accent: "text-slate-400",
+            gradient: "from-slate-50 to-slate-100",
+            border: "border-slate-200",
+            accent: "text-slate-600",
           };
           const canDownload = Boolean(item.file_url);
 
           return (
             <div
               key={item.id}
-              className={`flex gap-5 bg-gradient-to-br ${meta.gradient} border ${meta.border} rounded-2xl p-6 transition-all duration-200 hover:brightness-110`}
+              className={`flex gap-5 bg-gradient-to-br ${meta.gradient} border ${meta.border} rounded-2xl p-6 transition-all duration-200 hover:shadow-md shadow-sm`}
             >
-              {/* Icon */}
               <div className={`shrink-0 mt-0.5 ${meta.accent}`}>{meta.icon}</div>
 
-              {/* Content */}
               <div className="flex-1 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs text-slate-400 font-medium">{meta.label}</p>
-                    <h3 className="text-white font-semibold leading-snug mt-0.5">{item.title}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{meta.label}</p>
+                    <h3 className="text-slate-800 font-semibold leading-snug mt-0.5">{item.title}</h3>
                   </div>
                   {item.is_free && (
-                    <span className="shrink-0 text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full px-2 py-0.5">
+                    <span className="shrink-0 text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
                       Gratis
                     </span>
                   )}
                 </div>
                 {item.description && (
-                  <p className="text-slate-400 text-sm leading-relaxed">{item.description}</p>
+                  <p className="text-slate-500 text-sm leading-relaxed">{item.description}</p>
                 )}
                 <div className="pt-1">
                   {canDownload ? (
@@ -143,7 +141,7 @@ export default function RecursosTab({ resources }: Props) {
                       Descargar
                     </a>
                   ) : (
-                    <span className="inline-flex items-center gap-2 text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-2 text-sm text-slate-400">
                       <Download className="w-4 h-4" />
                       Próximamente
                     </span>

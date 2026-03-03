@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Menu, ArrowLeft } from "lucide-react";
+import { Menu, ArrowLeft, PlayCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import ClassroomSidebar from "./ClassroomSidebar";
 import VideoPlayer from "./VideoPlayer";
 import ClassroomTabs from "./ClassroomTabs";
-import type { CatalogCourse, CourseLesson } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseLesson, CourseSession } from "@/data/courses-catalog";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
+import type { LessonFaq } from "@/app/actions/courses";
 
 interface ClassroomViewProps {
   course: CatalogCourse;
@@ -17,6 +18,7 @@ interface ClassroomViewProps {
   purchasedModuleIds: number[];
   initialLessonId?: number;
   quizzesByCatalogLessonId?: Record<number, QuizWithQuestions>;
+  faqsByLessonDbId?: Record<string, LessonFaq[]>;
 }
 
 export default function ClassroomView({
@@ -27,10 +29,11 @@ export default function ClassroomView({
   purchasedModuleIds,
   initialLessonId,
   quizzesByCatalogLessonId,
+  faqsByLessonDbId,
 }: ClassroomViewProps) {
   const modules = course.modules || [];
 
-  // Flatten all lessons through module → chapter → lesson
+  // Flatten all lessons through module → chapter → (session →) lesson
   const allLessons = useMemo(() => {
     const lessons: { moduleId: number; moduleName: string; chapterId: number; chapterName: string; lesson: CourseLesson }[] = [];
     modules.forEach((m) => {
@@ -52,6 +55,9 @@ export default function ClassroomView({
   const [currentLessonId, setCurrentLessonId] = useState(startLesson?.lesson.id || 0);
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Session intro video state: null = showing a lesson, non-null = showing session intro
+  const [currentSession, setCurrentSession] = useState<CourseSession | null>(null);
 
   // Compute which lessons are unlocked based on purchase type and progress
   const unlockedLessonIds = useMemo(() => {
@@ -114,11 +120,16 @@ export default function ClassroomView({
   const isNextUnlocked = hasNext && unlockedLessonIds.has(allLessons[nextAccessibleIndex].lesson.id);
 
   const handleSelectLesson = useCallback((moduleId: number, lessonId: number) => {
-    // Only allow selecting unlocked lessons
     if (!unlockedLessonIds.has(lessonId)) return;
+    setCurrentSession(null);  // clear any session intro
     setCurrentModuleId(moduleId);
     setCurrentLessonId(lessonId);
   }, [unlockedLessonIds]);
+
+  const handleSelectSession = useCallback((session: CourseSession) => {
+    if (!session.videoUrl) return;
+    setCurrentSession(session);
+  }, []);
 
   const handleMarkComplete = () => {
     const id = String(currentLessonId);
@@ -130,7 +141,7 @@ export default function ClassroomView({
   const handleNextLesson = () => {
     if (hasNext && nextAccessibleIndex !== -1) {
       const next = allLessons[nextAccessibleIndex];
-      // After marking current complete, the next lesson should be unlocked
+      setCurrentSession(null);
       setCurrentModuleId(next.moduleId);
       setCurrentLessonId(next.lesson.id);
     }
@@ -150,15 +161,13 @@ export default function ClassroomView({
         <div
           className="absolute z-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url(/images/Albert.jpg)",
+            backgroundImage: "url(/images/FondoPlataforma/FondoClassroom.jpg)",
             opacity: 0.60,
             pointerEvents: "none",
             top: 0,
             bottom: 0,
-            left: '300px', // ancho típico del sidebar
+            left: '300px',
             right: 0,
-            width: '100%',
-            height: '100%',
           }}
         />
         {/* Sidebar */}
@@ -166,11 +175,13 @@ export default function ClassroomView({
           course={course}
           modules={modules}
           currentLessonId={currentLessonId}
+          currentSessionDbId={currentSession?.dbId ?? null}
           completedLessonIds={completedIds}
           unlockedLessonIds={unlockedLessonIds}
           hasFullCourse={hasFullCourse}
           purchasedModuleIds={purchasedModuleIds}
           onSelectLesson={handleSelectLesson}
+          onSelectSession={handleSelectSession}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
@@ -201,26 +212,101 @@ export default function ClassroomView({
             </Link>
           </div>
 
-          {/* Video Player */}
-          <div className="flex-1 overflow-y-auto">
-            <VideoPlayer
-              courseSlug={course.slug}
-              gradient={course.gradient}
-              chapterName={currentEntry.chapterName}
-              lesson={currentEntry.lesson}
-              isCompleted={completedIds.includes(String(currentLessonId))}
-              hasNext={hasNext}
-              isNextUnlocked={isNextUnlocked}
-              onMarkComplete={handleMarkComplete}
-              onNextLesson={handleNextLesson}
-            />
-            {/* Tabs */}
-            <ClassroomTabs
-              quiz={quizzesByCatalogLessonId?.[currentLessonId]}
-              lessonMaterials={currentEntry.lesson.materials}
-              lessonDbId={currentEntry.lesson.dbId}
-            />
-          </div>
+          {/* ── Session intro video view ── */}
+          {currentSession ? (
+            <div className="flex-1 overflow-y-auto">
+              {/* Minimal video player for session intro */}
+              <div className="p-4 bg-slate-900/60">
+                <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wide mb-3">
+                  <PlayCircle className="w-4 h-4" />
+                  Sesión Introductoria
+                </div>
+                <h2 className="text-white text-xl font-bold mb-1">{currentSession.title}</h2>
+                <p className="text-slate-400 text-sm mb-4">
+                  {currentSession.videoUrl
+                    ? "Video de introducción — completa las lecciones de esta sesión para avanzar."
+                    : "Selecciona una lección de esta sesión para comenzar."}
+                </p>
+              </div>
+
+              {/* Video embed — only shown if session has a video URL */}
+              {currentSession.videoUrl && (
+                <div className="px-4 pb-4 flex justify-center">
+                  <div className="aspect-video bg-black rounded-xl overflow-hidden w-full max-w-3xl">
+                    {currentSession.videoUrl.includes("youtube") || currentSession.videoUrl.includes("youtu.be") ? (
+                      <iframe
+                        src={currentSession.videoUrl.replace("watch?v=", "embed/")}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video
+                        src={currentSession.videoUrl}
+                        controls
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Lessons preview */}
+              {currentSession.lessons.length > 0 && (
+                <div className="px-4 pb-6">
+                  <h3 className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">
+                    Lecciones de esta sesión ({currentSession.lessons.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {currentSession.lessons.map((lesson) => (
+                      <button
+                        key={lesson.id}
+                        onClick={() => {
+                          if (unlockedLessonIds.has(lesson.id)) {
+                            setCurrentSession(null);
+                            setCurrentLessonId(lesson.id);
+                          }
+                        }}
+                        disabled={!unlockedLessonIds.has(lesson.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          unlockedLessonIds.has(lesson.id)
+                            ? "hover:bg-slate-800/60 text-slate-300"
+                            : "opacity-40 cursor-not-allowed text-slate-500"
+                        }`}
+                      >
+                        <PlayCircle className="w-4 h-4 text-slate-500 shrink-0" />
+                        <span className="text-sm truncate">{lesson.title}</span>
+                        <span className="ml-auto text-slate-600 text-xs shrink-0">{lesson.duration}</span>
+                        <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── Normal lesson video view ── */
+            <div className="flex-1 overflow-y-auto">
+              <VideoPlayer
+                courseSlug={course.slug}
+                gradient={course.gradient}
+                chapterName={currentEntry.chapterName}
+                lesson={currentEntry.lesson}
+                isCompleted={completedIds.includes(String(currentLessonId))}
+                hasNext={hasNext}
+                isNextUnlocked={isNextUnlocked}
+                onMarkComplete={handleMarkComplete}
+                onNextLesson={handleNextLesson}
+              />
+              {/* Tabs */}
+              <ClassroomTabs
+                quiz={quizzesByCatalogLessonId?.[currentLessonId]}
+                lessonMaterials={currentEntry.lesson.materials}
+                lessonDbId={currentEntry.lesson.dbId}
+                faqs={currentEntry.lesson.dbId ? (faqsByLessonDbId?.[currentEntry.lesson.dbId] ?? []) : []}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

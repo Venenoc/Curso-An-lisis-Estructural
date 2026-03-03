@@ -40,15 +40,17 @@ export default async function CourseDetailPage({
     redirect("/admin/courses");
   }
 
-  // Fetch modules → chapters → lessons hierarchy
-  // Uses chapter_uuid FK (not chapter_id INTEGER which is for catalog only)
+  // Fetch modules → chapters → sessions → lessons hierarchy
   const { data: modulesRaw } = await supabase
     .from("modules")
     .select(`
       id, title, order, course_id, presentation_video_url,
       chapters(
         id, title, order, module_id,
-        lessons(id, title, video_url, order, duration, chapter_uuid, materials)
+        sessions(
+          id, title, type, video_url, order, chapter_id,
+          lessons(id, title, video_url, order, duration, chapter_uuid, session_id, materials)
+        )
       )
     `)
     .eq("course_id", id)
@@ -59,7 +61,10 @@ export default async function CourseDetailPage({
     ...m,
     chapters: [...(m.chapters || [])].sort((a: any, b: any) => a.order - b.order).map((c: any) => ({
       ...c,
-      lessons: [...(c.lessons || [])].sort((a: any, b: any) => a.order - b.order),
+      sessions: [...(c.sessions || [])].sort((a: any, b: any) => a.order - b.order).map((s: any) => ({
+        ...s,
+        lessons: [...(s.lessons || [])].sort((a: any, b: any) => a.order - b.order),
+      })),
     })),
   }));
 

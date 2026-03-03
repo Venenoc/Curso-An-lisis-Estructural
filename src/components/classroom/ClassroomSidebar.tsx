@@ -9,18 +9,21 @@ import {
   Lock,
   BookOpen,
   X,
+  Wrench,
 } from "lucide-react";
-import type { CatalogCourse, CourseModule } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseModule, CourseSession } from "@/data/courses-catalog";
 
 interface ClassroomSidebarProps {
   course: CatalogCourse;
   modules: CourseModule[];
   currentLessonId: number;
+  currentSessionDbId?: string | null;
   completedLessonIds: string[];
   unlockedLessonIds: Set<number>;
   hasFullCourse: boolean;
   purchasedModuleIds: number[];
   onSelectLesson: (moduleId: number, lessonId: number) => void;
+  onSelectSession?: (session: CourseSession) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -29,11 +32,13 @@ export default function ClassroomSidebar({
   course,
   modules,
   currentLessonId,
+  currentSessionDbId,
   completedLessonIds,
   unlockedLessonIds,
   hasFullCourse,
   purchasedModuleIds,
   onSelectLesson,
+  onSelectSession,
   isOpen,
   onClose,
 }: ClassroomSidebarProps) {
@@ -44,7 +49,6 @@ export default function ClassroomSidebar({
 
   const activeModuleIndex = modules.findIndex((m) => m.id === activeModule?.id);
 
-  // Track collapsed modules (default: all expanded)
   const [collapsedModules, setCollapsedModules] = useState<number[]>([]);
 
   const toggleModule = (moduleId: number) => {
@@ -192,7 +196,7 @@ export default function ClassroomSidebar({
                   )}
                 </button>
 
-                {/* Chapters and Lessons */}
+                {/* Chapters and Sessions/Lessons */}
                 {isExpanded && !moduleLocked && (module.chapters || []).map((chapter) => (
                   <div key={chapter.id}>
                     {/* Chapter header */}
@@ -203,42 +207,149 @@ export default function ClassroomSidebar({
                       </span>
                     </div>
 
-                    {/* Lessons */}
-                    <div className="pb-1">
-                      {chapter.lessons.map((lesson) => {
-                        const isActive = lesson.id === currentLessonId;
-                        const isCompleted = isLessonCompleted(lesson.id);
-                        const isUnlocked = isLessonUnlocked(lesson.id);
+                    {chapter.sessions && chapter.sessions.length > 0 ? (
+                      /* ── 4-level: sessions → lessons ─────────────────── */
+                      <div className="pb-1">
+                        {chapter.sessions.map((session) => {
+                          const isTaller = session.type === 'taller';
+                          const isSessionActive = currentSessionDbId === session.dbId;
+                          // Sessions are always clickable (video is optional); talleres are not
+                          const isClickable = !isTaller;
 
-                        return (
-                          <button
-                            key={`${chapter.id}-${lesson.id}`}
-                            onClick={() => {
-                              if (!isUnlocked) return;
-                              onSelectLesson(module.id, lesson.id);
-                              onClose();
-                            }}
-                            disabled={!isUnlocked}
-                            className={`w-full flex items-center gap-3 px-4 py-2.5 pl-12 text-left transition-colors ${
-                              !isUnlocked
-                                ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
-                                : isActive
-                                ? "bg-cyan-500/10 border-l-2 border-cyan-500"
-                                : "hover:bg-slate-800/50 border-l-2 border-transparent"
-                            }`}
-                          >
-                            {!isUnlocked ? (
-                              <Lock className="w-4 h-4 text-slate-600 shrink-0" />
-                            ) : isCompleted ? (
-                              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
-                            ) : isActive ? (
-                              <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-                            ) : (
-                              <PlayCircle className="w-4 h-4 text-slate-600 shrink-0" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <span
-                                className={`text-sm block truncate ${
+                          return (
+                            <div key={session.dbId}>
+                              {/* Session header */}
+                              <button
+                                onClick={() => {
+                                  if (isClickable && onSelectSession) {
+                                    onSelectSession(session);
+                                    onClose();
+                                  }
+                                }}
+                                disabled={!isClickable}
+                                className={`w-full flex items-center gap-2 px-4 py-2 pl-10 text-left transition-colors ${
+                                  isTaller
+                                    ? "cursor-default"
+                                    : isSessionActive
+                                    ? "bg-indigo-500/10 border-l-2 border-indigo-400"
+                                    : "hover:bg-slate-800/50 border-l-2 border-transparent"
+                                }`}
+                              >
+                                {isTaller ? (
+                                  <Wrench className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
+                                ) : (
+                                  <PlayCircle className={`w-3.5 h-3.5 shrink-0 ${
+                                    isSessionActive ? "text-indigo-400" : "text-indigo-500/70"
+                                  }`} />
+                                )}
+                                <span className={`text-xs font-semibold uppercase tracking-wide truncate ${
+                                  isTaller
+                                    ? "text-amber-500/80"
+                                    : isSessionActive
+                                    ? "text-indigo-300"
+                                    : "text-indigo-400/80"
+                                }`}>
+                                  {session.title}
+                                </span>
+                                {!isTaller && session.videoUrl && (
+                                  <span className="ml-auto text-indigo-600/50 text-xs shrink-0">▶ intro</span>
+                                )}
+                              </button>
+
+                              {/* Lessons under session */}
+                              <div className="pb-1">
+                                {session.lessons.map((lesson) => {
+                                  const isActive = lesson.id === currentLessonId && !currentSessionDbId;
+                                  const isCompleted = isLessonCompleted(lesson.id);
+                                  const isUnlocked = isLessonUnlocked(lesson.id);
+
+                                  return (
+                                    <button
+                                      key={`${chapter.id}-${session.dbId}-${lesson.id}`}
+                                      onClick={() => {
+                                        if (!isUnlocked) return;
+                                        onSelectLesson(module.id, lesson.id);
+                                        onClose();
+                                      }}
+                                      disabled={!isUnlocked}
+                                      className={`w-full flex items-center gap-3 px-4 py-2.5 pl-14 text-left transition-colors ${
+                                        !isUnlocked
+                                          ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
+                                          : isActive
+                                          ? "bg-cyan-500/10 border-l-2 border-cyan-500"
+                                          : "hover:bg-slate-800/50 border-l-2 border-transparent"
+                                      }`}
+                                    >
+                                      {!isUnlocked ? (
+                                        <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+                                      ) : isCompleted ? (
+                                        <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                                      ) : isActive ? (
+                                        <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+                                      ) : (
+                                        <PlayCircle className="w-4 h-4 text-slate-600 shrink-0" />
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <span className={`text-sm block truncate ${
+                                          !isUnlocked
+                                            ? "text-slate-600"
+                                            : isActive
+                                            ? "text-cyan-400 font-medium"
+                                            : isCompleted
+                                            ? "text-slate-400"
+                                            : "text-slate-300"
+                                        }`}>
+                                          {lesson.title}
+                                        </span>
+                                      </div>
+                                      <span className="text-slate-600 text-xs flex items-center gap-1 shrink-0">
+                                        <Clock className="w-3 h-3" />
+                                        {lesson.duration}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* ── 3-level fallback: lessons directly under chapter ─ */
+                      <div className="pb-1">
+                        {chapter.lessons.map((lesson) => {
+                          const isActive = lesson.id === currentLessonId;
+                          const isCompleted = isLessonCompleted(lesson.id);
+                          const isUnlocked = isLessonUnlocked(lesson.id);
+
+                          return (
+                            <button
+                              key={`${chapter.id}-${lesson.id}`}
+                              onClick={() => {
+                                if (!isUnlocked) return;
+                                onSelectLesson(module.id, lesson.id);
+                                onClose();
+                              }}
+                              disabled={!isUnlocked}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 pl-12 text-left transition-colors ${
+                                !isUnlocked
+                                  ? "opacity-40 cursor-not-allowed border-l-2 border-transparent"
+                                  : isActive
+                                  ? "bg-cyan-500/10 border-l-2 border-cyan-500"
+                                  : "hover:bg-slate-800/50 border-l-2 border-transparent"
+                              }`}
+                            >
+                              {!isUnlocked ? (
+                                <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+                              ) : isCompleted ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                              ) : isActive ? (
+                                <PlayCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+                              ) : (
+                                <PlayCircle className="w-4 h-4 text-slate-600 shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <span className={`text-sm block truncate ${
                                   !isUnlocked
                                     ? "text-slate-600"
                                     : isActive
@@ -246,19 +357,19 @@ export default function ClassroomSidebar({
                                     : isCompleted
                                     ? "text-slate-400"
                                     : "text-slate-300"
-                                }`}
-                              >
-                                {lesson.title}
+                                }`}>
+                                  {lesson.title}
+                                </span>
+                              </div>
+                              <span className="text-slate-600 text-xs flex items-center gap-1 shrink-0">
+                                <Clock className="w-3 h-3" />
+                                {lesson.duration}
                               </span>
-                            </div>
-                            <span className="text-slate-600 text-xs flex items-center gap-1 shrink-0">
-                              <Clock className="w-3 h-3" />
-                              {lesson.duration}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

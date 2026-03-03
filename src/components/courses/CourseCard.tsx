@@ -10,9 +10,10 @@ interface CourseCardProps {
   purchased: boolean;
   isAuthenticated: boolean;
   variant?: "default" | "light" | "platform";
+  progress?: number;
 }
 
-export default function CourseCard({ course, purchased, isAuthenticated, variant = "default" }: CourseCardProps) {
+export default function CourseCard({ course, purchased, isAuthenticated, variant = "default", progress = 0 }: CourseCardProps) {
   const link = variant === "light"
     ? `/cursos_m/${course.slug}`
     : isAuthenticated
@@ -88,11 +89,12 @@ export default function CourseCard({ course, purchased, isAuthenticated, variant
           <div className="mb-4">
             <div className="w-full bg-slate-700 rounded-full h-2">
               <div
-                className={`h-2 rounded-full transition-all ${purchased ? "bg-green-500 w-[0%]" : "bg-slate-600 w-0"}`}
+                className={`h-2 rounded-full transition-all ${purchased ? "bg-green-500" : "bg-slate-600"}`}
+                style={{ width: `${purchased ? progress : 0}%` }}
               />
             </div>
             <span className="text-xs text-slate-500 mt-1 block">
-              {purchased ? "0% completado" : "No adquirido"}
+              {purchased ? `${progress}% completado` : "No adquirido"}
             </span>
           </div>
 
@@ -102,8 +104,8 @@ export default function CourseCard({ course, purchased, isAuthenticated, variant
           {/* Price & CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
             <div>
-              <span className={isPlatform ? "text-2xl font-bold text-white" : "text-2xl font-bold text-black"}>${course.price}</span>
-              <span className={isPlatform ? "text-slate-200 text-sm ml-1" : "text-slate-500 text-sm ml-1"}>USD</span>
+              <span className={isPlatform ? "text-slate-200 text-sm mr-1" : "text-slate-500 text-sm mr-1"}>S/.</span>
+              <span className={isPlatform ? "text-2xl font-bold text-white" : "text-2xl font-bold text-black"}>{course.price}</span>
             </div>
 
             {purchased ? (

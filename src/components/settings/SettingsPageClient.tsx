@@ -490,7 +490,7 @@ function PagosTab() {
 function HistorialTab({ purchases, totalSpent }: { purchases: Purchase[]; totalSpent: number }) {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
-  const formatPrice = (n: number) => n === 0 ? "Gratis" : `$${n.toFixed(2)}`;
+  const formatPrice = (n: number) => n === 0 ? "Gratis" : `S/. ${n.toFixed(2)}`;
 
   return (
     <div className="space-y-5">

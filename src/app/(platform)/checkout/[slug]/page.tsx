@@ -157,7 +157,7 @@ export default async function CheckoutPage({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black py-16 lg:py-24">
+    <div className="min-h-screen py-16 lg:py-24">
       <div className="container mx-auto px-4 max-w-5xl">
         <CheckoutForm
           course={course}

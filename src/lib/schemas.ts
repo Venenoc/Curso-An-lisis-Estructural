@@ -21,7 +21,7 @@ export const registerSchema = z
   })
   .refine((data) => {
     if (data.role === "instructor") {
-      return data.instructorCode === "DANLOS";
+      return data.instructorCode === process.env.NEXT_PUBLIC_INSTRUCTOR_CODE;
     }
     return true;
   }, {

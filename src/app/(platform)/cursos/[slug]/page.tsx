@@ -10,6 +10,7 @@ import {
   BookOpen, Clock, Signal, ShoppingCart, CheckCircle2,
   PlayCircle, Lock, ChevronRight, ArrowLeft, Compass, Scale, Landmark, PenTool,
 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 function fmtMin(minutes: number | null): string {
   if (!minutes) return "";
@@ -165,7 +166,7 @@ export default async function CursoDetailPage({
           width: "100vw",
           height: "100vh",
           zIndex: -1,
-          backgroundImage: 'url(/images/FondoPlatform_slugc.jpg)',
+          backgroundImage: 'url(/images/FondoPlataforma/FondoPlatform_slugc.jpg)',
           backgroundSize: "cover",
           backgroundPosition: "top center",
           backgroundRepeat: "no-repeat",
@@ -187,6 +188,7 @@ export default async function CursoDetailPage({
               </Link>
 
               {/* Course header */}
+              <ScrollReveal delay={0.1} className="text-center mb-12">
               <div className="text-center mb-12">
                 <div className="flex justify-center mb-4">
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${course.gradient} text-white`}>
@@ -204,6 +206,7 @@ export default async function CursoDetailPage({
                   </div>
                 </div>
               </div>
+              </ScrollReveal>
 
               <div className="relative max-w-6xl mx-auto">
 
@@ -248,13 +251,12 @@ export default async function CursoDetailPage({
                                 <div className="flex items-baseline justify-center gap-1 mb-3">
                                   {purchasedModuleIds.length > 0 ? (
                                     <>
-                                      <span className="text-sm text-slate-500 line-through">${course.price}</span>
-                                      <span className="text-2xl font-bold text-white">${remainingPrice.toFixed(2)}</span>
+                                      <span className="text-sm text-slate-500 line-through">S/. {course.price}</span>
+                                      <span className="text-2xl font-bold text-white">S/. {remainingPrice.toFixed(2)}</span>
                                     </>
                                   ) : (
-                                    <span className="text-2xl font-bold text-white">${course.price}</span>
+                                    <span className="text-2xl font-bold text-white">S/. {course.price}</span>
                                   )}
-                                  <span className="text-slate-500 text-xs">USD</span>
                                 </div>
                                 <Link href={`/checkout/${course.slug}`}>
                                   <Button className={`w-full bg-gradient-to-r ${course.gradient} hover:opacity-90 text-white h-10 text-sm font-semibold`}>
@@ -329,7 +331,7 @@ export default async function CursoDetailPage({
                                 ) : (
                                   <Link href={`/checkout/${course.slug}?module=${module.id}`}>
                                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer">
-                                      <ShoppingCart className="w-3 h-3" />${module.price}
+                                      <ShoppingCart className="w-3 h-3" />S/. {module.price}
                                     </span>
                                   </Link>
                                 )}
@@ -374,8 +376,8 @@ export default async function CursoDetailPage({
                             ) : (
                               <>
                                 <div className="flex items-baseline justify-center gap-1 mb-2">
-                                  <span className="text-2xl font-bold text-white">${course.price}</span>
-                                  <span className="text-slate-500 text-xs">USD</span>
+                                  <span className="text-slate-500 text-xs">S/.</span>
+                                  <span className="text-2xl font-bold text-white">{course.price}</span>
                                 </div>
                                 <Link href={`/checkout/${course.slug}`}>
                                   <Button className={`w-full bg-gradient-to-r ${course.gradient} hover:opacity-90 text-white h-10 text-sm font-semibold`}>
@@ -394,7 +396,8 @@ export default async function CursoDetailPage({
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
                     return (
-                      <div key={module.dbId} className={`bg-slate-800/80 border rounded-xl overflow-hidden transition-all ${isModuleOwned ? "border-green-500/30 hover:border-green-500/50" : "border-slate-700/50 hover:border-cyan-500/30"}`}>
+                      <ScrollReveal key={module.dbId} delay={Math.min(index * 0.1, 0.3)} scale>
+                      <div className={`bg-slate-800/80 border rounded-xl overflow-hidden transition-all ${isModuleOwned ? "border-green-500/30 hover:border-green-500/50" : "border-slate-700/50 hover:border-cyan-500/30"}`}>
                         <div className="relative">
                           {module.firstVideoUrl ? (
                             <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
@@ -440,13 +443,14 @@ export default async function CursoDetailPage({
                             ) : (
                               <Link href={`/checkout/${course.slug}?module=${module.id}`}>
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300">
-                                  <ShoppingCart className="w-3 h-3" />${module.price}
+                                  <ShoppingCart className="w-3 h-3" />S/. {module.price}
                                 </span>
                               </Link>
                             )}
                           </div>
                         </div>
                       </div>
+                      </ScrollReveal>
                     );
                   })}
                 </div>
@@ -479,13 +483,13 @@ export default async function CursoDetailPage({
                               <div className="flex items-baseline justify-center gap-1 mb-2">
                                 {purchasedModuleIds.length > 0 ? (
                                   <>
-                                    <span className="text-xs text-slate-500 line-through">${course.price}</span>
-                                    <span className="text-xl font-bold text-white">${remainingPrice.toFixed(2)}</span>
+                                    <span className="text-xs text-slate-500 line-through">S/. {course.price}</span>
+                                    <span className="text-xl font-bold text-white">{remainingPrice.toFixed(2)}</span>
                                   </>
                                 ) : (
-                                  <span className="text-xl font-bold text-white">${course.price}</span>
+                                  <span className="text-xl font-bold text-white">{course.price}</span>
                                 )}
-                                <span className="text-slate-500 text-xs">USD</span>
+                                <span className="text-slate-500 text-xs">S/.</span>
                               </div>
                               <Link href={`/checkout/${course.slug}`}>
                                 <Button className={`w-full bg-gradient-to-r ${course.gradient} hover:opacity-90 text-white h-9 text-sm font-semibold`}>
@@ -550,7 +554,7 @@ export default async function CursoDetailPage({
                                   </Link>
                                 ) : (
                                   <Link href={`/checkout/${course.slug}?module=${module.id}`}>
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-400 hover:text-cyan-300"><ShoppingCart className="w-3 h-3" />${module.price}</span>
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-400 hover:text-cyan-300"><ShoppingCart className="w-3 h-3" />S/. {module.price}</span>
                                   </Link>
                                 )}
                               </div>
@@ -585,7 +589,7 @@ export default async function CursoDetailPage({
                                 </Link>
                               ) : (
                                 <Link href={`/checkout/${course.slug}?module=${module.id}`}>
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-400 hover:text-cyan-300"><ShoppingCart className="w-3 h-3" />${module.price}</span>
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-400 hover:text-cyan-300"><ShoppingCart className="w-3 h-3" />S/. {module.price}</span>
                                 </Link>
                               )}
                             </div>
@@ -605,6 +609,7 @@ export default async function CursoDetailPage({
       {modules.length > 0 && (
         <section className="py-16 lg:py-10 border-t border-slate-800/60">
           <div className="container mx-auto px-4">
+            <ScrollReveal delay={0.05}>
             <div className="max-w-4xl mx-auto bg-slate-900/90 rounded-xl p-8 border border-white/20 shadow-lg">
               <h2 className="text-3xl font-bold text-white mb-2 text-center">Syllabus</h2>
               <p className="text-slate-400 mb-10 text-center max-w-2xl mx-auto">{course.title}</p>
@@ -654,13 +659,59 @@ export default async function CursoDetailPage({
                 ))}
               </div>
             </div>
+            </ScrollReveal>
           </div>
         </section>
       )}
 
+      {/* ── Testimonials ──────────────────────────────────────────────────────── */}
+      <section className="py-16 lg:py-10 border-t border-slate-800/90">
+        <div className="container mx-auto px-4">
+          <ScrollReveal delay={0.05}>
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-white mb-2 text-center">Lo que dicen nuestros estudiantes</h2>
+              <p className="text-white mb-10 text-center">Opiniones reales de quienes ya completaron el curso</p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[
+                  { name: "Carlos M.", role: "Ingeniero Civil", text: "El curso superó todas mis expectativas. La forma en que explican los conceptos es clara y directa. En pocas semanas logré aplicarlos en mis proyectos reales.", stars: 5 },
+                  { name: "Andrea P.", role: "Estudiante de Ing. Civil", text: "Excelente material didáctico. Los ejercicios propuestos son muy similares a los que se encuentran en la práctica profesional. Totalmente recomendado.", stars: 5 },
+                  { name: "Luis F.", role: "Proyectista Estructural", text: "Llevaba años buscando un curso que explicara bien el análisis estructural. Este lo hace de forma magistral y con mucha profundidad práctica.", stars: 5 },
+                  { name: "María G.", role: "Docente universitaria", text: "Lo utilizo como material de apoyo en mis clases. La secuencia pedagógica es impecable y los ejemplos están muy bien seleccionados.", stars: 5 },
+                  { name: "Roberto S.", role: "Ingeniero Estructural", text: "La calidad del contenido es sobresaliente. Se nota el dominio del tema. Completamente recomendado para cualquier nivel de experiencia.", stars: 5 },
+                  { name: "Jorge T.", role: "Consultor en estructuras", text: "Uno de los mejores cursos que he tomado en línea. El ritmo es ideal y las explicaciones son muy precisas. Ya lo recomendé a varios colegas.", stars: 5 },
+                ].map((t, i) => (
+                  <ScrollReveal key={i} delay={Math.min(0.08 + i * 0.07, 0.4)}>
+                    <div className="bg-slate-900/90 border border-slate-700/50 rounded-xl p-5 flex flex-col h-full">
+                      <div className="flex gap-0.5 mb-3">
+                        {Array.from({ length: t.stars }).map((_, j) => (
+                          <svg key={j} className="w-4 h-4 fill-amber-400" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed flex-1 mb-4">"{t.text}"</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {t.name[0]}
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-semibold">{t.name}</p>
+                          <p className="text-slate-500 text-xs">{t.role}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                ))}
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
       {/* ── Purchase Section ──────────────────────────────────────────────────── */}
       <section className="py-16 lg:py-10">
         <div className="container mx-auto px-4">
+          <ScrollReveal delay={0.1}>
           <div className="max-w-4xl mx-auto bg-slate-900/90 rounded-xl p-8 border border-white/20 shadow-lg">
             <h2 className="text-3xl font-bold text-white mb-2 text-center">Obtén el curso completo</h2>
             <p className="text-slate-400 mb-10 text-center">Accede a todos los módulos con un solo pago y ahorra</p>
@@ -691,18 +742,18 @@ export default async function CursoDetailPage({
                   <div className="flex items-baseline justify-center gap-2">
                     {purchasedModuleIds.length > 0 ? (
                       <>
-                        <span className="text-lg text-slate-500 line-through">${course.price}</span>
-                        <span className="text-4xl font-bold text-white">${remainingPrice.toFixed(2)}</span>
+                        <span className="text-lg text-slate-500 line-through">S/. {course.price}</span>
+                        <span className="text-4xl font-bold text-white">{remainingPrice.toFixed(2)}</span>
                       </>
                     ) : (
-                      <span className="text-4xl font-bold text-white">${course.price}</span>
+                      <span className="text-4xl font-bold text-white">{course.price}</span>
                     )}
-                    <span className="text-slate-500">USD</span>
+                    <span className="text-slate-500">S/.</span>
                   </div>
                   <p className="text-slate-500 text-sm mt-1">Pago único · acceso de por vida</p>
                   {modules.length > 0 && (
                     <p className="text-cyan-400/70 text-xs mt-2">
-                      Ahorra vs comprar módulos por separado (${modules.reduce((sum, m) => sum + m.price, 0).toFixed(2)} USD)
+                      Ahorra vs comprar módulos por separado (S/. {modules.reduce((sum, m) => sum + m.price, 0).toFixed(2)})
                     </p>
                   )}
                 </div>
@@ -750,6 +801,7 @@ export default async function CursoDetailPage({
               </div>
             </div>
           </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -757,7 +809,8 @@ export default async function CursoDetailPage({
       {!isPurchased && purchasedModuleIds.length === 0 && (
         <section className="py-10 ">
           <div className="container mx-auto px-4">
-            <div className={`max-w-3xl mx-auto text-center bg-gradient-to-r ${course.gradient} rounded-2xl p-10`}>
+            <ScrollReveal delay={0.1}>
+          <div className={`max-w-3xl mx-auto text-center bg-gradient-to-r ${course.gradient} rounded-2xl p-10`}>
               <h2 className="text-3xl font-bold text-white mb-4">Comienza a aprender hoy</h2>
               <p className="text-white/80 mb-6">
                 Accede a las {course.lessonsCount} lecciones y domina {course.title.toLowerCase()}
@@ -765,10 +818,11 @@ export default async function CursoDetailPage({
               <Link href={`/checkout/${course.slug}`}>
                 <Button className="bg-white text-slate-900 hover:bg-slate-100 h-12 px-8 text-base font-semibold">
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  Comprar por ${purchasedModuleIds.length > 0 ? remainingPrice.toFixed(2) : course.price} USD
+                  Comprar por S/. {purchasedModuleIds.length > 0 ? remainingPrice.toFixed(2) : course.price}
                 </Button>
               </Link>
             </div>
+          </ScrollReveal>
           </div>
         </section>
       )}

@@ -105,7 +105,6 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
                   <Link href="/tools" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Herramientas</Link>
                   <Link href="/profile" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Perfil</Link>
                   <Link href="/settings" className="px-6 py-3 hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Configuración</Link>
-                  <button className="px-6 py-3 text-left hover:bg-blue-600/80 hover:text-white text-slate-200 text-sm font-medium transition-colors">Apariencia</button>
                   <form action={signout}>
                     <Button variant="ghost" type="submit" className="w-full justify-start px-6 py-3 text-red-500 hover:bg-red-100/10">Cerrar sesión</Button>
                   </form>

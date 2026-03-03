@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { calcularNivel, calcularScore } from "@/lib/community-levels";
 import type { UserStats, LeaderboardEntry } from "@/lib/community-levels";
 import CommunityPageClient from "@/components/community/CommunityPageClient";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default async function CommunityPage() {
   const user = await getUser();
@@ -175,13 +176,13 @@ export default async function CommunityPage() {
         width: '100vw',
         height: '100vh',
         zIndex: 0,
-        backgroundImage: 'url(/images/FondoPlatform_com.jpg)',
+        backgroundImage: 'url(/images/FondoPlataforma/FondoPlatform_com.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         pointerEvents: 'none',
       }} />
-      <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+      <ScrollReveal className="relative z-10 flex-1 flex flex-col overflow-hidden" delay={0.1}>
         <CommunityPageClient
           currentUserId={profile.id}
           currentUserRole={profile.role}
@@ -196,7 +197,7 @@ export default async function CommunityPage() {
           leaderboard={leaderboard}
           activeMembersCount={activeMembersCount}
         />
-      </div>
+      </ScrollReveal>
     </div>
   );
 }

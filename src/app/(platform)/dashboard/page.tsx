@@ -22,6 +22,7 @@ import {
   ShoppingCart,
   Award,
 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -309,6 +310,7 @@ export default async function DashboardPage() {
       <section className="relative overflow-hidden pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
         <div className="container mx-auto px-4 py-12 lg:py-16 relative z-10">
+          <ScrollReveal delay={0.05}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
@@ -336,11 +338,13 @@ export default async function DashboardPage() {
               </Button>
             </Link>
           </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Stats */}
       <section className="container mx-auto px-4 -mt-2 mb-10">
+        <ScrollReveal delay={0.1}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
             <BookOpen className="w-6 h-6 text-cyan-400 mb-3" />
@@ -382,12 +386,14 @@ export default async function DashboardPage() {
             <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
           </div>
         </div>
+        </ScrollReveal>
       </section>
 
       <div className="container mx-auto px-4 pb-16">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main: Mis Cursos */}
-          <div className="lg:col-span-2 space-y-8">
+          <ScrollReveal delay={0.05} className="lg:col-span-2">
+          <div className="space-y-8">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -685,9 +691,10 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
+          </ScrollReveal>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <ScrollReveal delay={0.15} className="space-y-6">
             {/* Profile Card */}
             <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden">
               <div className="bg-gradient-to-r from-cyan-600 to-blue-600 h-20 relative">
@@ -768,7 +775,7 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </div>

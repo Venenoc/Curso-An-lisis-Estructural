@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { updateProfile, uploadAvatar } from "@/app/actions/profile";
 import { levelConfig, getProgressToNextLevel, getNextLevel } from "@/lib/community-levels";
 import type { UserStats, CommunityLevel } from "@/lib/community-levels";
@@ -164,13 +165,13 @@ export default function ProfilePageClient({
   return (
     <div className="min-h-screen">
       {/* Cover */}
-      <div className="relative h-48 md:h-56 bg-gradient-to-r from-cyan-900/60 via-blue-900/60 to-purple-900/60 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-950 to-transparent" />
+      <div className="relative h-48 md:h-56 bg-transparent overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-16" />
       </div>
 
       <div className="container mx-auto px-4 -mt-20 relative z-10 pb-16">
         {/* Profile Header Card */}
+        <ScrollReveal delay={0.05}>
         <div className="bg-slate-800/95 border border-slate-700/70 rounded-2xl overflow-hidden">
           <div className="p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-6">
@@ -339,10 +340,12 @@ export default function ProfilePageClient({
             </div>
           </div>
         </div>
+        </ScrollReveal>
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6 mt-6">
           {/* Left column - Stats + Level */}
+          <ScrollReveal delay={0.1} className="space-y-6">
           <div className="space-y-6">
             {/* Level Card */}
             <div className={`bg-slate-800/90 border rounded-xl overflow-hidden ${lc.border}`}>
@@ -431,8 +434,10 @@ export default function ProfilePageClient({
               </div>
             </div>
           </div>
+          </ScrollReveal>
 
           {/* Right column - Achievements */}
+          <ScrollReveal delay={0.15} className="lg:col-span-2">
           <div className="lg:col-span-2">
             <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-700/50">
@@ -484,6 +489,7 @@ export default function ProfilePageClient({
               </div>
             </div>
           </div>
+          </ScrollReveal>
         </div>
       </div>
     </div>

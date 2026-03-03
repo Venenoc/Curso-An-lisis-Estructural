@@ -9,10 +9,27 @@ export interface CourseLesson {
   materials?: { title: string; url: string }[];
 }
 
+/** Sesión: agrupa lecciones bajo un capítulo. Puede tener video introductorio (type='session')
+ *  o ser solo un contenedor de título (type='taller'). */
+export interface CourseSession {
+  /** UUID de la sesión en Supabase */
+  dbId: string;
+  title: string;
+  type: 'session' | 'taller';
+  /** URL del video introductorio — solo cuando type === 'session' */
+  videoUrl?: string;
+  lessons: CourseLesson[];
+}
+
 export interface CourseChapter {
   id: number;
+  /** UUID del capítulo en Supabase */
+  dbId?: string;
   title: string;
+  /** Lista plana de todas las lecciones del capítulo (para allLessons / progreso) */
   lessons: CourseLesson[];
+  /** Sesiones que agrupan las lecciones (disponible cuando se carga desde DB con sessions) */
+  sessions?: CourseSession[];
 }
 
 export interface CourseModule {

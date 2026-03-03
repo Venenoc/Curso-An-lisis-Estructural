@@ -15,18 +15,18 @@ export default function AsistenteTab() {
       {/* Placeholder header */}
       <div className="text-center space-y-4 max-w-lg">
         <div className="flex justify-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-600/20 border border-cyan-500/30 flex items-center justify-center">
-            <Bot className="w-10 h-10 text-cyan-400" />
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-violet-100 border border-blue-200 flex items-center justify-center">
+            <Bot className="w-10 h-10 text-blue-600" />
           </div>
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-white">Asistente IA</h1>
+          <h1 className="text-3xl font-bold text-slate-800">Asistente IA</h1>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="text-amber-400 text-sm font-medium">Próximamente disponible</span>
+            <Sparkles className="w-4 h-4 text-amber-600" />
+            <span className="text-amber-600 text-sm font-medium">Próximamente disponible</span>
           </div>
         </div>
-        <p className="text-slate-400 leading-relaxed">
+        <p className="text-slate-500 leading-relaxed">
           El Asistente IA te ayudará a interpretar normas, sugerir dimensiones estructurales,
           revisar resultados y detectar errores en tus cálculos. Estará disponible en la
           próxima actualización de la plataforma.
@@ -41,10 +41,10 @@ export default function AsistenteTab() {
             <button
               key={action.label}
               disabled
-              className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-4 text-left opacity-50 cursor-not-allowed"
+              className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-4 text-left opacity-50 cursor-not-allowed shadow-sm"
             >
-              <Icon className="w-5 h-5 text-cyan-400 shrink-0" />
-              <span className="text-white text-sm font-medium">{action.label}</span>
+              <Icon className="w-5 h-5 text-blue-600 shrink-0" />
+              <span className="text-slate-700 text-sm font-medium">{action.label}</span>
             </button>
           );
         })}
@@ -52,13 +52,13 @@ export default function AsistenteTab() {
 
       {/* Fake chat input */}
       <div className="w-full max-w-lg">
-        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
           <input
             disabled
             placeholder="El asistente IA estará disponible próximamente..."
-            className="flex-1 bg-transparent text-slate-500 text-sm placeholder-slate-600 outline-none cursor-not-allowed"
+            className="flex-1 bg-transparent text-slate-400 text-sm placeholder-slate-400 outline-none cursor-not-allowed"
           />
-          <button disabled className="p-2 rounded-lg bg-slate-700/40 text-slate-600 cursor-not-allowed">
+          <button disabled className="p-2 rounded-lg bg-slate-100 text-slate-400 cursor-not-allowed">
             <Send className="w-4 h-4" />
           </button>
         </div>

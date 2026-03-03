@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calculator, BookOpen, Monitor, Bot, FolderDown } from "lucide-react";
+import { Calculator, BookOpen, Monitor, Bot, FolderDown, House } from "lucide-react";
+import "./tools-style.css";
 
 const tabs = [
   {
@@ -36,9 +37,17 @@ export default function ToolsNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white/10 backdrop-blur-sm border-b border-white/20 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-2">
+    <nav className="tools-nav-outer sticky top-0 z-30">
+      <div className="tools-nav-bar max-w-7xl mx-auto">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <Link
+            href="/dashboard"
+            className="tools-tab tools-tab-icon"
+            title="Ir al Dashboard"
+          >
+            <House className="w-4 h-4 shrink-0" />
+          </Link>
+          <div className="w-px h-6 bg-white/20 shrink-0 mx-1" />
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive =
@@ -47,11 +56,7 @@ export default function ToolsNav() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                  isActive
-                    ? "bg-white text-slate-900 shadow-md"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
-                }`}
+                className={`tools-tab${isActive ? " tools-tab-active" : ""}`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">{tab.label}</span>

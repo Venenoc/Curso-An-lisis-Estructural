@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,6 +13,8 @@ import { login } from "@/app/actions/auth";
 import { loginSchema, type LoginInput } from "@/lib/schemas";
 import { Mail, Lock } from "lucide-react";
 import "./loginform-glow.css";
+
+const ease = [0.22, 1, 0.36, 1] as const;
 
 export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +47,7 @@ export default function LoginForm() {
     <div
       className="fixed inset-0 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: "url('/images/Fondologin.jpg')",
+        backgroundImage: "url('/images/FondoAut/Fondolog.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"
@@ -54,27 +57,42 @@ export default function LoginForm() {
       <div className="absolute inset-0 bg-black/20"></div>
 
       {/* Texto superior izquierdo */}
-      <div className="absolute top-8 left-8 z-20">
+      <motion.div
+        className="absolute top-8 left-8 z-20"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease, delay: 0.1 }}
+      >
         <h2 className="text-white text-4xl lg:text-5xl font-bold leading-tight">
           Desbloquea tu<br/>
           Potencial<br/>
           En la ingeniería
         </h2>
-        <p className="text-blue-400 text-lg mt-3 font-semibold">
+        <p className="text-cyan-300 text-lg mt-3 font-semibold">
           Aprende, analiza, construye
         </p>
-      </div>
+      </motion.div>
 
-      {/* Texto inferior izquierdo */}
-      <div className="absolute bottom-8 right-8 z-20">
+      {/* Texto inferior derecho */}
+      <motion.div
+        className="absolute bottom-8 right-24 z-20"
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease, delay: 0.2 }}
+      >
         <h2 className="text-white text-2xl font-bold leading-tight">
           Únete a miles de<br/>
           Ingenieros alrededor del mundo
         </h2>
-      </div>
+      </motion.div>
 
       {/* Main container con box transparente y borde animado */}
-      <div className="relative z-10 w-full max-w-md px-6 py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible">
+      <motion.div
+        className="relative z-10 w-full max-w-md px-6 py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease }}
+      >
         {/* Bordes degradados cyan */}
         <span className="gradient-border gradient-border-top z-30" />
         <span className="gradient-border gradient-border-bottom z-30" />
@@ -83,15 +101,15 @@ export default function LoginForm() {
         {/* Logo and Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <div className="text-6xl font-bold text-cyan-400">
-              AS
+            <div className="text-4xl font-bold text-white mt-6">
+              @Albert_Structural
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">
-            ANÁLISIS ESTRUCTURAL
-          </h1>
-          <p className="text-cyan-300 text-sm font-semibold">
+          <h1 className="text-1xl font-bold text-cyan-400 mb-6">
             CURSOS PARA INGENIEROS
+          </h1>
+          <p className="text-white text-sm font-semibold">
+            ¡EMPIEZA AHORA!
           </p>
         </div>
 
@@ -140,7 +158,7 @@ export default function LoginForm() {
             <Button 
               type="submit" 
               disabled={isSubmitting}
-              className="px-8 py-2 rounded-full bg-cyan-400 hover:bg-cyan-500 text-slate-900 font-bold transition-colors mb-2"
+              className="px-8 py-2 rounded-full bg-cyan-400 hover:bg-cyan-500 text-slate-900 font-bold transition-colors mb-6"
             >
               {isSubmitting ? "Ingresando..." : "INGRESAR"}
             </Button>
@@ -159,7 +177,7 @@ export default function LoginForm() {
             Regístrate
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

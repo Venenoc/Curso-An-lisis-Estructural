@@ -1,0 +1,71 @@
+/* ============================================================
+   TOOLS SECTION — Estilos exclusivos (modo claro)
+   Paleta: azul grisáceo técnico / fondo translúcido claro
+   ============================================================ */
+
+/* ── Nav outer wrapper ─────────────────────────────────────── */
+/* Aumenta la altura de la barra de navegación */
+.tools-nav-outer {
+  padding: 28px 16px 20px;
+  border-bottom: 2px solid rgba(160, 200, 240, 0.45);
+}
+
+/* ── Nav bar card ──────────────────────────────────────────── */
+/* Solo los tabs, sin caja */
+.tools-nav-bar {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ── Tab base ──────────────────────────────────────────────── */
+.tools-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 56px;
+  min-width: 240px;
+  max-width: 240px;
+  padding: 22px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: #F2F7FD;
+  color: #5a7a9e;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.tools-tab:hover {
+  background: rgba(40, 90, 160, 0.07);
+  color: #000000;
+}
+
+/* ── Tab activo ────────────────────────────────────────────── */
+.tools-tab-active {
+  background: #E2F0F6;
+  color: #5D93CB;
+}
+
+.tools-tab-active:hover {
+  background: #E2F0F6;
+  color: #5D93CB;
+}
+
+/* ── Tab solo icono (sin texto) ────────────────────────────── */
+.tools-tab-icon {
+  min-width: unset;
+  max-width: unset;
+  width: 56px;
+  padding: 0;
+}

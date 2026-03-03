@@ -93,7 +93,7 @@ export default function CreateCourseForm() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="price">Precio (USD)</Label>
+              <Label htmlFor="price">Precio (S/.)</Label>
               <Input
                 id="price"
                 type="number"

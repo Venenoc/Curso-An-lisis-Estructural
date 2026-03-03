@@ -20,42 +20,42 @@ const CATEGORY_META: Record<string, { label: string; icon: React.ReactNode; colo
   norms_codes: {
     label: "Normas y Códigos",
     icon: <BookMarked className="w-5 h-5" />,
-    color: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+    color: "text-blue-700 bg-blue-50 border-blue-200",
   },
   formula_sheets: {
     label: "Formularios",
     icon: <FileText className="w-5 h-5" />,
-    color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/30",
+    color: "text-cyan-700 bg-cyan-50 border-cyan-200",
   },
   excel_templates: {
     label: "Plantillas Excel",
     icon: <FileSpreadsheet className="w-5 h-5" />,
-    color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+    color: "text-emerald-700 bg-emerald-50 border-emerald-200",
   },
   manuals_guides: {
     label: "Manuales y Guías",
     icon: <BookOpen className="w-5 h-5" />,
-    color: "text-violet-400 bg-violet-500/10 border-violet-500/30",
+    color: "text-violet-700 bg-violet-50 border-violet-200",
   },
   manuals_details: {
     label: "Detalles de Manuales",
     icon: <FileText className="w-5 h-5" />,
-    color: "text-pink-400 bg-pink-500/10 border-pink-500/30",
+    color: "text-pink-700 bg-pink-50 border-pink-200",
   },
   column_details: {
     label: "Detalles de Columnas",
     icon: <Table2 className="w-5 h-5" />,
-    color: "text-orange-400 bg-orange-500/10 border-orange-500/30",
+    color: "text-orange-700 bg-orange-50 border-orange-200",
   },
   structural_details: {
     label: "Detalles Estructurales",
     icon: <Table2 className="w-5 h-5" />,
-    color: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+    color: "text-amber-700 bg-amber-50 border-amber-200",
   },
   example_models: {
     label: "Modelos de Ejemplo",
     icon: <BookOpen className="w-5 h-5" />,
-    color: "text-teal-400 bg-teal-500/10 border-teal-500/30",
+    color: "text-teal-700 bg-teal-50 border-teal-200",
   },
 };
 
@@ -78,12 +78,12 @@ export default function BibliotecaTab({ resources }: Props) {
     <div className="space-y-8">
       {/* Hero */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-white">Biblioteca Técnica</h1>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-slate-800">Biblioteca Técnica</h1>
+        <p className="text-slate-500 max-w-2xl mx-auto">
           Normas, formularios, plantillas y manuales de diseño estructural para tu práctica profesional.
         </p>
         {isEmpty && (
-          <p className="text-amber-400/80 text-sm mt-1">
+          <p className="text-amber-600 text-sm mt-1">
             Vista previa — los recursos se habilitarán próximamente.
           </p>
         )}
@@ -95,21 +95,21 @@ export default function BibliotecaTab({ resources }: Props) {
           const meta = CATEGORY_META[item.category] ?? {
             label: item.category,
             icon: <FileText className="w-5 h-5" />,
-            color: "text-slate-400 bg-slate-500/10 border-slate-500/30",
+            color: "text-slate-600 bg-slate-50 border-slate-200",
           };
           const canDownload = Boolean(item.file_url);
 
           return (
             <div
               key={item.id}
-              className="flex flex-col bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-200 group"
+              className="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-blue-300 hover:shadow-md transition-all duration-200 shadow-sm group"
             >
               {/* Card header */}
-              <div className={`flex items-center gap-3 p-4 border-b border-white/10 bg-gradient-to-br ${meta.color.includes("blue") ? "from-blue-600/10" : meta.color.includes("cyan") ? "from-cyan-600/10" : meta.color.includes("emerald") ? "from-emerald-600/10" : "from-violet-600/10"} to-transparent`}>
+              <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-slate-50">
                 <span className={`p-2 rounded-lg border ${meta.color}`}>{meta.icon}</span>
-                <span className="text-xs text-slate-400 font-medium">{meta.label}</span>
+                <span className="text-xs text-slate-500 font-medium">{meta.label}</span>
                 {item.is_free && (
-                  <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full px-2 py-0.5">
+                  <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
                     Gratis
                   </span>
                 )}
@@ -117,9 +117,9 @@ export default function BibliotecaTab({ resources }: Props) {
 
               {/* Content */}
               <div className="flex-1 p-4 space-y-2">
-                <h3 className="text-white text-sm font-semibold leading-snug">{item.title}</h3>
+                <h3 className="text-slate-800 text-sm font-semibold leading-snug">{item.title}</h3>
                 {item.description && (
-                  <p className="text-slate-400 text-xs leading-relaxed line-clamp-3">{item.description}</p>
+                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-3">{item.description}</p>
                 )}
               </div>
 
@@ -129,13 +129,13 @@ export default function BibliotecaTab({ resources }: Props) {
                   <a
                     href={item.file_url!}
                     download
-                    className="flex items-center justify-center gap-2 w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/40 border border-cyan-500/30 text-cyan-400 text-xs font-medium rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-medium rounded-lg transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Descargar
                   </a>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 w-full py-2 bg-slate-700/30 border border-slate-600/30 text-slate-500 text-xs rounded-lg cursor-not-allowed">
+                  <div className="flex items-center justify-center gap-2 w-full py-2 bg-slate-50 border border-slate-200 text-slate-400 text-xs rounded-lg cursor-not-allowed">
                     <Download className="w-3.5 h-3.5" />
                     Próximamente
                   </div>

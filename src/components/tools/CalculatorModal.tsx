@@ -81,17 +81,17 @@ export default function CalculatorModal({ config, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
           <div>
-            <h2 className="text-lg font-semibold text-white">{config.title}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{config.description}</p>
+            <h2 className="text-lg font-semibold text-slate-900">{config.title}</h2>
+            <p className="text-xs text-slate-500 mt-0.5">{config.description}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,10 +103,10 @@ export default function CalculatorModal({ config, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             {config.fields.map((field) => (
               <div key={field.name} className="space-y-1">
-                <label className="text-xs font-medium text-slate-300">
+                <label className="text-xs font-medium text-slate-700">
                   {field.label}
                   {field.unit && (
-                    <span className="ml-1 text-cyan-400">({field.unit})</span>
+                    <span className="ml-1 text-blue-600">({field.unit})</span>
                   )}
                 </label>
                 {field.type === "select" ? (
@@ -115,7 +115,7 @@ export default function CalculatorModal({ config, onClose }: Props) {
                     onChange={(e) =>
                       setValues((v) => ({ ...v, [field.name]: e.target.value }))
                     }
-                    className="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                   >
                     {field.options?.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -132,7 +132,7 @@ export default function CalculatorModal({ config, onClose }: Props) {
                     onChange={(e) =>
                       setValues((v) => ({ ...v, [field.name]: e.target.value }))
                     }
-                    className="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 placeholder-slate-500"
+                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 placeholder-slate-400"
                     placeholder="0"
                   />
                 )}
@@ -142,7 +142,7 @@ export default function CalculatorModal({ config, onClose }: Props) {
 
           {/* Error */}
           {error && (
-            <div className="flex items-start gap-2 text-red-400 bg-red-950/40 border border-red-800/50 rounded-lg p-3 text-sm">
+            <div className="flex items-start gap-2 text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -151,7 +151,7 @@ export default function CalculatorModal({ config, onClose }: Props) {
           {/* Results */}
           {result && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
+              <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium">
                 <CheckCircle2 className="w-4 h-4" />
                 Resultados del cálculo
               </div>
@@ -165,17 +165,17 @@ export default function CalculatorModal({ config, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-700 bg-slate-800/40 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+            className="px-4 py-2 text-sm text-slate-500 hover:text-slate-800 transition-colors"
           >
             Cerrar
           </button>
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+            className="flex items-center gap-2 px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? "Calculando..." : "Calcular"}
@@ -199,13 +199,13 @@ function ResultTable({ data }: { data: Record<string, any> }) {
   return (
     <div className="space-y-3">
       {entries.length > 0 && (
-        <div className="bg-slate-800/60 rounded-xl overflow-hidden">
+        <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200">
           <table className="w-full text-sm">
             <tbody>
               {entries.map(([key, val]) => (
-                <tr key={key} className="border-b border-slate-700/50 last:border-0">
-                  <td className="px-4 py-2 text-slate-400 font-mono text-xs">{key}</td>
-                  <td className="px-4 py-2 text-white font-medium text-right">
+                <tr key={key} className="border-b border-slate-200 last:border-0">
+                  <td className="px-4 py-2 text-slate-500 font-mono text-xs">{key}</td>
+                  <td className="px-4 py-2 text-slate-800 font-medium text-right">
                     {typeof val === "boolean"
                       ? val
                         ? "✓ OK"
@@ -221,7 +221,7 @@ function ResultTable({ data }: { data: Record<string, any> }) {
 
       {nested.map(([key, val]) => (
         <div key={key}>
-          <p className="text-xs text-cyan-400 font-semibold mb-1 uppercase tracking-wide">
+          <p className="text-xs text-blue-700 font-semibold mb-1 uppercase tracking-wide">
             {key}
           </p>
           <ResultTable data={val as Record<string, any>} />
@@ -231,15 +231,15 @@ function ResultTable({ data }: { data: Record<string, any> }) {
       {arrays.map(([key, arr]) =>
         (arr as any[]).length > 0 && typeof (arr as any[])[0] === "object" ? (
           <div key={key}>
-            <p className="text-xs text-cyan-400 font-semibold mb-1 uppercase tracking-wide">
+            <p className="text-xs text-blue-700 font-semibold mb-1 uppercase tracking-wide">
               {key}
             </p>
-            <div className="bg-slate-800/60 rounded-xl overflow-x-auto">
+            <div className="bg-slate-50 rounded-xl overflow-x-auto border border-slate-200">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-slate-700">
+                  <tr className="border-b border-slate-200">
                     {Object.keys((arr as any[])[0]).map((k) => (
-                      <th key={k} className="px-3 py-2 text-slate-400 font-mono text-left">
+                      <th key={k} className="px-3 py-2 text-slate-500 font-mono text-left">
                         {k}
                       </th>
                     ))}
@@ -247,9 +247,9 @@ function ResultTable({ data }: { data: Record<string, any> }) {
                 </thead>
                 <tbody>
                   {(arr as any[]).slice(0, 20).map((row, i) => (
-                    <tr key={i} className="border-b border-slate-700/40 last:border-0">
+                    <tr key={i} className="border-b border-slate-100 last:border-0">
                       {Object.values(row).map((v, j) => (
-                        <td key={j} className="px-3 py-1.5 text-white">
+                        <td key={j} className="px-3 py-1.5 text-slate-800">
                           {String(v)}
                         </td>
                       ))}
@@ -258,7 +258,7 @@ function ResultTable({ data }: { data: Record<string, any> }) {
                 </tbody>
               </table>
               {(arr as any[]).length > 20 && (
-                <p className="text-xs text-slate-500 px-3 py-1">
+                <p className="text-xs text-slate-400 px-3 py-1">
                   ... y {(arr as any[]).length - 20} filas más
                 </p>
               )}

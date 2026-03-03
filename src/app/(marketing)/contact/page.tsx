@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -38,17 +39,21 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100 py-40">
-      <div className="mx-auto max-w-2xl bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent">
-            Contáctanos
-          </h1>
-          <p className="text-lg text-slate-300">
-            ¿Tienes preguntas? Estamos aquí para ayudarte
-          </p>
-        </div>
+      <ScrollReveal delay={0.1} className="mx-auto max-w-2xl w-full px-4">
+        <div className="bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
+          <ScrollReveal delay={0.15}>
+            <div className="text-center mb-10">
+              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent">
+                Contáctanos
+              </h1>
+              <p className="text-lg text-slate-300">
+                ¿Tienes preguntas? Estamos aquí para ayudarte
+              </p>
+            </div>
+          </ScrollReveal>
 
-        <Card className="p-8 bg-slate-900/80 border border-cyan-500/10">
+          <ScrollReveal delay={0.2}>
+          <Card className="p-8 bg-slate-900/80 border border-cyan-500/10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -84,8 +89,10 @@ export default function ContactPage() {
               <div className="text-center text-sm mt-2 text-cyan-300">{status}</div>
             )}
           </form>
-        </Card>
-      </div>
+          </Card>
+          </ScrollReveal>
+        </div>
+      </ScrollReveal>
     </div>
   );
 }

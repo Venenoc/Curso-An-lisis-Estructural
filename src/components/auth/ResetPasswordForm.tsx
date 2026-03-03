@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { updatePassword } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/client";
+import { motion } from "framer-motion";
 import { Mail, Lock, CheckCircle2, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import "./loginform-glow.css";
 
@@ -126,7 +127,7 @@ export default function ResetPasswordForm() {
     <div
       className="fixed inset-0 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: "url('/images/Fondologin.jpg')",
+        backgroundImage: "url('/images/FondoAut/Fondolog.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -136,19 +137,29 @@ export default function ResetPasswordForm() {
       <div className="absolute inset-0 bg-black/20" />
 
       {/* Texto superior izquierdo */}
-      <div className="absolute top-8 left-8 z-20">
+      <motion.div
+        className="absolute top-8 left-8 z-20"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+      >
         <h2 className="text-white text-4xl lg:text-5xl font-bold leading-tight">
           Recupera tu<br />
           Acceso<br />
           A la plataforma
         </h2>
-        <p className="text-blue-400 text-lg mt-3 font-semibold">
+        <p className="text-cyan-300 text-lg mt-3 font-semibold">
           Aprende, analiza, construye
         </p>
-      </div>
+      </motion.div>
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-md px-6 py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible">
+      <motion.div
+        className="relative z-10 w-full max-w-md px-6 py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <span className="gradient-border gradient-border-top z-30" />
         <span className="gradient-border gradient-border-bottom z-30" />
         <span className="gradient-border gradient-border-left z-30" />
@@ -157,12 +168,12 @@ export default function ResetPasswordForm() {
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
-            <div className="text-6xl font-bold text-cyan-400">AS</div>
+            <div className="text-4xl font-bold text-white">@Albert_Structural</div>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className="text-2xl font-bold text-cyan-400 mb-4">
             ANÁLISIS ESTRUCTURAL
           </h1>
-          <p className="text-cyan-300 text-sm font-semibold">
+          <p className="text-white text-sm font-semibold">
             {step === "update"
               ? "NUEVA CONTRASEÑA"
               : step === "done"
@@ -336,7 +347,7 @@ export default function ResetPasswordForm() {
             </Link>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

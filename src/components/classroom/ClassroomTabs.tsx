@@ -7,23 +7,28 @@ import {
   MessageSquare,
   Download,
   ExternalLink,
+  HelpCircle,
+  PlayCircle,
 } from "lucide-react";
 import QuizPanel from "./QuizPanel";
 import LessonComments from "./LessonComments";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
+import type { LessonFaq } from "@/app/actions/courses";
 
-type TabType = "materiales" | "ejercicios" | "comentarios";
+type TabType = "materiales" | "ejercicios" | "comentarios" | "preguntas";
 
 interface ClassroomTabsProps {
   quiz?: QuizWithQuestions | null;
   lessonMaterials?: { title: string; url: string }[];
   lessonDbId?: string;
+  faqs?: LessonFaq[];
 }
 
 export default function ClassroomTabs({
   quiz,
   lessonMaterials,
   lessonDbId,
+  faqs = [],
 }: ClassroomTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("materiales");
 
@@ -31,6 +36,7 @@ export default function ClassroomTabs({
     { id: "materiales", label: "Materiales", icon: <FileText className="w-4 h-4" /> },
     { id: "ejercicios", label: "Ejercicios", icon: <PenTool className="w-4 h-4" /> },
     { id: "comentarios", label: "Comentarios", icon: <MessageSquare className="w-4 h-4" /> },
+    { id: "preguntas", label: "Preguntas Frecuentes", icon: <HelpCircle className="w-4 h-4" /> },
   ];
 
   return (
@@ -118,6 +124,58 @@ export default function ClassroomTabs({
             <div className="flex flex-col items-center justify-center py-10">
               <MessageSquare className="w-8 h-8 text-slate-600 mb-3" />
               <p className="text-slate-500 text-sm">Comentarios no disponibles para esta lección.</p>
+            </div>
+          )
+        )}
+
+        {activeTab === "preguntas" && (
+          faqs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10">
+              <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                <HelpCircle className="w-8 h-8 text-slate-600" />
+              </div>
+              <p className="text-slate-400 text-sm font-medium">Sin preguntas frecuentes</p>
+              <p className="text-slate-500 text-xs text-center mt-1 max-w-xs">
+                El instructor aún no ha agregado preguntas para esta lección.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <h3 className="text-white font-semibold">Preguntas Frecuentes</h3>
+              {faqs.map((faq, i) => (
+                <div key={faq.id} className="space-y-3">
+                  {/* Pregunta */}
+                  <div className="flex items-start gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+                    <span className="text-indigo-400 font-bold text-sm shrink-0 mt-0.5">
+                      P{String(i + 1).padStart(2, "0")}
+                    </span>
+                    <p className="text-white text-sm leading-relaxed">{faq.question}</p>
+                  </div>
+                  {/* Video (opcional) */}
+                  {faq.video_url && (
+                    <div className="pl-8">
+                      <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wide mb-2">
+                        <PlayCircle className="w-3.5 h-3.5" />
+                        Respuesta en video
+                      </div>
+                      <div className="aspect-video bg-black rounded-xl overflow-hidden max-w-xl">
+                        {faq.video_url.includes("youtube") || faq.video_url.includes("youtu.be") ? (
+                          <iframe
+                            src={faq.video_url.replace("watch?v=", "embed/")}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video src={faq.video_url} controls className="w-full h-full" />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {/* Separador entre preguntas */}
+                  {i < faqs.length - 1 && <hr className="border-slate-700/50" />}
+                </div>
+              ))}
             </div>
           )
         )}

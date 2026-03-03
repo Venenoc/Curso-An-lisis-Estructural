@@ -31,7 +31,7 @@ export default async function PlatformLayout({
         width: '100vw',
         height: '100vh',
         zIndex: 0,
-        backgroundImage: 'url(/images/FondoPlatform_d.jpg)',
+        backgroundImage: 'url(/images/FondoPlataforma/FondoPlatform_d.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

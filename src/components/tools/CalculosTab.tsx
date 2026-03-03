@@ -165,22 +165,22 @@ const CALCULATORS: CalculatorConfig[] = [
 const GROUPS = [
   {
     title: "Diseño en Concreto",
-    color: "from-blue-600/20 to-cyan-600/20 border-blue-500/30",
-    accent: "text-blue-400",
+    color: "from-blue-50 to-cyan-50 border-blue-200",
+    accent: "text-blue-700",
     icon: Square,
     ids: ["concreto-minmax", "concreto-refuerzo", "concreto-columna-pm", "concreto-viga"],
   },
   {
     title: "Diseño en Acero",
-    color: "from-orange-600/20 to-amber-600/20 border-orange-500/30",
-    accent: "text-orange-400",
+    color: "from-orange-50 to-amber-50 border-orange-200",
+    accent: "text-orange-700",
     icon: Triangle,
     ids: ["acero-viga-i", "acero-pandeo", "acero-deflexion"],
   },
   {
     title: "Análisis Estructural",
-    color: "from-emerald-600/20 to-teal-600/20 border-emerald-500/30",
-    accent: "text-emerald-400",
+    color: "from-emerald-50 to-teal-50 border-emerald-200",
+    accent: "text-emerald-700",
     icon: BarChart3,
     ids: ["seccion-rect", "seccion-i", "viga-simple"],
   },
@@ -188,7 +188,6 @@ const GROUPS = [
 
 const calcMap = Object.fromEntries(CALCULATORS.map((c) => [c.id, c]));
 
-// Inyectar el campo "tipo" para los endpoints de sección
 function buildConfig(config: CalculatorConfig): CalculatorConfig {
   if (config.id === "seccion-rect") {
     return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "rectangulo", type: "select", options: [{ value: "rectangulo", label: "rectangulo" }] }, ...config.fields] };
@@ -196,14 +195,9 @@ function buildConfig(config: CalculatorConfig): CalculatorConfig {
   if (config.id === "seccion-i") {
     return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "I", type: "select", options: [{ value: "I", label: "I" }] }, ...config.fields] };
   }
-  if (config.id === "viga-simple") {
-    // viga-simple sends cargas array, not direct fields; override endpoint rendering
-    return config;
-  }
   return config;
 }
 
-// viga-simple custom POST
 function VigaSimpleModal({ onClose }: { onClose: () => void }) {
   const [L, setL] = useState("6");
   const [EI, setEI] = useState("30000");
@@ -231,33 +225,33 @@ function VigaSimpleModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/60">
-          <h2 className="text-lg font-semibold text-white">Análisis Viga Biapoyada</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700"><span className="text-xl leading-none">&times;</span></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+          <h2 className="text-lg font-semibold text-slate-900">Análisis Viga Biapoyada</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"><span className="text-xl leading-none">&times;</span></button>
         </div>
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {[["L_m", "Longitud L (m)", L, setL], ["EI_kNm2", "EI (kN·m²)", EI, setEI], ["w_kNm", "Carga dist. w (kN/m)", w, setW], ["P_kN", "Puntual P centro (kN)", P, setP]].map(([, label, val, setter]) => (
               <div key={label as string}>
-                <label className="text-xs text-slate-300">{label as string}</label>
-                <input type="number" value={val as string} onChange={e => (setter as any)(e.target.value)} className="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-cyan-500" />
+                <label className="text-xs font-medium text-slate-700">{label as string}</label>
+                <input type="number" value={val as string} onChange={e => (setter as any)(e.target.value)} className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-blue-500" />
               </div>
             ))}
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
           {result && (
-            <div className="bg-slate-800/60 rounded-xl p-4 space-y-1 text-sm">
+            <div className="bg-slate-50 rounded-xl p-4 space-y-1 text-sm">
               {Object.entries(result).map(([k, v]) => (
-                <div key={k} className="flex justify-between"><span className="text-slate-400 font-mono text-xs">{k}</span><span className="text-white">{String(v)}</span></div>
+                <div key={k} className="flex justify-between"><span className="text-slate-500 font-mono text-xs">{k}</span><span className="text-slate-800 font-medium">{String(v)}</span></div>
               ))}
             </div>
           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-700 flex justify-end gap-3">
-          <button onClick={onClose} className="text-sm text-slate-400 hover:text-white px-4 py-2">Cerrar</button>
-          <button onClick={calc} disabled={loading} className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-lg disabled:opacity-60">{loading ? "Calculando..." : "Calcular"}</button>
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+          <button onClick={onClose} className="text-sm text-slate-500 hover:text-slate-800 px-4 py-2">Cerrar</button>
+          <button onClick={calc} disabled={loading} className="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white text-sm font-medium rounded-lg disabled:opacity-60">{loading ? "Calculando..." : "Calcular"}</button>
         </div>
       </div>
     </div>
@@ -289,8 +283,8 @@ export default function CalculosTab() {
       <div className="space-y-8">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">Herramientas de Cálculo</h1>
-          <p className="text-slate-400 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-slate-800">Herramientas de Cálculo</h1>
+          <p className="text-slate-500 max-w-2xl mx-auto">
             Calculadoras de diseño estructural basadas en normas ACI 318-19 y AISC 360-22.
             Selecciona una herramienta para comenzar.
           </p>
@@ -300,7 +294,7 @@ export default function CalculosTab() {
         {GROUPS.map((group) => {
           const GroupIcon = group.icon;
           return (
-            <div key={group.title} className={`rounded-2xl border bg-gradient-to-br ${group.color} p-6`}>
+            <div key={group.title} className={`rounded-2xl border bg-gradient-to-br ${group.color} p-6 shadow-sm`}>
               <div className="flex items-center gap-3 mb-5">
                 <GroupIcon className={`w-6 h-6 ${group.accent}`} />
                 <h2 className={`text-lg font-semibold ${group.accent}`}>{group.title}</h2>
@@ -313,14 +307,14 @@ export default function CalculosTab() {
                     <button
                       key={id}
                       onClick={() => setActive(id)}
-                      className="group flex items-start gap-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 rounded-xl p-4 text-left transition-all duration-200"
+                      className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
                     >
                       <span className={`mt-0.5 ${group.accent} shrink-0`}>{icons[id]}</span>
                       <div className="min-w-0">
-                        <p className="text-white text-sm font-medium leading-tight">{calc.title}</p>
-                        <p className="text-slate-400 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
+                        <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
+                        <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-300 shrink-0 mt-0.5 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
                     </button>
                   );
                 })}
