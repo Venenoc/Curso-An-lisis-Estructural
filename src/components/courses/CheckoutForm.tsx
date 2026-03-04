@@ -126,7 +126,6 @@ export default function CheckoutForm({
             style: {
               color: "#f1f5f9",
               "font-size": "16px",
-              "background-color": "#0d1117",
               "placeholder-color": "#475569",
             },
           },
@@ -136,7 +135,6 @@ export default function CheckoutForm({
             style: {
               color: "#f1f5f9",
               "font-size": "16px",
-              "background-color": "#0d1117",
               "placeholder-color": "#475569",
             },
           },
@@ -146,7 +144,6 @@ export default function CheckoutForm({
             style: {
               color: "#f1f5f9",
               "font-size": "16px",
-              "background-color": "#0d1117",
               "placeholder-color": "#475569",
             },
           },

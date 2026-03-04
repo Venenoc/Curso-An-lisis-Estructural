@@ -127,7 +127,7 @@ export default function ResetPasswordForm() {
     <div
       className="fixed inset-0 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: "url('/images/FondoAut/Fondolog.jpg')",
+        backgroundImage: "url('/images/FondoAut/FondoLog.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
