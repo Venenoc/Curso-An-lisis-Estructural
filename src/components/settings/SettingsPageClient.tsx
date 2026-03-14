@@ -71,11 +71,11 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
 function SectionCard({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-700/50">
-        <h3 className="text-white font-semibold">{title}</h3>
-        {description && <p className="text-slate-400 text-sm mt-0.5">{description}</p>}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700/50">
+        <h3 className="text-white font-semibold text-sm sm:text-base">{title}</h3>
+        {description && <p className="text-slate-400 text-xs sm:text-sm mt-0.5">{description}</p>}
       </div>
-      <div className="px-6 py-5">{children}</div>
+      <div className="px-4 sm:px-6 py-4 sm:py-5">{children}</div>
     </div>
   );
 }
@@ -428,7 +428,7 @@ function PagosTab() {
             </div>
             <CreditCard className="w-6 h-6 text-slate-400" />
           </div>
-          <div className="font-mono text-white text-base tracking-widest mb-4">•••• •••• •••• 4242</div>
+          <div className="font-mono text-white text-sm sm:text-base tracking-wider sm:tracking-widest mb-4">•••• •••• •••• 4242</div>
           <div className="flex justify-between text-xs text-slate-400">
             <span>TITULAR DE LA TARJETA</span>
             <span>VENCE</span>
@@ -495,26 +495,26 @@ function HistorialTab({ purchases, totalSpent }: { purchases: Purchase[]; totalS
   return (
     <div className="space-y-5">
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
-          { label: "Compras totales", value: purchases.length, icon: <ShoppingBag className="w-5 h-5 text-cyan-400" /> },
-          { label: "Cursos completos", value: purchases.filter((p) => p.type === "course").length, icon: <BookOpen className="w-5 h-5 text-blue-400" /> },
-          { label: "Módulos sueltos", value: purchases.filter((p) => p.type === "module").length, icon: <Package className="w-5 h-5 text-purple-400" /> },
+          { label: "Compras totales", value: purchases.length, icon: <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" /> },
+          { label: "Cursos completos", value: purchases.filter((p) => p.type === "course").length, icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" /> },
+          { label: "Módulos sueltos", value: purchases.filter((p) => p.type === "module").length, icon: <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" /> },
         ].map((s) => (
-          <div key={s.label} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <div className="mb-2">{s.icon}</div>
-            <div className="text-white font-bold text-2xl">{s.value}</div>
-            <div className="text-slate-500 text-xs mt-0.5">{s.label}</div>
+          <div key={s.label} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4">
+            <div className="mb-1 sm:mb-2">{s.icon}</div>
+            <div className="text-white font-bold text-lg sm:text-2xl">{s.value}</div>
+            <div className="text-slate-500 text-[10px] sm:text-xs mt-0.5 leading-tight">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-amber-400" />
-          <span className="text-white font-semibold">Total invertido en educación</span>
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+          <span className="text-white font-semibold text-xs sm:text-base truncate">Total invertido</span>
         </div>
-        <span className="text-amber-400 font-bold text-xl">${totalSpent.toFixed(2)}</span>
+        <span className="text-amber-400 font-bold text-base sm:text-xl shrink-0">${totalSpent.toFixed(2)}</span>
       </div>
 
       {/* List */}
@@ -530,13 +530,13 @@ function HistorialTab({ purchases, totalSpent }: { purchases: Purchase[]; totalS
         ) : (
           <div className="divide-y divide-slate-700/30">
             {purchases.map((p) => (
-              <div key={p.id} className="py-4 flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              <div key={p.id} className="py-3 sm:py-4 flex items-start gap-3 sm:gap-4">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${
                   p.type === "course" ? "bg-cyan-500/20" : "bg-purple-500/20"
                 }`}>
                   {p.type === "course"
-                    ? <BookOpen className={`w-5 h-5 text-cyan-400`} />
-                    : <Package className="w-5 h-5 text-purple-400" />}
+                    ? <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
+                    : <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-medium text-sm truncate">{p.itemName}</div>
@@ -578,15 +578,15 @@ export default function SettingsPageClient({ email, fullName, role, avatarUrl, c
   const initials = (fullName || email || "U").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black overflow-x-hidden">
       {/* Header */}
       <div className="border-b border-slate-800/50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/dashboard" className="text-slate-500 hover:text-slate-300 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-700 shrink-0">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -597,32 +597,33 @@ export default function SettingsPageClient({ email, fullName, role, avatarUrl, c
                 )}
               </div>
               <div>
-                <h1 className="text-white font-bold text-xl">Configuración</h1>
-                <p className="text-slate-400 text-sm">{email}</p>
+                <h1 className="text-white font-bold text-lg sm:text-xl">Configuración</h1>
+                <p className="text-slate-400 text-xs sm:text-sm truncate">{email}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar nav */}
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
+          {/* Sidebar nav — horizontal scroll on mobile, vertical on desktop */}
           <aside className="lg:w-60 shrink-0">
-            <nav className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+            <nav className="flex lg:flex-col overflow-x-auto scrollbar-hide gap-2 lg:gap-0 pb-2 lg:pb-0 lg:bg-slate-800/50 lg:border lg:border-slate-700/50 lg:rounded-xl lg:overflow-hidden">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-sm font-medium transition-colors border-b border-slate-700/30 last:border-0 ${
+                  className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-5 py-2 lg:py-3.5 text-xs lg:text-sm font-medium transition-colors whitespace-nowrap shrink-0 rounded-full lg:rounded-none lg:border-b lg:border-slate-700/30 lg:last:border-0 lg:w-full ${
                     activeTab === tab.id
-                      ? "bg-cyan-600/20 text-cyan-400 border-l-2 border-l-cyan-500 pl-4"
-                      : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                      ? "bg-cyan-600/20 text-cyan-400 lg:border-l-2 lg:border-l-cyan-500 lg:pl-4"
+                      : "bg-slate-800/50 lg:bg-transparent text-slate-400 hover:text-white hover:bg-slate-700/30"
                   }`}
                 >
                   {tab.icon}
-                  {tab.label}
-                  {activeTab === tab.id && <ChevronRight className="w-4 h-4 ml-auto" />}
+                  <span className="hidden lg:inline">{tab.label}</span>
+                  <span className="lg:hidden">{tab.label}</span>
+                  {activeTab === tab.id && <ChevronRight className="w-4 h-4 ml-auto hidden lg:block" />}
                 </button>
               ))}
             </nav>

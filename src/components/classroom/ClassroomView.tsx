@@ -182,7 +182,7 @@ export default function ClassroomView({
       <div className="flex flex-1 h-full pt-20 overflow-hidden relative">
         {/* Fondo fijo detrás del video */}
         <div
-          className="absolute z-0 bg-cover bg-center"
+          className="absolute z-0 bg-cover bg-center hidden lg:block"
           style={{
             backgroundImage: "url(/images/FondoPlataforma/FondoClassroom.jpg)",
             opacity: 0.60,
@@ -191,6 +191,15 @@ export default function ClassroomView({
             bottom: 0,
             left: '300px',
             right: 0,
+          }}
+        />
+        {/* Mobile background — no sidebar offset */}
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center lg:hidden"
+          style={{
+            backgroundImage: "url(/images/FondoPlataforma/FondoClassroom.jpg)",
+            opacity: 0.30,
+            pointerEvents: "none",
           }}
         />
         {/* Sidebar */}
@@ -239,7 +248,7 @@ export default function ClassroomView({
           {currentSession ? (
             <div className="flex-1 overflow-y-auto">
               {/* Minimal video player for session intro */}
-              <div className="p-4 bg-slate-900/60">
+              <div className="p-4 sm:p-6 bg-slate-900/60">
                 <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wide mb-3">
                   <PlayCircle className="w-4 h-4" />
                   Sesión Introductoria

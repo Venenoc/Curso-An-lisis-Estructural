@@ -44,19 +44,19 @@ export default function ClassroomTabs({
   return (
     <div className="border-t border-slate-700/50">
       {/* Tab Headers */}
-      <div className="flex border-b border-slate-700/90 px-6 bg-slate-800/80 rounded-t-xl">
+      <div className="flex border-b border-slate-700/90 px-2 sm:px-6 bg-slate-800/80 rounded-t-xl overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === tab.id
                 ? "text-cyan-400 border-cyan-400"
                 : "text-slate-500 border-transparent hover:text-slate-300"
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>

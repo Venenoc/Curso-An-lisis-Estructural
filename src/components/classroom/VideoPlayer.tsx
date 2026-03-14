@@ -176,9 +176,9 @@ export default function VideoPlayer({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-900/90 text-center">
-        <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">{chapterName}</p>
-        <h1 className="text-white text-xl font-bold drop-shadow-lg text-center">{lesson.title}</h1>
+      <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-700/50 bg-slate-900/90 text-center">
+        <p className="text-slate-500 text-xs uppercase tracking-wider mb-1 truncate">{chapterName}</p>
+        <h1 className="text-white text-base sm:text-xl font-bold drop-shadow-lg text-center line-clamp-2">{lesson.title}</h1>
       </div>
 
       <div className="relative aspect-video bg-slate-950 w-full max-w-3xl mx-auto">
@@ -240,36 +240,42 @@ export default function VideoPlayer({
         </div>
       )}
 
-      <div className="px-6 py-4 border-t border-slate-700/90 bg-slate-900/90 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <BookOpen className="w-5 h-5 text-slate-500" />
-          <span className="text-slate-400 text-sm">{lesson.duration}</span>
+      <div className="px-4 py-3 sm:px-6 sm:py-4 border-t border-slate-700/90 bg-slate-900/90 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-slate-500 shrink-0" />
+          <span className="text-slate-400 text-xs sm:text-sm">{lesson.duration}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {isCompleted ? (
-            <Button disabled className="bg-green-600/20 text-green-400 border border-green-500/30 cursor-default" size="sm">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
+            <Button disabled className="bg-green-600/20 text-green-400 border border-green-500/30 cursor-default flex-1 sm:flex-none" size="sm">
+              <CheckCircle2 className="w-4 h-4 mr-1.5" />
               Completada
             </Button>
           ) : canMarkComplete ? (
-            <Button onClick={handleMarkComplete} disabled={marking} className="bg-cyan-600 hover:bg-cyan-700 text-white" size="sm">
-              {marking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-              Marcar como completada
+            <Button onClick={handleMarkComplete} disabled={marking} className="bg-cyan-600 hover:bg-cyan-700 text-white flex-1 sm:flex-none" size="sm">
+              {marking ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1.5" />}
+              <span className="hidden sm:inline">Marcar como completada</span>
+              <span className="sm:hidden">Completar</span>
             </Button>
           ) : (
-            <Button disabled className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg" size="sm">
-              <PlayCircle className="w-4 h-4 mr-2" />
-              Termina el video para completar
+            <Button disabled className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg flex-1 sm:flex-none" size="sm">
+              <PlayCircle className="w-4 h-4 mr-1.5" />
+              <span className="hidden sm:inline">Termina el video para completar</span>
+              <span className="sm:hidden">Ver video</span>
             </Button>
           )}
           {hasNext && (
             isNextUnlocked ? (
-              <Button onClick={onNextLesson} className="bg-slate-700 hover:bg-slate-600 text-white" size="sm">
-                Siguiente Lección <ChevronRight className="w-4 h-4 ml-1" />
+              <Button onClick={onNextLesson} className="bg-slate-700 hover:bg-slate-600 text-white flex-1 sm:flex-none" size="sm">
+                <span className="hidden sm:inline">Siguiente Lección</span>
+                <span className="sm:hidden">Siguiente</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
-              <Button disabled className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg" size="sm">
-                <Lock className="w-4 h-4 mr-2" /> Siguiente Lección
+              <Button disabled className="bg-slate-700/90 text-slate-300 border border-slate-600 cursor-not-allowed shadow-lg flex-1 sm:flex-none" size="sm">
+                <Lock className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Siguiente Lección</span>
+                <span className="sm:hidden">Siguiente</span>
               </Button>
             )
           )}

@@ -18,15 +18,17 @@ export default function CursosStats({ coursesCount, lessonsCount }: CursosStatsP
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+    <div className="grid grid-cols-4 gap-1.5 sm:gap-4 max-w-3xl mx-auto">
       {stats.map((stat, i) => (
         <ScrollReveal key={stat.label} delay={0.2 + i * 0.08}>
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-4">
-            {stat.icon}
-            <div className="text-2xl font-bold text-white">
+          <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-2 sm:p-4">
+            <div className="flex justify-center mb-1 sm:mb-2">
+              {stat.icon}
+            </div>
+            <div className="text-base sm:text-2xl font-bold text-white">
               <CountUp target={stat.target} suffix={stat.suffix} />
             </div>
-            <div className="text-xs text-slate-400">{stat.label}</div>
+            <div className="text-[9px] sm:text-xs text-slate-400 leading-tight">{stat.label}</div>
           </div>
         </ScrollReveal>
       ))}

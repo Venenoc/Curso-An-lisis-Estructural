@@ -305,16 +305,16 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Hero Header */}
       <section className="relative overflow-hidden pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
-        <div className="container mx-auto px-4 py-12 lg:py-16 relative z-10">
+        <div className="container mx-auto px-4 py-6 sm:py-12 lg:py-16 relative z-10">
           <ScrollReveal delay={0.05}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-500/50">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-cyan-500/50 shrink-0">
                   <img
                     src={user.user_metadata?.avatar_url || "/images/Ingperfil.png"}
                     alt="Avatar"
@@ -322,17 +322,17 @@ export default async function DashboardPage() {
                   />
                 </div>
                 <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold text-white">
+                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-white">
                     Hola, {firstName}
                   </h1>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-slate-400 text-xs sm:text-sm">
                     Continúa tu aprendizaje en ingeniería estructural
                   </p>
                 </div>
               </div>
             </div>
             <Link href="/cursos">
-              <Button className="bg-cyan-600 hover:bg-cyan-700 text-white h-11 px-6">
+              <Button className="bg-cyan-600 hover:bg-cyan-700 text-white h-9 sm:h-11 px-4 sm:px-6 text-sm">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Explorar Cursos
               </Button>
@@ -343,61 +343,61 @@ export default async function DashboardPage() {
       </section>
 
       {/* Stats */}
-      <section className="container mx-auto px-4 -mt-2 mb-10">
+      <section className="container mx-auto px-4 -mt-2 mb-6 sm:mb-10">
         <ScrollReveal delay={0.1}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-            <BookOpen className="w-6 h-6 text-cyan-400 mb-3" />
-            <div className="text-3xl font-bold">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-2 sm:p-5">
+            <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-cyan-400 mb-1 sm:mb-3" />
+            <div className="text-sm sm:text-3xl font-bold">
               <span className="text-slate-400">{enrolledCount}</span>
-              <span className="text-white"> / {totalPublishedCourses}</span>
+              <span className="text-white">/{totalPublishedCourses}</span>
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              {enrolledCount === 1 ? "Curso inscrito" : "Cursos inscritos"}
+            <div className="text-[9px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-tight">
+              {enrolledCount === 1 ? "Curso" : "Cursos"}
             </div>
           </div>
 
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-            <Trophy className="w-6 h-6 text-amber-400 mb-3" />
-            <div className="text-3xl font-bold">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-2 sm:p-5">
+            <Trophy className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400 mb-1 sm:mb-3" />
+            <div className="text-sm sm:text-3xl font-bold">
               <span className="text-slate-400">{totalCompletedLessons}</span>
-              <span className="text-white"> / {totalEnrolledLessons}</span>
+              <span className="text-white">/{totalEnrolledLessons}</span>
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              {totalCompletedLessons === 1 ? "Lección completada" : "Lecciones completadas"}
+            <div className="text-[9px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-tight">
+              Lecciones
             </div>
           </div>
 
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-            <GraduationCap className="w-6 h-6 text-green-400 mb-3" />
-            <div className="text-3xl font-bold">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-2 sm:p-5">
+            <GraduationCap className="w-4 h-4 sm:w-6 sm:h-6 text-green-400 mb-1 sm:mb-3" />
+            <div className="text-sm sm:text-3xl font-bold">
               <span className="text-slate-400">{certificates.length}</span>
-              <span className="text-white"> / {dashboardCourses.length}</span>
+              <span className="text-white">/{dashboardCourses.length}</span>
             </div>
-            <div className="text-xs text-slate-400 mt-1">Certificados</div>
+            <div className="text-[9px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-tight">Certificados</div>
           </div>
 
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-5">
-            <Clock className="w-6 h-6 text-purple-400 mb-3" />
-            <div className="text-3xl font-bold">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl p-2 sm:p-5">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-purple-400 mb-1 sm:mb-3" />
+            <div className="text-[11px] sm:text-3xl font-bold leading-tight">
               <span className="text-slate-400">{fmtTime(totalCompletedMinutes)}</span>
-              <span className="text-white"> / {fmtTime(totalEnrolledMinutes)}</span>
+              <span className="text-white hidden sm:inline"> / {fmtTime(totalEnrolledMinutes)}</span>
             </div>
-            <div className="text-xs text-slate-400 mt-1">Tiempo de estudio</div>
+            <div className="text-[9px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-tight">Tiempo</div>
           </div>
         </div>
         </ScrollReveal>
       </section>
 
-      <div className="container mx-auto px-4 pb-16">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-3 sm:px-4 pb-10 sm:pb-16">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main: Mis Cursos */}
-          <ScrollReveal delay={0.05} className="lg:col-span-2">
-          <div className="space-y-8">
+          <ScrollReveal delay={0.05} className="lg:col-span-2 min-w-0">
+          <div className="space-y-8 min-w-0">
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-amber-400" />
+                <h2 className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
                   Mis Cursos
                 </h2>
                 {enrolledCount > 0 && (
@@ -424,13 +424,13 @@ export default async function DashboardPage() {
                         className="bg-slate-800/90 border border-slate-700/50 rounded-xl overflow-hidden"
                       >
                         {/* Course Header */}
-                        <div className={`bg-gradient-to-r ${dc.gradient} px-5 py-4`}>
-                          <div className="flex items-center justify-between">
+                        <div className={`bg-gradient-to-r ${dc.gradient} px-3 sm:px-5 py-3 sm:py-4`}>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                             <div>
-                              <h3 className="text-white font-bold text-lg">
+                              <h3 className="text-white font-bold text-sm sm:text-lg">
                                 {dc.courseTitle}
                               </h3>
-                              <div className="flex items-center gap-3 mt-1">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                   dc.hasFullCourse
                                     ? "bg-white/20 text-white"
@@ -449,10 +449,10 @@ export default async function DashboardPage() {
                               <Link href={`/classroom/${dbSlug}`}>
                                 <Button
                                   size="sm"
-                                  className="bg-white/20 hover:bg-white/30 text-white border-none"
+                                  className="bg-white/20 hover:bg-white/30 text-white border-none text-xs sm:text-sm h-8"
                                 >
                                   Continuar
-                                  <ArrowRight className="w-4 h-4 ml-1" />
+                                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1" />
                                 </Button>
                               </Link>
                             )}
@@ -491,14 +491,14 @@ export default async function DashboardPage() {
                               return (
                                 <div
                                   key={modId}
-                                  className={`px-5 py-4 flex items-center gap-4 ${
+                                  className={`px-3 sm:px-5 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 ${
                                     isUnlocked
                                       ? "hover:bg-slate-800/70 transition-colors"
                                       : "opacity-60"
                                   }`}
                                 >
                                   {/* Icon */}
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${
                                     isUnlocked
                                       ? moduleProgress === 100
                                         ? "bg-green-500/20 text-green-400"
@@ -507,12 +507,12 @@ export default async function DashboardPage() {
                                   }`}>
                                     {isUnlocked ? (
                                       moduleProgress === 100 ? (
-                                        <CheckCircle2 className="w-5 h-5" />
+                                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
                                       ) : (
-                                        <PlayCircle className="w-5 h-5" />
+                                        <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                       )
                                     ) : (
-                                      <Lock className="w-5 h-5" />
+                                      <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
                                     )}
                                   </div>
 
@@ -551,10 +551,11 @@ export default async function DashboardPage() {
                                         <Link href={`/classroom/${dbSlug}?module=${modPos}`}>
                                           <Button
                                             size="sm"
-                                            className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs h-8 px-3"
+                                            className="bg-cyan-600 hover:bg-cyan-700 text-white text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
                                           >
-                                            Ir al Classroom
-                                            <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                                            <span className="hidden sm:inline">Ir al Classroom</span>
+                                            <span className="sm:hidden">Entrar</span>
+                                            <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" />
                                           </Button>
                                         </Link>
                                       ) : (
@@ -567,9 +568,9 @@ export default async function DashboardPage() {
                                         <Link href={`/checkout/${dbSlug}?module=${modPos}`}>
                                           <Button
                                             size="sm"
-                                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 px-3"
+                                            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
                                           >
-                                            <ShoppingCart className="w-3.5 h-3.5 mr-1" />
+                                            <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
                                             ${mod.price}
                                           </Button>
                                         </Link>
@@ -591,7 +592,7 @@ export default async function DashboardPage() {
                   })}
                 </div>
               ) : (
-                <div className="bg-slate-800/80 border border-slate-700/50 border-dashed rounded-xl p-12 text-center">
+                <div className="bg-slate-800/80 border border-slate-700/50 border-dashed rounded-xl p-6 sm:p-12 text-center">
                   <BookOpen className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                   <h3 className="text-white font-semibold text-lg mb-2">
                     Aún no tienes cursos
@@ -735,19 +736,21 @@ export default async function DashboardPage() {
                   </div>
                 </div>
 
-                <Link href="/profile" className="block mt-5">
-                  <Button className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md">
-                    <Settings className="w-4 h-4 mr-2 text-white" />
-                    Editar Perfil
-                  </Button>
-                </Link>
-                {profile?.role === "instructor" && (
-                  <Link href="/admin" className="block mt-3">
-                    <Button className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-400 text-white font-semibold hover:from-purple-700 hover:to-pink-700 border-none shadow-md">
-                      Panel Admin
+                <div className="flex gap-2 mt-5">
+                  <Link href="/profile" className="flex-1">
+                    <Button className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-400 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 border-none shadow-md text-xs sm:text-sm">
+                      <Settings className="w-4 h-4 mr-1.5 text-white" />
+                      Editar Perfil
                     </Button>
                   </Link>
-                )}
+                  {profile?.role === "instructor" && (
+                    <Link href="/admin" className="flex-1">
+                      <Button className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-400 text-white font-semibold hover:from-purple-700 hover:to-pink-700 border-none shadow-md text-xs sm:text-sm">
+                        Panel Admin
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
 

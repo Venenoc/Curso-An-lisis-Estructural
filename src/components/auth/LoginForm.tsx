@@ -58,7 +58,7 @@ export default function LoginForm() {
 
       {/* Texto superior izquierdo */}
       <motion.div
-        className="absolute top-8 left-8 z-20"
+        className="absolute top-8 left-8 z-20 hidden lg:block"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.7, ease, delay: 0.1 }}
@@ -75,7 +75,7 @@ export default function LoginForm() {
 
       {/* Texto inferior derecho */}
       <motion.div
-        className="absolute bottom-8 right-24 z-20"
+        className="absolute bottom-8 right-24 z-20 hidden lg:block"
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.7, ease, delay: 0.2 }}
@@ -88,7 +88,7 @@ export default function LoginForm() {
 
       {/* Main container con box transparente y borde animado */}
       <motion.div
-        className="relative z-10 w-full max-w-md px-6 py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible"
+        className="relative z-10 w-full max-w-[90vw] sm:max-w-md px-4 sm:px-6 py-8 sm:py-12 m-0 rounded-2xl bg-white/5 backdrop-blur-md animate-border-glow shadow-lg overflow-visible"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease }}
@@ -99,16 +99,16 @@ export default function LoginForm() {
         <span className="gradient-border gradient-border-left z-30" />
         <span className="gradient-border gradient-border-right z-30" />
         {/* Logo and Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-6">
-            <div className="text-4xl font-bold text-white mt-6">
+        <div className="text-center mb-6 sm:mb-12">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="text-2xl sm:text-4xl font-bold text-white mt-4 sm:mt-6">
               @Albert_Structural
             </div>
           </div>
-          <h1 className="text-1xl font-bold text-cyan-400 mb-6">
+          <h1 className="text-sm sm:text-1xl font-bold text-cyan-400 mb-4 sm:mb-6">
             CURSOS PARA INGENIEROS
           </h1>
-          <p className="text-white text-sm font-semibold">
+          <p className="text-white text-xs sm:text-sm font-semibold">
             ¡EMPIEZA AHORA!
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function LoginForm() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           {/* Email Input */}
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-300" />

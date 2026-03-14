@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
+      paymentType,
       token,
       paymentMethodId,
       issuerId,
@@ -23,7 +24,11 @@ export async function POST(req: Request) {
       isModulePurchase,
     } = body;
 
+    const isCash = paymentType === "cash";
+    const isYape = paymentType === "yape";
+
     console.log("[create-payment] body received:", {
+      paymentType: paymentType || "card",
       token: token ? `${token.slice(0, 8)}...` : null,
       paymentMethodId,
       issuerId,
@@ -182,19 +187,47 @@ export async function POST(req: Request) {
 
     console.log("[create-payment] resolved payer email →", resolvedPayer.email);
 
-    const mpBody = {
-      token,
-      transaction_amount: validatedAmount,
-      description: isModulePurchase
-        ? `Módulo ${moduleId} — ${course.title}`
-        : course.title,
-      installments: Number(installments) || 1,
-      payment_method_id: paymentMethodId,
-      ...(issuerId ? { issuer_id: Number(issuerId) } : {}),
-      // binary_mode: true,  // desactivado temporalmente para sandbox con cuentas reales
-      payer: resolvedPayer,
-      external_reference: externalRef,
-    };
+    const description = isModulePurchase
+      ? `Módulo ${moduleId} — ${course.title}`
+      : (course.title as string);
+
+    // Webhook URL: use production URL in prod, skip on localhost (MP can't reach it)
+    const webhookUrl =
+      process.env.NODE_ENV === "production"
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/webhook`
+        : undefined;
+
+    const mpBody = isYape
+      ? {
+          token,
+          transaction_amount: validatedAmount,
+          description,
+          installments: 1,
+          payment_method_id: "yape",
+          payer: { email: resolvedPayer.email },
+          external_reference: externalRef,
+          ...(webhookUrl ? { notification_url: webhookUrl } : {}),
+        }
+      : isCash
+      ? {
+          transaction_amount: validatedAmount,
+          description,
+          payment_method_id: "pagoefectivo_atm",
+          payer: resolvedPayer,
+          external_reference: externalRef,
+          ...(webhookUrl ? { notification_url: webhookUrl } : {}),
+        }
+      : {
+          token,
+          transaction_amount: validatedAmount,
+          description,
+          installments: Number(installments) || 1,
+          payment_method_id: paymentMethodId,
+          ...(issuerId ? { issuer_id: Number(issuerId) } : {}),
+          payer: resolvedPayer,
+          external_reference: externalRef,
+          ...(webhookUrl ? { notification_url: webhookUrl } : {}),
+        };
 
     console.log("[create-payment] mpBody:", JSON.stringify({
       ...mpBody,
@@ -241,8 +274,8 @@ export async function POST(req: Request) {
       console.log("[create-payment] payment record saved");
     }
 
-    // ── Enroll immediately if approved ────────────────────────────────────────
-    if (mpResult.status === "approved") {
+    // ── Enroll immediately if approved/authorized ─────────────────────────────
+    if (mpResult.status === "approved" || mpResult.status === "authorized") {
       if (isModulePurchase) {
         await enrollModule(admin, profile.id, course.id, moduleId);
       } else {
@@ -263,6 +296,15 @@ export async function POST(req: Request) {
       status: mpResult.status,
       statusDetail: mpResult.status_detail,
       paymentId: mpResult.id,
+      ...(isCash
+        ? {
+            cipCode:
+              mpResult.transaction_details?.payment_method_reference_id || "",
+            cipUrl:
+              mpResult.transaction_details?.external_resource_url || "",
+            expiration: mpResult.date_of_expiration || "",
+          }
+        : {}),
     });
   } catch (error: any) {
     // Extract MP SDK error details

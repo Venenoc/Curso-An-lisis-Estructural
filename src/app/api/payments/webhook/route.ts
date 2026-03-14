@@ -29,27 +29,57 @@ export async function POST(req: Request) {
 
     const admin = getAdmin();
 
-    // Update payment record in DB
-    await admin
+    // Try to update payment record by mp_payment_id first
+    const { data: updatedRows } = await admin
       .from("payments")
       .update({
         mp_status: mpPayment.status,
         mp_status_detail: mpPayment.status_detail,
         updated_at: new Date().toISOString(),
       })
-      .eq("mp_payment_id", data.id);
+      .eq("mp_payment_id", data.id)
+      .select("id");
 
-    // Only enroll on approved status
-    if (mpPayment.status !== "approved") {
+    // If no rows updated, this may be a wallet/Yape payment where mp_payment_id
+    // was null. Try finding by external_ref from the preference.
+    if ((!updatedRows || updatedRows.length === 0) && mpPayment.external_reference) {
+      await admin
+        .from("payments")
+        .update({
+          mp_payment_id: data.id,
+          mp_status: mpPayment.status,
+          mp_status_detail: mpPayment.status_detail,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("external_ref", mpPayment.external_reference)
+        .is("mp_payment_id", null);
+    }
+
+    // Only enroll on approved/authorized status
+    if (mpPayment.status !== "approved" && mpPayment.status !== "authorized") {
       return Response.json({ received: true });
     }
 
     // Get payment record to find profile and course
-    const { data: dbPayment } = await admin
+    let dbPayment: any = null;
+
+    const { data: byMpId } = await admin
       .from("payments")
       .select("id, profile_id, course_id, type, module_position, mp_status")
       .eq("mp_payment_id", data.id)
       .single();
+
+    if (byMpId) {
+      dbPayment = byMpId;
+    } else if (mpPayment.external_reference) {
+      // Fallback: wallet/Yape payments — find by external_ref
+      const { data: byRef } = await admin
+        .from("payments")
+        .select("id, profile_id, course_id, type, module_position, mp_status")
+        .eq("external_ref", mpPayment.external_reference)
+        .single();
+      dbPayment = byRef;
+    }
 
     if (!dbPayment) {
       return Response.json({ received: true });

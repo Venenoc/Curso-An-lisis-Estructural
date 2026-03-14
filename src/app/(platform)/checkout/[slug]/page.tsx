@@ -10,10 +10,22 @@ export default async function CheckoutPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ module?: string }>;
+  searchParams: Promise<{
+    module?: string;
+    collection_status?: string;
+    payment_id?: string;
+    external_reference?: string;
+    status?: string;
+  }>;
 }) {
   const { slug } = await params;
-  const { module: moduleIdParam } = await searchParams;
+  const {
+    module: moduleIdParam,
+    collection_status,
+    payment_id,
+    external_reference,
+    status: walletStatus,
+  } = await searchParams;
   const moduleId = moduleIdParam ? parseInt(moduleIdParam, 10) : null;
 
   // ── Admin client (single instance for all queries) ────────────────────────────
@@ -156,6 +168,16 @@ export default async function CheckoutPage({
     inDb: true,
   };
 
+  // ── Build wallet return info (if coming back from MP redirect) ──────────────
+  const resolvedWalletStatus = collection_status || walletStatus;
+  const walletReturn = resolvedWalletStatus
+    ? {
+        status: resolvedWalletStatus,
+        paymentId: payment_id || "",
+        externalRef: external_reference || "",
+      }
+    : null;
+
   return (
     <div className="min-h-screen py-16 lg:py-24">
       <div className="container mx-auto px-4 max-w-5xl">
@@ -166,6 +188,7 @@ export default async function CheckoutPage({
           alreadyOwnedModules={alreadyOwnedModules}
           remainingModules={remainingModules}
           effectivePrice={effectivePrice}
+          walletReturn={walletReturn}
         />
       </div>
     </div>

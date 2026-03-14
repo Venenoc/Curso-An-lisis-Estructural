@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -8,6 +8,57 @@ import Image from "next/image";
 import { palette, gradients } from "@/lib/palette";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+// ── Touch Carousel (mobile only) ─────────────────────────────────────────────
+function TouchCarousel({ children, count }: { children: React.ReactNode[]; count: number }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / el.offsetWidth);
+    setActive(Math.min(idx, count - 1));
+  }, [count]);
+
+  return (
+    <>
+      {/* Mobile carousel */}
+      <div className="sm:hidden">
+        <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"
+          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {children.map((child, i) => (
+            <div key={i} className="snap-center shrink-0 w-[85vw]">
+              {child}
+            </div>
+          ))}
+        </div>
+        {/* Dots */}
+        <div className="flex justify-center gap-2 mt-3 mb-8">
+          {Array.from({ length: count }).map((_, i) => (
+            <span
+              key={i}
+              className="block rounded-full transition-all duration-300"
+              style={{
+                width: active === i ? 20 : 6,
+                height: 6,
+                background: active === i ? palette.cyan : `${palette.steel}44`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      {/* Desktop/tablet grid */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+        {children}
+      </div>
+    </>
+  );
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -162,14 +213,14 @@ export default function Home() {
               style={{ background: `rgba(0,0,0,0.10)` }} />
           </div>
 
-          <div className="relative z-10 w-full px-6 lg:px-16 xl:px-24 pt-28 lg:pt-32 pb-16">
+          <div className="relative z-10 w-full px-4 sm:px-6 lg:px-16 xl:px-24 pt-20 lg:pt-32 pb-10 lg:pb-16">
 
               {/* ── Badge ── */}
               <motion.div
                 initial="hidden"
                 animate={splashDone ? "visible" : "hidden"}
                 variants={fadeUp} custom={0}
-                className="flex justify-center mt-20 mb-10"
+                className="hidden sm:flex justify-center mt-6 sm:mt-12 lg:mt-20 mb-6 sm:mb-10"
               >
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase"
                   style={{
@@ -188,10 +239,10 @@ export default function Home() {
                 initial="hidden"
                 animate={splashDone ? "visible" : "hidden"}
                 variants={fadeUp} custom={0.1}
-                className="text-center font-bold tracking-tight leading-none mt-20 mb-20"
+                className="text-center font-bold tracking-tight leading-none mt-60 sm:mt-12 lg:mt-20 mb-8 sm:mb-14 lg:mb-20"
                 style={{
                   fontFamily: "var(--font-orbitron), 'Orbitron', system-ui, sans-serif",
-                  fontSize: "clamp(40px, 7.5vw, 110px)",
+                  fontSize: "clamp(28px, 7.5vw, 110px)",
                   letterSpacing: "0.02em",
                   color: "#ffffff",
                 }}
@@ -200,7 +251,7 @@ export default function Home() {
               </motion.h1>
 
               {/* ── 2 columnas: frase+botones | stats ── */}
-              <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-20">
+              <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-10 lg:mb-20">
 
                 {/* Columna izquierda */}
                 <motion.div
@@ -208,16 +259,16 @@ export default function Home() {
                   animate={splashDone ? "visible" : "hidden"}
                   variants={fadeUp} custom={0.2}
                 >
-                  <p className="text-2xl lg:text-4xl font-light leading-snug mt-20 mb-10"
+                  <p className="text-xl sm:text-2xl lg:text-4xl font-light leading-snug mt-4 sm:mt-10 lg:mt-20 mb-6 sm:mb-10"
                     style={{ color: "#ffffff" }}>
                     &ldquo;La mejor manera de<br />
                     aprender es enseñando&rdquo;
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-row gap-3 sm:gap-4">
                     <Link href="/register">
                       <Button size="lg"
-                        className="font-semibold px-10 py-6 text-base rounded-xl border-0 transition-all duration-200 hover:scale-105"
+                        className="font-semibold px-5 sm:px-10 py-4 sm:py-6 text-sm sm:text-base rounded-xl border-0 transition-all duration-200 hover:scale-105 whitespace-nowrap"
                         style={{
                           background: `linear-gradient(135deg, ${palette.steel} 0%, ${palette.blue} 55%, ${palette.indigo} 100%)`,
                           color: "#fff",
@@ -228,7 +279,7 @@ export default function Home() {
                     </Link>
                     <Link href="/cursos_m">
                       <Button size="lg"
-                        className="font-semibold px-10 py-6 text-base rounded-xl transition-all duration-200 hover:scale-105"
+                        className="font-semibold px-5 sm:px-10 py-4 sm:py-6 text-sm sm:text-base rounded-xl transition-all duration-200 hover:scale-105 whitespace-nowrap"
                         style={{
                           background: `${palette.slate}55`,
                           border: `1px solid ${palette.steel}44`,
@@ -243,7 +294,7 @@ export default function Home() {
 
                 {/* Columna derecha: stat cards en fila horizontal */}
                 <motion.div
-                  className="flex flex-row justify-end items-end gap-3 mt-auto pt-20"
+                  className="grid grid-cols-4 sm:flex sm:flex-row sm:justify-end sm:items-end gap-2 sm:gap-3 mt-auto pt-6 sm:pt-12 lg:pt-20"
                   initial="hidden"
                   animate={splashDone ? "visible" : "hidden"}
                   variants={staggerContainer}
@@ -254,12 +305,11 @@ export default function Home() {
                       <motion.div
                         key={stat.label}
                         variants={statItem}
-                        className="relative rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 overflow-hidden"
+                        className="relative rounded-xl px-2 sm:px-3 py-2 sm:py-3 flex flex-col items-center gap-1 sm:gap-1.5 overflow-hidden"
                         style={{
                           background: `${palette.slate}55`,
                           border: `1px solid ${palette.steel}44`,
                           backdropFilter: "blur(12px)",
-                          minWidth: "80px",
                         }}
                       >
                         <div className="absolute top-0 left-0 right-0 h-px"
@@ -270,7 +320,7 @@ export default function Home() {
                           <Icon className="w-3 h-3" style={{ color: palette.steel }} />
                         </div>
 
-                        <span className="text-lg font-bold leading-none"
+                        <span className="text-base sm:text-lg font-bold leading-none"
                           style={{
                             background: `linear-gradient(135deg, ${palette.ice}, ${palette.steel})`,
                             WebkitBackgroundClip: "text",
@@ -318,7 +368,7 @@ export default function Home() {
               </div>
 
               {/* ── SOBRE NOSOTROS ── */}
-              <div className="py-16 md:py-24 mb-4">
+              <div className="py-10 md:py-24 mb-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
                   {/* Texto */}
@@ -334,16 +384,16 @@ export default function Home() {
                       style={{ color: palette.steel }}>
                       Sobre Nosotros
                     </span>
-                    <h2 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-[1.1] mb-0 tracking-tight text-white">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold leading-[1.1] mb-0 tracking-tight text-white">
                       Aprender estructuras
                     </h2>
-                    <h2 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-[1.1] mb-8 tracking-tight text-white">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold leading-[1.1] mb-6 sm:mb-8 tracking-tight text-white">
                       con quién las vive.
                     </h2>
-                    <p className="text-lg leading-relaxed mb-6 text-white/80">
+                    <p className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-white/80">
                       Soy Albert, ingeniero civil graduado de la UNI con experiencia en proyectos reales. Comencé a enseñar porque descubrí que explicar bien es la forma más poderosa de aprender profundo.
                     </p>
-                    <p className="text-base leading-relaxed mb-10 text-white/80">
+                    <p className="text-sm sm:text-base leading-relaxed mb-6 sm:mb-10 text-white/80">
                       Cada curso que creo nace de lo que yo mismo necesité entender. Con lenguaje directo, ejemplos reales y sin rodeos — para que tú avances más rápido de lo que yo lo hice.
                     </p>
                     <Link href="/about">
@@ -398,7 +448,7 @@ export default function Home() {
                 <span className="text-xs font-semibold tracking-widest uppercase mb-3 block" style={{ color: palette.steel }}>
                   Contenido del programa
                 </span>
-                <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
                   ¿Qué aprenderás?
                 </h2>
                 <p className="text-base max-w-xl mx-auto" style={{ color: `${palette.ice}88` }}>
@@ -407,36 +457,38 @@ export default function Home() {
               </motion.div>
 
               {/* ── CARDS ── */}
-              <div key={`cards-${splashDone}`} className="grid md:grid-cols-3 gap-5 mb-24">
-                {CARDS.map((card) => (
-                  <motion.div
-                    key={card.title}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-60px" }}
-                    transition={{ duration: 1, ease: EASE, delay: card.delay }}
-                    className="group relative rounded-2xl p-6 overflow-hidden transition-transform duration-300 hover:-translate-y-1"
-                    style={{
-                      background: `${palette.slate}55`,
-                      border: `1px solid ${palette.steel}44`,
-                      backdropFilter: "blur(16px)",
-                    }}
-                  >
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
-                      style={{ background: `radial-gradient(circle at 50% 0%, ${card.accent}18 0%, transparent 70%)` }} />
-                    <div className="absolute top-0 left-6 right-6 h-px"
-                      style={{ background: `linear-gradient(90deg, transparent, ${card.accent}88, transparent)` }} />
-                    <div className="relative z-10">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-                        style={{ background: `${card.accent}18`, border: `1px solid ${card.accent}33` }}>
-                        {card.icon}
+              <div key={`cards-${splashDone}`} className="mb-12 sm:mb-24">
+                <TouchCarousel count={CARDS.length}>
+                  {CARDS.map((card) => (
+                    <motion.div
+                      key={card.title}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-60px" }}
+                      transition={{ duration: 1, ease: EASE, delay: card.delay }}
+                      className="group relative rounded-2xl p-6 overflow-hidden transition-transform duration-300 hover:-translate-y-1 h-full"
+                      style={{
+                        background: `${palette.slate}55`,
+                        border: `1px solid ${palette.steel}44`,
+                        backdropFilter: "blur(16px)",
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
+                        style={{ background: `radial-gradient(circle at 50% 0%, ${card.accent}18 0%, transparent 70%)` }} />
+                      <div className="absolute top-0 left-6 right-6 h-px"
+                        style={{ background: `linear-gradient(90deg, transparent, ${card.accent}88, transparent)` }} />
+                      <div className="relative z-10">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+                          style={{ background: `${card.accent}18`, border: `1px solid ${card.accent}33` }}>
+                          {card.icon}
+                        </div>
+                        <h3 className="text-lg font-semibold text-white mb-1">{card.title}</h3>
+                        <p className="text-sm mb-3" style={{ color: palette.steel }}>{card.desc}</p>
+                        <p className="text-sm leading-relaxed" style={{ color: `${palette.ice}77` }}>{card.body}</p>
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-1">{card.title}</h3>
-                      <p className="text-sm mb-3" style={{ color: palette.steel }}>{card.desc}</p>
-                      <p className="text-sm leading-relaxed" style={{ color: `${palette.ice}77` }}>{card.body}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </TouchCarousel>
               </div>
 
               {/* ── TESTIMONIOS ── */}
@@ -452,51 +504,53 @@ export default function Home() {
                 <span className="text-xs font-semibold tracking-widest uppercase mb-3 block" style={{ color: palette.steel }}>
                   Lo que dicen mis alumnos
                 </span>
-                <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
                   Testimonios
                 </h2>
               </motion.div>
 
-              <div key={`testi-cards-${splashDone}`} className="grid md:grid-cols-3 gap-5 mb-24">
-                {TESTIMONIALS.map((t: typeof TESTIMONIALS[number], i: number) => (
-                  <motion.div
-                    key={t.name}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-60px" }}
-                    transition={{ duration: 1, ease: EASE, delay: i * 0.12 }}
-                    className="relative rounded-2xl p-6 overflow-hidden"
-                    style={{
-                      background: `${palette.slate}55`,
-                      border: `1px solid ${palette.steel}44`,
-                      backdropFilter: "blur(16px)",
-                    }}
-                  >
-                    <div className="absolute top-0 left-6 right-6 h-px"
-                      style={{ background: `linear-gradient(90deg, transparent, ${palette.steel}66, transparent)` }} />
-                    {/* Estrellas */}
-                    <div className="flex gap-1 mb-4">
-                      {Array.from({ length: 5 }).map((_, s) => (
-                        <svg key={s} className="w-4 h-4" fill={palette.steel} viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <p className="text-sm leading-relaxed mb-5" style={{ color: `${palette.ice}99` }}>
-                      &ldquo;{t.quote}&rdquo;
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                        style={{ background: `linear-gradient(135deg, ${palette.steel}, ${palette.blue})`, color: "#fff" }}>
-                        {t.name[0]}
+              <div key={`testi-cards-${splashDone}`} className="mb-12 sm:mb-24">
+                <TouchCarousel count={TESTIMONIALS.length}>
+                  {TESTIMONIALS.map((t: typeof TESTIMONIALS[number], i: number) => (
+                    <motion.div
+                      key={t.name}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-60px" }}
+                      transition={{ duration: 1, ease: EASE, delay: i * 0.12 }}
+                      className="relative rounded-2xl p-6 overflow-hidden h-full"
+                      style={{
+                        background: `${palette.slate}55`,
+                        border: `1px solid ${palette.steel}44`,
+                        backdropFilter: "blur(16px)",
+                      }}
+                    >
+                      <div className="absolute top-0 left-6 right-6 h-px"
+                        style={{ background: `linear-gradient(90deg, transparent, ${palette.steel}66, transparent)` }} />
+                      {/* Estrellas */}
+                      <div className="flex gap-1 mb-4">
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <svg key={s} className="w-4 h-4" fill={palette.steel} viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{t.name}</p>
-                        <p className="text-xs" style={{ color: palette.steel }}>{t.role}</p>
+                      <p className="text-sm leading-relaxed mb-5" style={{ color: `${palette.ice}99` }}>
+                        &ldquo;{t.quote}&rdquo;
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                          style={{ background: `linear-gradient(135deg, ${palette.steel}, ${palette.blue})`, color: "#fff" }}>
+                          {t.name[0]}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{t.name}</p>
+                          <p className="text-xs" style={{ color: palette.steel }}>{t.role}</p>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </TouchCarousel>
               </div>
 
               {/* ── CTA FINAL ── */}
@@ -509,7 +563,7 @@ export default function Home() {
                 custom={0}
                 className="mb-24"
               >
-                <div className="relative rounded-2xl px-8 py-14 text-center overflow-hidden"
+                <div className="relative rounded-2xl px-5 sm:px-8 py-10 sm:py-14 text-center overflow-hidden"
                   style={{
                     background: `${palette.slate}55`,
                     border: `1px solid ${palette.steel}44`,
@@ -520,7 +574,7 @@ export default function Home() {
                   <div className="absolute inset-0 pointer-events-none"
                     style={{ background: `radial-gradient(ellipse at 50% 0%, ${palette.blue}11 0%, transparent 60%)` }} />
                   <div className="relative z-10">
-                    <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+                    <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-4">
                       Comienza tu Carrera en el<br />
                       <span style={{ background: gradients.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                         Análisis Estructural
@@ -529,17 +583,17 @@ export default function Home() {
                     <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: `${palette.ice}88` }}>
                       Únete a cientos de ingenieros y estudiantes que están dominando el análisis estructural
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <div className="flex flex-row gap-3 justify-center">
                       <Link href="/register">
                         <Button size="lg"
-                          className="font-semibold px-8 py-5 text-base rounded-xl border-0 transition-all duration-200 hover:scale-105"
+                          className="font-semibold px-5 sm:px-8 py-4 sm:py-5 text-sm sm:text-base rounded-xl border-0 transition-all duration-200 hover:scale-105 whitespace-nowrap"
                           style={{ background: gradients.bar, color: "#fff", boxShadow: `0 8px 32px ${palette.cyan}33` }}>
                           Registrarse Gratis
                         </Button>
                       </Link>
                       <Link href="/cursos_m">
                         <Button size="lg"
-                          className="font-semibold px-8 py-5 text-base rounded-xl transition-all duration-200 hover:scale-105"
+                          className="font-semibold px-5 sm:px-8 py-4 sm:py-5 text-sm sm:text-base rounded-xl transition-all duration-200 hover:scale-105 whitespace-nowrap"
                           style={{
                             background: `${palette.slate}55`,
                             border: `1px solid ${palette.steel}44`,

@@ -142,7 +142,6 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
           z-index: 50;
           padding: 0 32px;
           height: 68px;
-          display: flex;
           align-items: center;
         }
 

@@ -101,8 +101,9 @@ interface AvatarDropdownProps {
 
 function AvatarDropdown({ avatarSrc, displayName, email, size = "md" }: AvatarDropdownProps) {
   const imgCls = size === "sm" ? "w-8 h-8" : "w-9 h-9";
+  const [open, setOpen] = useState(false);
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button className="flex items-center gap-0 focus:outline-none group">
           {size === "md" && (
@@ -146,6 +147,7 @@ function AvatarDropdown({ avatarSrc, displayName, email, size = "md" }: AvatarDr
             { href: "/settings",   label: "Configuración", icon: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> },
           ].map(({ href, label, icon }) => (
             <Link key={href} href={href}
+              onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150"
               style={{ color: "rgba(255,255,255,0.65)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(110,189,233,0.10)"; (e.currentTarget as HTMLElement).style.color = "#ffffff"; }}
@@ -205,6 +207,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
 
   useEffect(() => {
     if (!profileId) return;
+    let isMounted = true;
     const supabase = createClient();
 
     async function fetchMessages() {
@@ -213,7 +216,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", profileId)
         .eq("read", false);
-      setUnreadMessages(count ?? 0);
+      if (isMounted) setUnreadMessages(count ?? 0);
     }
 
     fetchMessages();
@@ -221,11 +224,14 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
 
     const channel = supabase
       .channel("navbar-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "direct_messages", filter: `receiver_id=eq.${profileId}` }, () => fetchMessages())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${profileId}` }, () => fetchNotifications())
+      .on("postgres_changes", { event: "*", schema: "public", table: "direct_messages", filter: `receiver_id=eq.${profileId}` }, () => { if (isMounted) fetchMessages(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${profileId}` }, () => { if (isMounted) fetchNotifications(); })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [profileId, fetchNotifications]);
 
   async function handleOpenNotif(isOpen: boolean) {
@@ -510,6 +516,40 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
               <MessageCircle className="w-5 h-5" />
               {unreadMessages > 0 && <span className="pn-badge">{unreadMessages}</span>}
             </Link>
+            <Popover open={openNotif} onOpenChange={handleOpenNotif}>
+              <PopoverTrigger asChild>
+                <button className="pn-icon-btn" aria-label="Notificaciones">
+                  <Bell className="w-5 h-5" />
+                  {unreadNotifications > 0 && <span className="pn-badge">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-0 bg-black/90 border border-white/20 rounded-lg shadow-lg">
+                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                  <p className="text-white font-semibold text-sm">Notificaciones</p>
+                  {notifications.length > 0 && <span className="text-slate-500 text-xs">{notifications.length}</span>}
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-6 text-center">
+                    <Bell className="w-7 h-7 text-slate-600 mx-auto mb-2" />
+                    <p className="text-slate-400 text-xs">Sin notificaciones</p>
+                  </div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto divide-y divide-white/5">
+                    {notifications.map((n) => (
+                      <div key={n.id} className={`flex items-start gap-2.5 px-3 py-2.5 ${!n.read ? "bg-white/5" : ""}`}>
+                        <div className="shrink-0 mt-0.5"><NotifIcon type={n.type} /></div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-medium ${n.read ? "text-slate-400" : "text-white"}`}>{n.title}</p>
+                          {n.body && <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>}
+                          <p className="text-[10px] text-slate-600 mt-0.5">{timeAgo(n.created_at)}</p>
+                        </div>
+                        {!n.read && <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1" />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
             <AvatarDropdown avatarSrc={avatarSrc} displayName={displayName} email={user.email ?? ""} size="sm" />
           </div>
         </div>
