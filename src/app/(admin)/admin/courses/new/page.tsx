@@ -1,4 +1,3 @@
-import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -7,24 +6,17 @@ import CreateCourseForm from "@/components/admin/CreateCourseForm";
 import { ChevronLeft } from "lucide-react";
 
 export default async function CreateCoursePage() {
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  // Verificar que es instructor
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("user_id", user.id)
     .single();
 
-  if (profile?.role !== "instructor") {
-    redirect("/dashboard");
-  }
+  if (profile?.role !== "instructor") redirect("/dashboard");
 
   return (
     <div className="container py-12">

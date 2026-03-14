@@ -3,7 +3,7 @@
 import { useRef, useEffect, useCallback } from "react";
 
 declare global {
-  interface Window { Stream: (el: HTMLIFrameElement) => any; }
+  interface Window { Stream?: (el: HTMLIFrameElement) => any; }
 }
 
 interface CfStreamEmbedProps {

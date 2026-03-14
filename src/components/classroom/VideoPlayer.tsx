@@ -16,7 +16,7 @@ import type { CourseLesson } from "@/data/courses-catalog";
 
 declare global {
   interface Window {
-    Stream: (el: HTMLIFrameElement) => any;
+    Stream?: (el: HTMLIFrameElement) => any;
   }
 }
 

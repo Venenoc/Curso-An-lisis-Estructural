@@ -3,13 +3,18 @@
 import { useEffect, useState, useRef } from "react";
 
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !sessionStorage.getItem("splash_shown");
+  });
   const [leaving, setLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
   const videoReadyRef = useRef(false);
   const progressRef = useRef(0);
 
   useEffect(() => {
+    if (!visible) return;
+
     // Escucha el evento del video de home
     const onVideoReady = () => {
       videoReadyRef.current = true;
@@ -37,6 +42,7 @@ export default function SplashScreen() {
           setTimeout(() => {
             setLeaving(true);
             setTimeout(() => {
+              sessionStorage.setItem("splash_shown", "1");
               window.dispatchEvent(new Event("splash:done"));
               setVisible(false);
             }, 700);

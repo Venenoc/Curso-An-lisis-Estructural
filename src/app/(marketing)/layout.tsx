@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
 import HomeNavbar from "@/components/layout/HomeNavbar";
 import Footer from "@/components/layout/Footer";
-import { getUser } from "@/app/actions/auth";
+import SplashScreen from '@/components/ui/SplashScreen';
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -38,12 +38,12 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   let profileAvatarUrl: string | null = null;
   let profileName: string | null = null;
   if (user) {
-    const supabase = await createClient();
     const { data: profile } = await supabase
       .from("profiles")
       .select("avatar_url, full_name")
@@ -55,6 +55,7 @@ export default async function MarketingLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
+      <SplashScreen />
       <JsonLd data={organizationSchema} />
       <HomeNavbar user={user} profileAvatarUrl={profileAvatarUrl} profileName={profileName} />
       <main className="flex-1">{children}</main>

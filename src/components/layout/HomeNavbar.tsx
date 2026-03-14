@@ -290,7 +290,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
 
           {/* LEFT: AE | divider | wave | divider | @Albert_Structural */}
           <div className="hn-brand-cluster">
-            <Link href="/" className="hn-ae" aria-label="Inicio">AE</Link>
+            <Link href="/" className="hn-ae" aria-label="Inicio">AS</Link>
             <div className="hn-divider" aria-hidden="true" />
             <AudioWaveButton />
             <div className="hn-divider" aria-hidden="true" />
@@ -406,7 +406,13 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
               </Popover>
             ) : (
               <Link href="/login">
-                <Button className="bg-cyan-500 hover:bg-cyan-400 text-white px-5 py-2 text-sm font-semibold">
+                <Button
+                  className="border-0 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all duration-200 hover:scale-105"
+                  style={{
+                    background: "linear-gradient(135deg, #6EBDE9 0%, #3b82f6 55%, #6366f1 100%)",
+                    boxShadow: "0 4px 20px rgba(59,130,246,0.35)",
+                  }}
+                >
                   Iniciar sesión
                 </Button>
               </Link>
@@ -425,7 +431,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
         <div className="relative h-16 w-full px-4 flex items-center border-b border-white/15">
           {/* Brand left */}
           <div className="flex items-center gap-0">
-            <Link href="/" className="hn-ae" style={{ fontSize: 20 }}>AE</Link>
+            <Link href="/" className="hn-ae" style={{ fontSize: 20 }}>AS</Link>
             <div className="hn-divider" style={{ margin: "0 8px" }} aria-hidden="true" />
             <AudioWaveButton />
           </div>

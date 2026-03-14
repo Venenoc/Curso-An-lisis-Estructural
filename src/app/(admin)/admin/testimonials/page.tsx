@@ -1,5 +1,4 @@
 ﻿import { redirect } from "next/navigation";
-import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getAllTestimonialsAdmin } from "@/app/actions/testimonials";
 import TestimonialsAdminClient from "@/components/admin/TestimonialsAdminClient";
@@ -10,10 +9,10 @@ import { ArrowLeft, MessageSquare } from "lucide-react";
 export const metadata = { title: "Testimonios | Admin" };
 
 export default async function AdminTestimonialsPage() {
-  const user = await getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")

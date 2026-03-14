@@ -2,7 +2,8 @@ import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getCatalogCoursesFromDB, getEnrolledSlugs, getCourseProgressMap } from "@/app/actions/courses";
 import CourseCard from "@/components/courses/CourseCard";
-import { BookOpen, GraduationCap, Clock, Award } from "lucide-react";
+import { GraduationCap, Award } from "lucide-react";
+import CursosStats from "@/components/courses/CursosStats";
 import { redirect } from "next/navigation";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
@@ -67,23 +68,8 @@ export default async function CursosPage() {
               </p>
             </div>
             </ScrollReveal>
-            {/* Stats dinámicos desde Supabase */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              {[
-                { icon: <BookOpen className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, value: courses.length, label: "Cursos" },
-                { icon: <GraduationCap className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, value: `${totalLessons}+`, label: "Lecciones" },
-                { icon: <Clock className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, value: "150+", label: "Horas de contenido" },
-                { icon: <Award className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, value: "100%", label: "Certificado" },
-              ].map((stat, i) => (
-                <ScrollReveal key={stat.label} delay={0.2 + i * 0.08}>
-                  <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-4">
-                    {stat.icon}
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-xs text-slate-400">{stat.label}</div>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
+            {/* Stats con count-up */}
+            <CursosStats coursesCount={courses.length} lessonsCount={totalLessons} />
           </div>
         </div>
       </section>

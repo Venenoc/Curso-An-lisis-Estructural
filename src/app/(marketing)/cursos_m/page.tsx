@@ -17,6 +17,7 @@ import { getCatalogCoursesFromDB, getEnrolledSlugs } from "@/app/actions/courses
 import CourseCard from "@/components/courses/CourseCard";
 import { BookOpen, GraduationCap, Clock, Award } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { CountUp } from "@/components/ui/count-up";
 
 export default async function CursosPage() {
   const [user, coursesRaw] = await Promise.all([getUser(), getCatalogCoursesFromDB()]);
@@ -63,22 +64,24 @@ export default async function CursosPage() {
                 Nuestros Cursos
               </h1>
               <p className="text-xl text-slate-800 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Domina el análisis estructural con cursos creados por ingenieros
-                expertos. Desde los fundamentos hasta técnicas avanzadas de modelado.
+                Domina el análisis estructural con cursos creados para ti.
+                Desde los fundamentos hasta técnicas avanzadas de modelado.
               </p>
             </ScrollReveal>
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               {[
-                { icon: <BookOpen className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, value: courses.length, label: "Cursos" },
-                { icon: <GraduationCap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />, value: `${totalLessons}+`, label: "Lecciones" },
-                { icon: <Clock className="w-6 h-6 text-green-400 mx-auto mb-2" />, value: "150+", label: "Horas de contenido" },
-                { icon: <Award className="w-6 h-6 text-purple-800 mx-auto mb-2" />, value: "100%", label: "Certificado" },
+                { icon: <BookOpen className="w-6 h-6 text-cyan-400 mx-auto mb-2" />, target: courses.length,  suffix: "",    label: "Cursos" },
+                { icon: <GraduationCap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />, target: totalLessons, suffix: "+",  label: "Lecciones" },
+                { icon: <Clock className="w-6 h-6 text-green-400 mx-auto mb-2" />,         target: 150,           suffix: "+",  label: "Horas de contenido" },
+                { icon: <Award className="w-6 h-6 text-purple-800 mx-auto mb-2" />,        target: 100,           suffix: "%",  label: "Certificado" },
               ].map((stat, i) => (
                 <ScrollReveal key={stat.label} delay={0.15 + i * 0.08}>
                   <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
                     {stat.icon}
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
+                    <div className="text-2xl font-bold text-white">
+                      <CountUp target={stat.target} suffix={stat.suffix} />
+                    </div>
                     <div className="text-xs text-black">{stat.label}</div>
                   </div>
                 </ScrollReveal>

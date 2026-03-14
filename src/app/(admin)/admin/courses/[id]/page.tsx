@@ -1,4 +1,3 @@
-import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
@@ -11,13 +10,11 @@ export default async function CourseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const supabase = await createClient();
+
+  // Single auth call — middleware already protects this route
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -29,35 +26,35 @@ export default async function CourseDetailPage({
     redirect("/dashboard");
   }
 
-  const { data: course } = await supabase
-    .from("courses")
-    .select("id, title, description, price, status, slug, level, total_duration, subscription_only, image_url, gradient, presentation_video_url")
-    .eq("id", id)
-    .eq("instructor_id", profile.id)
-    .single();
-
-  if (!course) {
-    redirect("/admin/courses");
-  }
-
-  // Fetch modules → chapters → sessions → lessons hierarchy
-  const { data: modulesRaw } = await supabase
-    .from("modules")
-    .select(`
-      id, title, order, course_id, presentation_video_url,
-      chapters(
-        id, title, order, module_id,
-        sessions(
-          id, title, type, video_url, order, chapter_id,
-          lessons(id, title, video_url, order, duration, chapter_uuid, session_id, materials)
+  // Fetch course + modules in parallel
+  const [courseResult, modulesResult] = await Promise.all([
+    supabase
+      .from("courses")
+      .select("id, title, description, price, status, slug, level, total_duration, subscription_only, image_url, gradient, presentation_video_url")
+      .eq("id", id)
+      .eq("instructor_id", profile.id)
+      .single(),
+    supabase
+      .from("modules")
+      .select(`
+        id, title, order, course_id, presentation_video_url,
+        chapters(
+          id, title, order, module_id,
+          sessions(
+            id, title, type, video_url, order, chapter_id,
+            lessons(id, title, video_url, order, duration, chapter_uuid, session_id, materials)
+          )
         )
-      )
-    `)
-    .eq("course_id", id)
-    .order("order", { ascending: true });
+      `)
+      .eq("course_id", id)
+      .order("order", { ascending: true }),
+  ]);
+
+  const course = courseResult.data;
+  if (!course) redirect("/admin/courses");
 
   // Sort nested relations
-  const modules = (modulesRaw || []).map((m: any) => ({
+  const modules = (modulesResult.data || []).map((m: any) => ({
     ...m,
     chapters: [...(m.chapters || [])].sort((a: any, b: any) => a.order - b.order).map((c: any) => ({
       ...c,
