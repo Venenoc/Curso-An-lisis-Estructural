@@ -3,46 +3,26 @@ import { Star } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { getApprovedTestimonials } from "@/app/actions/testimonials";
 
-const FALLBACK_TESTIMONIALS = [
-  {
-    "author_name": "Carlos Mendoza",
-    "author_role": "Ingeniero Estructural",
-    "content": "Los cursos de Análisis Estructural me ayudaron a dominar SAP2000 y conseguir un mejor puesto. Contenido excelente y muy práctico.",
-    "rating": 5
-  },
-  {
-    "author_name": "María González",
-    "author_role": "Estudiante de Ingeniería Civil",
-    "content": "Excelente plataforma para aprender. Los instructores explican de manera clara y los ejercicios son muy útiles para la práctica.",
-    "rating": 5
-  },
-  {
-    "author_name": "José Ramírez",
-    "author_role": "Ingeniero Civil Senior",
-    "content": "Después de 15 años en la industria, estos cursos me ayudaron a actualizar mis conocimientos en métodos modernos de análisis.",
-    "rating": 5
-  },
-  {
-    "author_name": "Ana Torres",
-    "author_role": "Ingeniera Estructural",
-    "content": "La calidad del contenido es excepcional. He aprendido más aquí que en muchos cursos presenciales. Totalmente recomendado.",
-    "rating": 5
-  },
-  {
-    "author_name": "Luis Herrera",
-    "author_role": "Estudiante de Posgrado",
-    "content": "Perfecto para complementar mis estudios de maestría. Los temas están muy bien explicados y actualizados.",
-    "rating": 5
-  },
-  {
-    "author_name": "Patricia Silva",
-    "author_role": "Ingeniera de Proyectos",
-    "content": "Los cursos de análisis dinámico y sísmico son increíbles. Ahora puedo modelar estructuras complejas con confianza.",
-    "rating": 5
-  }
+type Testimonial = {
+  id: string;
+  author_name: string;
+  author_role: string;
+  content: string;
+  rating: number;
+  course_title: string;
+  created_at: string;
+};
+
+const FALLBACK_TESTIMONIALS: Testimonial[] = [
+  { id: "f1", author_name: "Carlos Mendoza",  author_role: "Ingeniero Estructural",       content: "Los cursos de Análisis Estructural me ayudaron a dominar SAP2000 y conseguir un mejor puesto. Contenido excelente y muy práctico.", rating: 5, course_title: "", created_at: "" },
+  { id: "f2", author_name: "María González",  author_role: "Estudiante de Ingeniería Civil", content: "Excelente plataforma para aprender. Los instructores explican de manera clara y los ejercicios son muy útiles para la práctica.", rating: 5, course_title: "", created_at: "" },
+  { id: "f3", author_name: "José Ramírez",    author_role: "Ingeniero Civil Senior",       content: "Después de 15 años en la industria, estos cursos me ayudaron a actualizar mis conocimientos en métodos modernos de análisis.", rating: 5, course_title: "", created_at: "" },
+  { id: "f4", author_name: "Ana Torres",      author_role: "Ingeniera Estructural",        content: "La calidad del contenido es excepcional. He aprendido más aquí que en muchos cursos presenciales. Totalmente recomendado.", rating: 5, course_title: "", created_at: "" },
+  { id: "f5", author_name: "Luis Herrera",    author_role: "Estudiante de Posgrado",       content: "Perfecto para complementar mis estudios de maestría. Los temas están muy bien explicados y actualizados.", rating: 5, course_title: "", created_at: "" },
+  { id: "f6", author_name: "Patricia Silva",  author_role: "Ingeniera de Proyectos",       content: "Los cursos de análisis dinámico y sísmico son increíbles. Ahora puedo modelar estructuras complejas con confianza.", rating: 5, course_title: "", created_at: "" },
 ];
 
-export const metadata = {
+export const metadata: import('next').Metadata = {
   title: "Testimonios",
   description: "Lee las opiniones de ingenieros y estudiantes que completaron nuestros cursos de análisis estructural.",
   alternates: { canonical: "/testimonials" },
@@ -59,7 +39,7 @@ export default async function TestimonialsPage() {
 
   return (
     <div
-      className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100"
+      className="relative flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100"
       style={{
         backgroundImage: 'url(/images/Fondos%20de%20marketing/Fondo_ATm.jpg)',
         backgroundSize: 'cover',
@@ -67,7 +47,8 @@ export default async function TestimonialsPage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <main className="pt-20 pb-20 px-4">
+      <div className="absolute inset-0 bg-black/20 z-0 pointer-events-none" />
+      <main className="relative z-10 pt-20 pb-20 px-4">
         <div className="container mx-auto">
           {/* Header */}
           <ScrollReveal delay={0.1} className="text-center mb-16 mt-20">

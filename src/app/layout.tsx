@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Orbitron } from 'next/font/google';
 import './globals.css';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
 import SplashScreen from '@/components/ui/SplashScreen';
 
 const inter = Inter({ subsets: ['latin'] });
+const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://albertstructural.com';
 
@@ -79,7 +80,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${orbitron.variable}`}>
         <SplashScreen />
         {children}
         <WhatsAppButton />

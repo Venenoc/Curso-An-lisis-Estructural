@@ -177,7 +177,7 @@ export default async function CourseSyllabusPage({
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-white via-slate-100 to-slate-200"
+      className="relative min-h-screen bg-gradient-to-b from-white via-slate-100 to-slate-200"
       style={{
         backgroundImage: 'url(/images/Fondos%20de%20marketing/Fondo_cslugm.jpg)',
         backgroundSize: 'cover',
@@ -187,7 +187,7 @@ export default async function CourseSyllabusPage({
       }}
     >
       {/* Back link */}
-      <div className="pt-24 pb-0 container mx-auto px-4 max-w-6xl">
+      <div className="relative z-10 pt-24 pb-0 container mx-auto px-4 max-w-6xl">
         <Link
           href="/cursos_m"
           className="inline-flex items-center gap-1.5 text-sm text-slate-700 hover:text-cyan-700 transition-colors"
@@ -198,7 +198,7 @@ export default async function CourseSyllabusPage({
       </div>
 
       {/* Hero */}
-      <section className="py-10 border-b border-slate-300/60">
+      <section className="relative z-10 py-10 border-b border-slate-300/60">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="max-w-5xl mx-auto">
             <ScrollReveal delay={0.1}>
@@ -240,7 +240,7 @@ export default async function CourseSyllabusPage({
       </section>
 
       {/* Main content */}
-      <section className="py-12">
+      <section className="relative z-10 py-12">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-3 gap-10">
             {/* Left column: video + syllabus */}
@@ -506,7 +506,7 @@ export default async function CourseSyllabusPage({
       </section>
 
       {/* Testimonials */}
-      <section className="py-12 border-t border-slate-300/60">
+      <section className="relative z-10 py-12 border-t border-slate-300/60">
         <div className="container mx-auto px-4 max-w-6xl">
           <ScrollReveal delay={0.05}>
             <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Lo que dicen nuestros estudiantes</h2>

@@ -29,8 +29,9 @@ export default function PricingPage() {
         backgroundAttachment: 'fixed',
       }}
     >
+      <div className="absolute inset-0 bg-black/20 z-0 pointer-events-none" />
       {/* Hero Section */}
-      <section className="relative pt-24 lg:pt-20 pb-20 lg:pb-0 overflow-hidden">
+      <section className="relative z-10 pt-24 lg:pt-20 pb-20 lg:pb-0 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
           <ScrollReveal delay={0.1} className="max-w-4xl mx-auto text-center">
@@ -50,7 +51,7 @@ export default function PricingPage() {
       </section>
 
       {/* Pricing Grid */}
-      <section className="py-16 lg:py-10">
+      <section className="relative z-10 py-16 lg:py-10">
         <div className="container mx-auto px-4">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             <ScrollReveal delay={0} scale>

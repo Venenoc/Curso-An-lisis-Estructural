@@ -18,7 +18,6 @@ export default function ToolsPage() {
         }}
       >
         <ScrollReveal delay={0.1} className="relative z-10 w-full">
-          <Wrench className="w-16 h-16 text-white mx-auto mb-4 animate-spin" />
           <h1 className="text-4xl lg:text-7xl font-extrabold text-slate-800 mt-40 mb-4 drop-shadow-lg px-4 rounded">
             Herramientas Profesionales<br />
             <span className="block mt-6">para Análisis Estructural</span>

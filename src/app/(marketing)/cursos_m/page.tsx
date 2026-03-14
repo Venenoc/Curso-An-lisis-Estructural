@@ -89,7 +89,7 @@ export default async function CursosPage() {
       </section>
 
       {/* Courses Grid */}
-      <section className="py-10 lg:py-14">
+      <section className="relative z-10 py-10 lg:py-14">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {courses.map((course, i) => {
@@ -135,7 +135,7 @@ export default async function CursosPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-10 lg:py-14">
+      <section className="relative z-10 py-10 lg:py-14">
         <div className="container mx-auto px-4">
           <ScrollReveal delay={0.1}>
           <div className="max-w-3xl mx-auto text-center bg-gradient-to-r from-cyan-900/60 to-blue-900/60 border border-cyan-500/40 rounded-2xl p-6">

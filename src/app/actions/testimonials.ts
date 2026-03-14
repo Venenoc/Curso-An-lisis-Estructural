@@ -50,6 +50,7 @@ export async function submitTestimonial(data: {
 }
 
 export async function getApprovedTestimonials(courseId?: string) {
+  try {
   const admin = getAdmin();
   let query = admin
     .from("testimonials")
@@ -69,6 +70,9 @@ export async function getApprovedTestimonials(courseId?: string) {
     course_title: string;
     created_at: string;
   }[];
+  } catch {
+    return [];
+  }
 }
 
 export async function hasUserSubmittedTestimonial(courseId: string): Promise<boolean> {

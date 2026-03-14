@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Marquee ───────────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─── Paleta Albert Structural ──────────────────────────────────────────────
+   7 colores base del proyecto, derivados de la navbar y el splash screen.
+   Úsalos con var(--as-*) en cualquier componente.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --as-navy:    #0a1628;   /* Azul noche — fondo más oscuro                  */
+  --as-slate:   #2E3F54;   /* Acero oscuro — fondo secundario / SplashScreen */
+  --as-steel:   #6EBDE9;   /* Azul acero — acento primario / barra navbar    */
+  --as-cyan:    #22d3ee;   /* Cian vivo — highlights / wave audio            */
+  --as-blue:    #3b82f6;   /* Azul real — botones / degradados               */
+  --as-indigo:  #6366f1;   /* Índigo eléctrico — profundidad / borde foto    */
+  --as-ice:     #e2eaf4;   /* Hielo — texto claro / gradiente AE             */
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

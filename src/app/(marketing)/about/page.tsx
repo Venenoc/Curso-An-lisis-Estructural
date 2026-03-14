@@ -16,7 +16,7 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 export default function AboutPage() {
   return (
     <div
-      className="flex flex-col min-h-[calc(100vh-150px)] bg-gradient-to-b from-cyan-50 via-white to-cyan-100 py-40"
+      className="relative flex flex-col min-h-[calc(100vh-150px)] bg-gradient-to-b from-cyan-50 via-white to-cyan-100 py-40"
       style={{
         backgroundImage: 'url(/images/Fondos%20de%20marketing/Fondo_ATm.jpg)',
         backgroundSize: 'cover',
@@ -24,34 +24,33 @@ export default function AboutPage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <ScrollReveal delay={0.1}>
+      <div className="absolute inset-0 bg-black/20 z-0 pointer-events-none" />
+      <ScrollReveal delay={0.1} className="relative z-10 w-full">
         <div className="mx-auto max-w-3xl bg-white/60 border border-cyan-300/40 rounded-2xl p-10 shadow-lg">
           <ScrollReveal delay={0.15}>
             <h1 className="text-5xl font-extrabold mb-8 text-slate-800 text-center">
-              Sobre Nosotros
+              Sobre mí
             </h1>
           </ScrollReveal>
           <div className="prose prose-gray max-w-none text-slate-700">
             <ScrollReveal delay={0.2}>
               <p className="text-lg mb-6">
-                Somos una plataforma dedicada a la educación y capacitación de profesionales
-                en ingeniería civil en la especialidad de Análisis y Diseño Estructural usando normativas actuales nacionales e internacionales.
+                Soy Albert, ingeniero civil graduado de la UNI con experiencia en proyectos reales.
+                Comencé a enseñar porque descubrí que explicar bien es la forma más poderosa de aprender profundo.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.25}>
-              <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Nuestra Misión</h2>
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Misión</h2>
               <p>
-                Proporcionar educación de calidad, herramientas profesionales y consultoría
-                especializada para impulsar el desarrollo de ingenieros civiles en toda
-                Latinoamérica.
+                Enseñar análisis estructural con lenguaje directo, ejemplos reales y sin rodeos.
+                Quiero que tú avances más rápido de lo que yo lo hice, con formación práctica aplicable desde el primer día.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.3}>
-              <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Nuestro Equipo</h2>
+              <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Metodología</h2>
               <p>
-                Contamos con un equipo de instructores certificados con amplia experiencia
-                en análisis estructural, diseño sísmico y más áreas de la
-                ingeniería civil.
+                Cada curso que creo nace de lo que yo mismo necesité entender en la práctica.
+                Rigor técnico, lenguaje accesible y casos reales — para estudiantes e ingenieros que buscan resultados concretos.
               </p>
             </ScrollReveal>
           </div>
