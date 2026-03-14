@@ -6,6 +6,7 @@ import ClassroomView from "@/components/classroom/ClassroomView";
 import { getQuizzesForCourse } from "@/app/actions/quizzes";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
 import { getFaqsByLessonIds } from "@/app/actions/courses";
+import { hasUserSubmittedTestimonial } from "@/app/actions/testimonials";
 import type { LessonFaq } from "@/app/actions/courses";
 import type { CatalogCourse, CourseLesson, CourseChapter, CourseModule, CourseSession } from "@/data/courses-catalog";
 
@@ -300,6 +301,9 @@ export default async function ClassroomPage({
     if (firstLesson) initialLessonId = firstLesson.id;
   }
 
+  // ── Testimonial (check if user already submitted) ─────────────────────────────
+  const testimonialSubmitted = await hasUserSubmittedTestimonial(dbCourse.id);
+
   // ── Quizzes (keyed by catalog_lesson_id which maps to sequential numeric ID) ──
   const quizList = await getQuizzesForCourse(slug);
   const quizzesByCatalogLessonId: Record<number, QuizWithQuestions> = {};
@@ -323,6 +327,9 @@ export default async function ClassroomPage({
       initialLessonId={initialLessonId}
       quizzesByCatalogLessonId={quizzesByCatalogLessonId}
       faqsByLessonDbId={faqsByLessonDbId}
+      courseId={dbCourse.id}
+      courseTitle={dbCourse.title}
+      hasTestimonial={testimonialSubmitted}
     />
   );
 }

@@ -6,8 +6,12 @@ import Link from "next/link";
 import ClassroomSidebar from "./ClassroomSidebar";
 import VideoPlayer from "./VideoPlayer";
 import ClassroomTabs from "./ClassroomTabs";
+import { getYoutubeEmbedUrl, getCloudflareStreamUrl } from "@/lib/utils";
 import type { CatalogCourse, CourseLesson, CourseSession } from "@/data/courses-catalog";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
+import TestimonialModal from "@/components/testimonials/TestimonialModal";
+import CfStreamEmbed from "./CfStreamEmbed";
+
 import type { LessonFaq } from "@/app/actions/courses";
 
 interface ClassroomViewProps {
@@ -19,6 +23,9 @@ interface ClassroomViewProps {
   initialLessonId?: number;
   quizzesByCatalogLessonId?: Record<number, QuizWithQuestions>;
   faqsByLessonDbId?: Record<string, LessonFaq[]>;
+  courseId: string;
+  courseTitle: string;
+  hasTestimonial: boolean;
 }
 
 export default function ClassroomView({
@@ -30,6 +37,9 @@ export default function ClassroomView({
   initialLessonId,
   quizzesByCatalogLessonId,
   faqsByLessonDbId,
+  courseId,
+  courseTitle,
+  hasTestimonial,
 }: ClassroomViewProps) {
   const modules = course.modules || [];
 
@@ -55,6 +65,7 @@ export default function ClassroomView({
   const [currentLessonId, setCurrentLessonId] = useState(startLesson?.lesson.id || 0);
   const [completedIds, setCompletedIds] = useState<string[]>(initialCompleted);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
 
   // Session intro video state: null = showing a lesson, non-null = showing session intro
   const [currentSession, setCurrentSession] = useState<CourseSession | null>(null);
@@ -134,7 +145,19 @@ export default function ClassroomView({
   const handleMarkComplete = () => {
     const id = String(currentLessonId);
     if (!completedIds.includes(id)) {
-      setCompletedIds((prev) => [...prev, id]);
+      const newCompleted = [...completedIds, id];
+      setCompletedIds(newCompleted);
+
+      // Check if all accessible lessons are now complete
+      if (!hasTestimonial) {
+        const accessibleLessons = hasFullCourse
+          ? allLessons
+          : allLessons.filter((l) => purchasedModuleIds.includes(l.moduleId));
+        const allDone = accessibleLessons.every((l) =>
+          newCompleted.includes(String(l.lesson.id))
+        );
+        if (allDone) setShowTestimonialModal(true);
+      }
     }
   };
 
@@ -233,19 +256,20 @@ export default function ClassroomView({
               {currentSession.videoUrl && (
                 <div className="px-4 pb-4 flex justify-center">
                   <div className="aspect-video bg-black rounded-xl overflow-hidden w-full max-w-3xl">
-                    {currentSession.videoUrl.includes("youtube") || currentSession.videoUrl.includes("youtu.be") ? (
+                    {getCloudflareStreamUrl(currentSession.videoUrl!) ? (
+                      <CfStreamEmbed
+                        src={getCloudflareStreamUrl(currentSession.videoUrl!)! + "?preload=auto&primaryColor=%2306b6d4"}
+                        className="w-full h-full"
+                      />
+                    ) : getYoutubeEmbedUrl(currentSession.videoUrl!) ? (
                       <iframe
-                        src={currentSession.videoUrl.replace("watch?v=", "embed/")}
+                        src={getYoutubeEmbedUrl(currentSession.videoUrl!)!}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
                     ) : (
-                      <video
-                        src={currentSession.videoUrl}
-                        controls
-                        className="w-full h-full"
-                      />
+                      <video src={currentSession.videoUrl} controls className="w-full h-full" />
                     )}
                   </div>
                 </div>
@@ -309,6 +333,13 @@ export default function ClassroomView({
           )}
         </div>
       </div>
+      {showTestimonialModal && (
+        <TestimonialModal
+          courseId={courseId}
+          courseTitle={courseTitle}
+          onClose={() => setShowTestimonialModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import QuizPanel from "./QuizPanel";
 import LessonComments from "./LessonComments";
+import { getYoutubeEmbedUrl, getCloudflareStreamUrl } from "@/lib/utils";
+import CfStreamEmbed from "./CfStreamEmbed";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
 import type { LessonFaq } from "@/app/actions/courses";
 
@@ -159,9 +161,14 @@ export default function ClassroomTabs({
                         Respuesta en video
                       </div>
                       <div className="aspect-video bg-black rounded-xl overflow-hidden max-w-xl">
-                        {faq.video_url.includes("youtube") || faq.video_url.includes("youtu.be") ? (
+                        {getCloudflareStreamUrl(faq.video_url) ? (
+                          <CfStreamEmbed
+                            src={getCloudflareStreamUrl(faq.video_url)! + "?preload=auto&primaryColor=%2306b6d4"}
+                            className="w-full h-full"
+                          />
+                        ) : getYoutubeEmbedUrl(faq.video_url) ? (
                           <iframe
-                            src={faq.video_url.replace("watch?v=", "embed/")}
+                            src={getYoutubeEmbedUrl(faq.video_url)!}
                             className="w-full h-full"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen

@@ -278,51 +278,93 @@ export default function CalculosTab() {
 
   const activeConfig = active ? calcMap[active] : null;
 
+  // Separar grupos
+  const gruposSinAnalisis = GROUPS.filter(g => g.title !== "Análisis Estructural");
+  const grupoAnalisis = GROUPS.find(g => g.title === "Análisis Estructural");
+
   return (
     <>
       <div className="space-y-8">
-        {/* Hero */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-slate-800">Herramientas de Cálculo</h1>
-          <p className="text-slate-500 max-w-2xl mx-auto">
-            Calculadoras de diseño estructural basadas en normas ACI 318-19 y AISC 360-22.
-            Selecciona una herramienta para comenzar.
-          </p>
+        {/* Aviso de implementación */}
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-2 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-full px-4 py-2 text-sm font-semibold shadow-sm">
+            <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" /></svg>
+            Herramientas en implementación
+          </div>
         </div>
-
-        {/* Grupos */}
-        {GROUPS.map((group) => {
-          const GroupIcon = group.icon;
-          return (
-            <div key={group.title} className={`rounded-2xl border bg-gradient-to-br ${group.color} p-6 shadow-sm`}>
-              <div className="flex items-center gap-3 mb-5">
-                <GroupIcon className={`w-6 h-6 ${group.accent}`} />
-                <h2 className={`text-lg font-semibold ${group.accent}`}>{group.title}</h2>
+        {/* Grupos principales */}
+        <div className="mb-2">
+          <h2 className="text-xl font-bold text-[#6096CE] mb-4 text-left">HERRAMIENTAS DE CÁLCULO</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          {gruposSinAnalisis.map((group) => {
+            const GroupIcon = group.icon;
+            return (
+              <div key={group.title} className={`rounded-2xl border bg-gradient-to-br ${group.color} p-6 shadow-sm`}>
+                <div className="flex items-center gap-3 mb-5">
+                  <GroupIcon className={`w-6 h-6 ${group.accent}`} />
+                  <h2 className={`text-lg font-semibold ${group.accent}`}>{group.title}</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {group.ids.map((id) => {
+                    const calc = calcMap[id];
+                    if (!calc) return null;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => setActive(id)}
+                        className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
+                      >
+                        <span className={`mt-0.5 ${group.accent} shrink-0`}>{icons[id]}</span>
+                        <div className="min-w-0">
+                          <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
+                          <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {group.ids.map((id) => {
-                  const calc = calcMap[id];
-                  if (!calc) return null;
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => setActive(id)}
-                      className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
-                    >
-                      <span className={`mt-0.5 ${group.accent} shrink-0`}>{icons[id]}</span>
-                      <div className="min-w-0">
-                        <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
-                        <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      {/* Sección separada para Análisis Estructural */}
+      {grupoAnalisis && (
+        <div className="mt-12">
+          <div className="mb-2">
+            <h2 className="text-xl font-bold text-[#6096CE] mb-4 text-left uppercase tracking-widest">ANÁLISIS ESTRUCTURAL</h2>
+          </div>
+          <div className={`rounded-2xl border bg-gradient-to-br ${grupoAnalisis.color} p-6 shadow-sm`}>
+            <div className="flex items-center gap-3 mb-5">
+              <grupoAnalisis.icon className={`w-6 h-6 ${grupoAnalisis.accent}`} />
+              <h2 className={`text-lg font-semibold ${grupoAnalisis.accent}`}>{grupoAnalisis.title}</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {grupoAnalisis.ids.map((id) => {
+                const calc = calcMap[id];
+                if (!calc) return null;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActive(id)}
+                    className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
+                  >
+                    <span className={`mt-0.5 ${grupoAnalisis.accent} shrink-0`}>{icons[id]}</span>
+                    <div className="min-w-0">
+                      <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
+                      <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {active === "viga-simple" && (

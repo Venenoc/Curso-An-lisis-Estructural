@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Edit, Trash2, Plus, ArrowLeft } from "lucide-react";
+import { Edit, Trash2, Plus, ArrowLeft, MessageSquare } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function AdminCoursesPage() {
@@ -37,7 +37,7 @@ export default async function AdminCoursesPage() {
     <div
       className="min-h-screen flex flex-col items-center justify-center relative py-12"
       style={{
-        backgroundImage: "url('/images/Fondo_ATm.jpg')",
+        backgroundImage: "url('/images/Fondos%20de%20marketing/Fondo_ATm.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "top",
         backgroundRepeat: "no-repeat",
@@ -63,6 +63,12 @@ export default async function AdminCoursesPage() {
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Crear Curso
+            </Button>
+          </Link>
+          <Link href="/admin/testimonials">
+            <Button variant="secondary" className="flex items-center">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Testimonios
             </Button>
           </Link>
         </div>

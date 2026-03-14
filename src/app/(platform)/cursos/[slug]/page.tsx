@@ -11,6 +11,7 @@ import {
   PlayCircle, Lock, ChevronRight, ArrowLeft, Compass, Scale, Landmark, PenTool,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { getYoutubeEmbedUrl } from "@/lib/utils";
 
 function fmtMin(minutes: number | null): string {
   if (!minutes) return "";
@@ -151,6 +152,7 @@ export default async function CursoDetailPage({
     course.presentation_video_url ||
     modules.flatMap((m) => m.chapters.flatMap((ch) => ch.lessons)).find((l) => l.videoUrl)?.videoUrl ||
     "";
+  const courseYoutubeEmbedUrl = getYoutubeEmbedUrl(courseVideoUrl);
 
   const moduleIcons = [Compass, Scale, Landmark, PenTool];
   const displayModules = modules.slice(0, 4);
@@ -224,9 +226,18 @@ export default async function CursoDetailPage({
                     <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-2xl shadow-cyan-500/20`}>
                       <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                         {courseVideoUrl ? (
-                          <video className="w-full h-64 object-cover bg-black" controls preload="metadata">
-                            <source src={courseVideoUrl} type="video/mp4" />
-                          </video>
+                          courseYoutubeEmbedUrl ? (
+                            <iframe
+                              src={courseYoutubeEmbedUrl}
+                              className="w-full h-64 bg-black"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video className="w-full h-64 object-cover bg-black" controls preload="metadata">
+                              <source src={courseVideoUrl} type="video/mp4" />
+                            </video>
+                          )
                         ) : (
                           <div className={`h-44 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
                             <BookOpen className="w-14 h-14 text-white/70" />
@@ -275,6 +286,7 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
+                    const moduleYoutubeEmbedUrl = getYoutubeEmbedUrl(module.firstVideoUrl);
                     const positions = ["left-[-7%] top-[3%]", "right-[-7%] top-[3%]", "left-[-7%] bottom-[3%]", "right-[-7%] bottom-[3%]"];
                     const rotations = ["-rotate-2", "rotate-2", "rotate-1", "-rotate-1"];
                     return (
@@ -283,9 +295,18 @@ export default async function CursoDetailPage({
                           <div className={`bg-slate-800/90 border rounded-xl overflow-hidden backdrop-blur-sm hover:shadow-lg transition-all duration-300 ${isModuleOwned ? "border-green-500/30 hover:border-green-500/50 hover:shadow-green-500/10" : "border-slate-700/50 hover:border-cyan-500/30 hover:shadow-cyan-500/10"}`}>
                             <div className="relative overflow-hidden">
                               {module.firstVideoUrl ? (
-                                <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
-                                  <source src={module.firstVideoUrl} type="video/mp4" />
-                                </video>
+                                moduleYoutubeEmbedUrl ? (
+                                  <iframe
+                                    src={moduleYoutubeEmbedUrl}
+                                    className="w-full h-52 bg-black"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                ) : (
+                                  <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
+                                    <source src={module.firstVideoUrl} type="video/mp4" />
+                                  </video>
+                                )
                               ) : (
                                 <div className={`h-40 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
                                   <div className="absolute inset-0 bg-black/20" />
@@ -355,9 +376,18 @@ export default async function CursoDetailPage({
                     <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-2xl shadow-cyan-500/20 w-full max-w-2xl`}>
                       <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                         {courseVideoUrl ? (
-                          <video className="w-full h-64 object-cover bg-black" controls preload="metadata">
-                            <source src={courseVideoUrl} type="video/mp4" />
-                          </video>
+                          courseYoutubeEmbedUrl ? (
+                            <iframe
+                              src={courseYoutubeEmbedUrl}
+                              className="w-full h-64 bg-black"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video className="w-full h-64 object-cover bg-black" controls preload="metadata">
+                              <source src={courseVideoUrl} type="video/mp4" />
+                            </video>
+                          )
                         ) : (
                           <div className={`h-40 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
                             <BookOpen className="w-12 h-12 text-white/70" />
@@ -395,14 +425,24 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
+                    const moduleYoutubeEmbedUrl = getYoutubeEmbedUrl(module.firstVideoUrl);
                     return (
                       <ScrollReveal key={module.dbId} delay={Math.min(index * 0.1, 0.3)} scale>
                       <div className={`bg-slate-800/80 border rounded-xl overflow-hidden transition-all ${isModuleOwned ? "border-green-500/30 hover:border-green-500/50" : "border-slate-700/50 hover:border-cyan-500/30"}`}>
                         <div className="relative">
                           {module.firstVideoUrl ? (
-                            <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
-                              <source src={module.firstVideoUrl} type="video/mp4" />
-                            </video>
+                            moduleYoutubeEmbedUrl ? (
+                              <iframe
+                                src={moduleYoutubeEmbedUrl}
+                                className="w-full h-52 bg-black"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            ) : (
+                              <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
+                                <source src={module.firstVideoUrl} type="video/mp4" />
+                              </video>
+                            )
                           ) : (
                             <div className={`h-40 bg-gradient-to-br ${course.gradient} opacity-80 relative`}>
                               <div className="absolute inset-0 bg-black/20" />
@@ -460,9 +500,18 @@ export default async function CursoDetailPage({
                   <div className={`bg-gradient-to-br ${course.gradient} rounded-2xl p-1 shadow-xl shadow-cyan-500/20`}>
                     <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl overflow-hidden">
                       {courseVideoUrl ? (
-                        <video className="w-full h-56 object-cover bg-black" controls preload="metadata">
-                          <source src={courseVideoUrl} type="video/mp4" />
-                        </video>
+                        courseYoutubeEmbedUrl ? (
+                          <iframe
+                            src={courseYoutubeEmbedUrl}
+                            className="w-full h-56 bg-black"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video className="w-full h-56 object-cover bg-black" controls preload="metadata">
+                            <source src={courseVideoUrl} type="video/mp4" />
+                          </video>
+                        )
                       ) : (
                         <div className={`h-36 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}>
                           <BookOpen className="w-10 h-10 text-white/70" />
@@ -506,13 +555,23 @@ export default async function CursoDetailPage({
                   {displayModules.map((module, index) => {
                     const ModuleIcon = moduleIcons[index];
                     const isModuleOwned = isPurchased || purchasedModuleIds.includes(module.id);
+                    const moduleYoutubeEmbedUrl = getYoutubeEmbedUrl(module.firstVideoUrl);
                     return (
                       <div key={module.dbId} className={`bg-slate-800/80 border rounded-xl overflow-hidden ${isModuleOwned ? "border-green-500/30" : "border-slate-700/50"}`}>
                         {module.firstVideoUrl ? (
                           <div className="relative">
-                            <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
-                              <source src={module.firstVideoUrl} type="video/mp4" />
-                            </video>
+                            {moduleYoutubeEmbedUrl ? (
+                              <iframe
+                                src={moduleYoutubeEmbedUrl}
+                                className="w-full h-52 bg-black"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            ) : (
+                              <video className="w-full h-52 object-cover bg-black" controls preload="metadata">
+                                <source src={module.firstVideoUrl} type="video/mp4" />
+                              </video>
+                            )}
                             <div className="absolute top-2 left-2 bg-black/60 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white z-10">
                               Módulo {String(index + 1).padStart(2, "0")}
                             </div>

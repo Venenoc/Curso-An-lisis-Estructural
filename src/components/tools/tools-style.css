@@ -26,6 +26,7 @@
 }
 
 /* ── Tab base ──────────────────────────────────────────────── */
+
 .tools-tab {
   display: flex;
   align-items: center;
@@ -40,10 +41,11 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   background: #F2F7FD;
-  color: #5a7a9e;
+  color: #576378;
   white-space: nowrap;
   text-decoration: none;
   transition: background 0.18s ease, color 0.18s ease;
+  border: 1px solid #cad8e6;
 }
 
 .tools-tab:hover {
@@ -55,6 +57,7 @@
 .tools-tab-active {
   background: #E2F0F6;
   color: #5D93CB;
+  border: 1px solid #cad8e6;
 }
 
 .tools-tab-active:hover {

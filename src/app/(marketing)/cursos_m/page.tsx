@@ -1,3 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cursos de Analisis Estructural',
+  description: 'Explora todos nuestros cursos especializados en analisis estructural, metodos matriciales, elementos finitos, diseno sismico y software estructural.',
+  alternates: { canonical: '/cursos_m' },
+  openGraph: {
+    url: '/cursos_m',
+    title: 'Cursos de Analisis Estructural | Albert Structural',
+    description: 'Formacion especializada en analisis estructural para ingenieros civiles y estudiantes. Cursos con certificado incluido.',
+  },
+};
+
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getCatalogCoursesFromDB, getEnrolledSlugs } from "@/app/actions/courses";
@@ -6,7 +19,12 @@ import { BookOpen, GraduationCap, Clock, Award } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default async function CursosPage() {
-  const [user, courses] = await Promise.all([getUser(), getCatalogCoursesFromDB()]);
+  const [user, coursesRaw] = await Promise.all([getUser(), getCatalogCoursesFromDB()]);
+  // Ordenar: publicados primero, luego los draft
+  const courses = [...coursesRaw].sort((a, b) => {
+    if (a.isDraft === b.isDraft) return 0;
+    return a.isDraft ? 1 : -1;
+  });
   let purchasedSlugs: string[] = [];
 
   if (user) {

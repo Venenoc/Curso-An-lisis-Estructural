@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, BookOpen, FileText, Table2, FileSpreadsheet, BookMarked } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Download, BookOpen, FileText, Table2, FileSpreadsheet, BookMarked, Search } from "lucide-react";
 
 export interface ToolResource {
   id: string;
@@ -60,37 +61,88 @@ const CATEGORY_META: Record<string, { label: string; icon: React.ReactNode; colo
 };
 
 const PLACEHOLDER_ITEMS: ToolResource[] = [
-  { id: "p1", title: "ACI 318-19 — Requisitos de Código", description: "Norma completa de diseño de concreto reforzado", category: "norms_codes", file_url: null, thumbnail_url: null, is_free: false },
-  { id: "p2", title: "AISC 360-22 — Acero Estructural", description: "Especificación para edificios de acero estructural", category: "norms_codes", file_url: null, thumbnail_url: null, is_free: false },
-  { id: "p3", title: "Formulario de Flexión — Concreto", description: "Fórmulas de diseño a flexión ACI 318-19", category: "formula_sheets", file_url: null, thumbnail_url: null, is_free: true },
-  { id: "p4", title: "Formulario de Pandeo — Acero", description: "Ecuaciones AISC 360-22 Capítulo E y F", category: "formula_sheets", file_url: null, thumbnail_url: null, is_free: true },
-  { id: "p5", title: "Plantilla Diseño de Vigas", description: "Excel para diseño rápido de vigas de concreto", category: "excel_templates", file_url: null, thumbnail_url: null, is_free: false },
-  { id: "p6", title: "Plantilla Columnas P-M", description: "Diagrama de interacción automático en Excel", category: "excel_templates", file_url: null, thumbnail_url: null, is_free: false },
-  { id: "p7", title: "Manual de Detalles Constructivos", description: "Guía de detalles de conexiones y refuerzo", category: "manuals_guides", file_url: null, thumbnail_url: null, is_free: false },
-  { id: "p8", title: "Modelos SAP2000 — Ejemplos", description: "Archivos de ejemplo de análisis estructural 3D", category: "example_models", file_url: null, thumbnail_url: null, is_free: false },
+  { 
+    id: "p1", 
+    title: "Normatividad ACI - NTP", 
+    description: "Compendio de normas y regulaciones técnicas para el análisis y diseño estructural.", 
+    category: "norms_codes", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: false 
+  },
+  { 
+    id: "p2", 
+    title: "Manuales y Guías", 
+    description: "Documentación técnica y guías de usuario para el diseño de acero estructural.", 
+    category: "norms_codes", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: false 
+  },
+  { 
+    id: "p3", 
+    title: "Tablas y Fórmulas", 
+    description: "Hojas de referencia rápida con fórmulas de diseño a flexión según ACI 318-19.", 
+    category: "formula_sheets", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: true 
+  },
+  { 
+    id: "p4", 
+    title: "Plantilla Excel", 
+    description: "Hoja de cálculo programada con las ecuaciones para Análisis y Diseño Estructural.", 
+    category: "excel_templates", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: true 
+  },
+  { 
+    id: "p5", 
+    title: "Detalles Estructurales", 
+    description: "Planos y detalles típicos de refuerzo para vigas y elementos de concreto.", 
+    category: "structural_details", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: false 
+  },
+  { 
+    id: "p6", 
+    title: "Ejemplo de Modelos", 
+    description: "Archivos de modelos estructurales de referencia para análisis y diseño.", 
+    category: "structural_models", 
+    file_url: null, 
+    thumbnail_url: null, 
+    is_free: false 
+  }
 ];
 
 export default function BibliotecaTab({ resources }: Props) {
+  const router = useRouter();
   const displayItems = resources.length > 0 ? resources : PLACEHOLDER_ITEMS;
   const isEmpty = resources.length === 0;
 
   return (
-    <div className="space-y-8">
-      {/* Hero */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-slate-800">Biblioteca Técnica</h1>
-        <p className="text-slate-500 max-w-2xl mx-auto">
-          Normas, formularios, plantillas y manuales de diseño estructural para tu práctica profesional.
-        </p>
-        {isEmpty && (
-          <p className="text-amber-600 text-sm mt-1">
-            Vista previa — los recursos se habilitarán próximamente.
-          </p>
-        )}
-      </div>
+    <div className="min-h-screen py-2 px-2 sm:px-6 lg:px-16">
+      {/* Título con icono y Barra de búsqueda */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-7 h-7 text-blue-400" />
+            <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Librería <span className="font-light">Técnica</span></h1>
+          </div>
+          <div className="relative w-full max-w-md md:w-96">
+            <input
+              type="text"
+              placeholder="Search technical library..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 text-slate-700 placeholder-slate-400"
+              disabled
+            />
+            <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+          </div>
+        </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Grid de tarjetas tipo biblioteca */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {displayItems.map((item) => {
           const meta = CATEGORY_META[item.category] ?? {
             label: item.category,
@@ -98,33 +150,50 @@ export default function BibliotecaTab({ resources }: Props) {
             color: "text-slate-600 bg-slate-50 border-slate-200",
           };
           const canDownload = Boolean(item.file_url);
+          const isNormatividadCard = item.id === "p1" || item.title.toLowerCase().includes("normativ");
 
           return (
             <div
               key={item.id}
-              className="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-blue-300 hover:shadow-md transition-all duration-200 shadow-sm group"
+              className={`flex flex-col bg-[#F0F3FA] border border-slate-100 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-200 transition-all duration-200 group p-6 ${isNormatividadCard ? "cursor-pointer" : ""}`}
+              onClick={isNormatividadCard ? () => router.push("/tools/biblioteca/normatividad") : undefined}
             >
-              {/* Card header */}
-              <div className="flex items-center gap-3 p-4 border-b border-slate-100 bg-slate-50">
-                <span className={`p-2 rounded-lg border ${meta.color}`}>{meta.icon}</span>
-                <span className="text-xs text-slate-500 font-medium">{meta.label}</span>
-                {item.is_free && (
-                  <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5">
-                    Gratis
-                  </span>
+              {/* Imagen superior */}
+              <div className="w-full h-32 overflow-hidden mb-4">
+                {item.id === "p1" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/1.Normativa.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.id === "p2" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/2.Manuales%20y%20Guias.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.id === "p3" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/3.Tablas%20y%20Formularios.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.id === "p4" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/4.Plantillas%20Excel.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.id === "p5" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/5.Detalles%20estructurales.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.id === "p6" ? (
+                  <img src="/images/Herramientas/Librería%20Teécnica/6.Ejemplo%20de%20modelos.jpg" alt={item.title} className="object-cover w-full h-full" />
+                ) : item.thumbnail_url ? (
+                  <img src={item.thumbnail_url} alt={item.title} className="object-cover w-full h-full" />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full bg-slate-100">
+                    <BookOpen className="w-10 h-10 text-slate-300" />
+                  </div>
                 )}
               </div>
-
-              {/* Content */}
-              <div className="flex-1 p-4 space-y-2">
-                <h3 className="text-slate-800 text-sm font-semibold leading-snug">{item.title}</h3>
-                {item.description && (
-                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-3">{item.description}</p>
-                )}
+              {/* Título */}
+              <h3 className="text-lg font-bold text-slate-800 leading-tight mb-1">{item.title}</h3>
+              {/* Descripción */}
+              {item.description && (
+                <p className="text-slate-500 text-sm mb-4 min-h-[40px]">{item.description}</p>
+              )}
+              {/* Browse y etiquetas */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 font-medium cursor-pointer">Browse</span>
+                <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 font-medium cursor-pointer">Most Popular</span>
+                <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 font-medium cursor-pointer">Codes Map</span>
               </div>
-
-              {/* Download */}
-              <div className="p-4 pt-0">
+              {/* Botón de descarga o próximamente */}
+              <div className="mt-auto">
                 {canDownload ? (
                   <a
                     href={item.file_url!}

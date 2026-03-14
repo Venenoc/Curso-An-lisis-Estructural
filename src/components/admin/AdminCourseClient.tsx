@@ -1380,7 +1380,7 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
                 <Input name="duration" type="number" min="0" placeholder="22" />
               </Field>
               <Field label="URL del video">
-                <Input name="videoUrl" type="url" placeholder="https://..." />
+                <Input name="videoUrl" type="text" placeholder="URL de YouTube, ID de Cloudflare Stream o URL directa" />
               </Field>
             </div>
             <ModalActions onClose={() => setModal(null)} pending={isPending} label="Crear Lección" />
@@ -1407,9 +1407,9 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
               <Field label="URL del video">
                 <Input
                   name="videoUrl"
-                  type="url"
+                  type="text"
                   defaultValue={modal.lesson.video_url || ""}
-                  placeholder="https://..."
+                  placeholder="URL de YouTube, ID de Cloudflare Stream o URL directa"
                 />
               </Field>
             </div>
@@ -1758,9 +1758,9 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
                           />
                           <Input
                             name="video_url"
-                            type="url"
+                            type="text"
                             defaultValue={faq.video_url || ""}
-                            placeholder="URL del video de respuesta (opcional)"
+                            placeholder="URL de YouTube, ID de Cloudflare Stream o URL directa"
                             className="text-sm"
                           />
                           <div className="flex gap-2 justify-end">
@@ -1818,7 +1818,7 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
                   />
                   <Input
                     name="video_url"
-                    type="url"
+                    type="text"
                     placeholder="URL del video de respuesta (opcional)"
                     className="text-sm"
                   />
@@ -1944,9 +1944,9 @@ function SessionFormModal({
           <Field label="URL del video introductorio (opcional)">
             <Input
               name="video_url"
-              type="url"
+              type="text"
               defaultValue={defaultValues?.video_url || ""}
-              placeholder="https://..."
+              placeholder="URL de YouTube, ID de Cloudflare Stream o URL directa"
             />
           </Field>
         )}

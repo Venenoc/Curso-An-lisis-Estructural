@@ -1,3 +1,7 @@
+import type { Metadata } from 'next';
+import { getApprovedTestimonials } from '@/app/actions/testimonials';
+import JsonLd from '@/components/seo/JsonLd';
+import { createClient as createAdminClientMeta } from '@supabase/supabase-js';
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getUser } from "@/app/actions/auth";
@@ -34,6 +38,53 @@ function getLevelColor(level: string) {
 }
 
 // Eliminar función getFirstVideoUrl, no se usa y depende de coursesCatalog
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const admin = createAdminClientMeta(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: course } = await admin
+    .from('courses')
+    .select('title, description, level, total_duration, total_lessons, image_url')
+    .eq('slug', slug)
+    .single();
+
+  if (!course) {
+    return { title: 'Curso no encontrado' };
+  }
+
+  const title = course.title;
+  const description = course.description
+    ? course.description.slice(0, 160)
+    : `Curso de ${title}: formacion especializada en analisis estructural con certificado incluido.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/cursos_m/${slug}` },
+    openGraph: {
+      type: 'website',
+      url: `/cursos_m/${slug}`,
+      title: `${title} | Albert Structural`,
+      description,
+      images: course.image_url
+        ? [{ url: course.image_url, width: 1200, height: 630, alt: title }]
+        : [{ url: '/images/og-image.jpg', width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Albert Structural`,
+      description,
+      images: course.image_url ? [course.image_url] : ['/images/og-image.jpg'],
+    },
+  };
+}
 
 export default async function CourseSyllabusPage({
   params,
@@ -78,6 +129,9 @@ export default async function CourseSyllabusPage({
         lessons: [...(c.lessons || [])].sort((a: any, b: any) => a.order - b.order),
       })),
   }));
+
+  // Testimonials for this course
+  const courseTestimonials = await getApprovedTestimonials(course.id);
 
   const user = await getUser();
   let purchased = false;
@@ -458,40 +512,70 @@ export default async function CourseSyllabusPage({
             <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Lo que dicen nuestros estudiantes</h2>
             <p className="text-slate-500 text-sm text-center mb-10">Opiniones reales de quienes ya completaron el curso</p>
           </ScrollReveal>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { name: "Carlos M.", role: "Ingeniero Civil", text: "El curso superó todas mis expectativas. La forma en que explican los conceptos es clara y directa. En pocas semanas logré aplicarlos en mis proyectos reales.", stars: 5 },
-              { name: "Andrea P.", role: "Estudiante de Ing. Civil", text: "Excelente material didáctico. Los ejercicios propuestos son muy similares a los que se encuentran en la práctica profesional. Totalmente recomendado.", stars: 5 },
-              { name: "Luis F.", role: "Proyectista Estructural", text: "Llevaba años buscando un curso que explicara bien el análisis estructural. Este lo hace de forma magistral y con mucha profundidad práctica.", stars: 5 },
-              { name: "María G.", role: "Docente universitaria", text: "Lo utilizo como material de apoyo en mis clases. La secuencia pedagógica es impecable y los ejemplos están muy bien seleccionados.", stars: 5 },
-              { name: "Roberto S.", role: "Ingeniero Estructural", text: "La calidad del contenido es sobresaliente. Se nota el dominio del tema por parte del instructor. Completamente recomendado para cualquier nivel.", stars: 5 },
-              { name: "Jorge T.", role: "Consultor en estructuras", text: "Uno de los mejores cursos que he tomado en línea. El ritmo es ideal y las explicaciones son muy precisas. Ya recomendé el curso a varios colegas.", stars: 5 },
-            ].map((t, i) => (
-              <ScrollReveal key={i} delay={Math.min(0.08 + i * 0.07, 0.4)}>
-                <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.stars }).map((_, j) => (
-                      <svg key={j} className="w-4 h-4 fill-amber-400" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                      {t.name[0]}
+          {(() => {
+            const fallback = [
+              { id: "f1", author_name: "Carlos M.", author_role: "Ingeniero Civil", content: "El curso superó todas mis expectativas. La forma en que explican los conceptos es clara y directa.", rating: 5 },
+              { id: "f2", author_name: "Andrea P.", author_role: "Estudiante de Ing. Civil", content: "Excelente material didáctico. Los ejercicios son muy similares a los que se encuentran en la práctica profesional.", rating: 5 },
+              { id: "f3", author_name: "Luis F.", author_role: "Proyectista Estructural", content: "Llevaba años buscando un curso que explicara bien el análisis estructural. Este lo hace de forma magistral.", rating: 5 },
+            ];
+            const items = courseTestimonials.length > 0 ? courseTestimonials : fallback;
+            return (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {items.map((t, i) => (
+                  <ScrollReveal key={t.id || i} delay={Math.min(0.08 + i * 0.07, 0.4)}>
+                    <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+                      <div className="flex gap-0.5 mb-4">
+                        {Array.from({ length: t.rating }).map((_, j) => (
+                          <svg key={j} className="w-4 h-4 fill-amber-400" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-slate-600 text-sm leading-relaxed flex-1 mb-5">&ldquo;{t.content}&rdquo;</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {t.author_name[0]}
+                        </div>
+                        <div>
+                          <p className="text-slate-900 text-sm font-semibold">{t.author_name}</p>
+                          {t.author_role && <p className="text-slate-400 text-xs">{t.author_role}</p>}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-slate-900 text-sm font-semibold">{t.name}</p>
-                      <p className="text-slate-400 text-xs">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
+                  </ScrollReveal>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </section>
+
+
+      {/* Course Schema Markup */}
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: course.title,
+        description: course.description,
+        provider: {
+          '@type': 'EducationalOrganization',
+          name: 'Albert Structural',
+          sameAs: process.env.NEXT_PUBLIC_SITE_URL || 'https://albertstructural.com',
+        },
+        hasCourseInstance: {
+          '@type': 'CourseInstance',
+          courseMode: 'online',
+          inLanguage: 'es',
+        },
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'PEN',
+          price: course.price,
+          availability: 'https://schema.org/InStock',
+        },
+        educationalLevel: course.level,
+        timeRequired: course.total_duration,
+      }} />
 
       {/* Mobile sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-50">

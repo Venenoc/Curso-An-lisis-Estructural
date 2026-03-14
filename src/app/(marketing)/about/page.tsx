@@ -1,3 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Acerca de',
+  description: 'Conoce a Albert Structural, el ingeniero estructural detras de los mejores cursos de analisis estructural en espanol. Formacion practica y especializada.',
+  alternates: { canonical: '/about' },
+  openGraph: {
+    url: '/about',
+    title: 'Acerca de Albert Structural',
+    description: 'Conoce la historia y metodologia detras de Albert Structural, formacion especializada en ingenieria estructural.',
+  },
+};
+
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export default function AboutPage() {
@@ -22,7 +35,7 @@ export default function AboutPage() {
             <ScrollReveal delay={0.2}>
               <p className="text-lg mb-6">
                 Somos una plataforma dedicada a la educación y capacitación de profesionales
-                en ingeniería civil en la especialidad de Análisis Estructural.
+                en ingeniería civil en la especialidad de Análisis y Diseño Estructural usando normativas actuales nacionales e internacionales.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.25}>

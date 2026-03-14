@@ -72,7 +72,7 @@ export default async function CourseDetailPage({
     <div
       className="min-h-screen flex flex-col items-center justify-center relative py-12"
       style={{
-        backgroundImage: "url('/images/Fondo_ATm.jpg')",
+        backgroundImage: "url('/images/Fondos de marketing/Fondo_ATm.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "top",
         backgroundRepeat: "no-repeat",

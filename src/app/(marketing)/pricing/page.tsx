@@ -1,3 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Precios y Planes',
+  description: 'Accede a todos los cursos de analisis estructural con planes flexibles. Compra cursos individuales o modulos segun tus necesidades y presupuesto.',
+  alternates: { canonical: '/pricing' },
+  openGraph: {
+    url: '/pricing',
+    title: 'Precios | Albert Structural',
+    description: 'Planes flexibles para acceder a los mejores cursos de analisis estructural. Certificado incluido.',
+  },
+};
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

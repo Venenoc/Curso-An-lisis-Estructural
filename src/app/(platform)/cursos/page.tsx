@@ -10,10 +10,15 @@ export default async function CursosPage() {
   const user = await getUser();
   if (!user) redirect("/login");
 
-  const [courses, supabase] = await Promise.all([
+  const [coursesRaw, supabase] = await Promise.all([
     getCatalogCoursesFromDB(),
     createClient(),
   ]);
+  // Ordenar: publicados primero, luego los draft
+  const courses = [...coursesRaw].sort((a, b) => {
+    if (a.isDraft === b.isDraft) return 0;
+    return a.isDraft ? 1 : -1;
+  });
 
   const { data: profile } = await supabase
     .from("profiles").select("id").eq("user_id", user.id).single();
