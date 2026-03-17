@@ -1,5 +1,3 @@
-import { getUser } from "@/app/actions/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Calendar, CheckCircle2, Star, Users, Clock, ArrowRight, Video } from "lucide-react";
 
@@ -24,36 +22,28 @@ const SAMPLE_VIDEOS = [
     title: "Análisis de armaduras planas",
     description: "Resolución completa de una armadura con el método de nodos, verificación de estabilidad y cálculo de fuerzas internas.",
     duration: "48 min",
-    gradient: "from-cyan-600/40 to-blue-800/40",
-    accent: "#22d3ee",
-    videoUrl: "https://www.youtube.com/watch?v=ivjhXoCuRs4", // ← reemplaza con tu URL
+    videoUrl: "https://www.youtube.com/watch?v=ivjhXoCuRs4",
   },
   {
     id: 2,
     title: "Diagramas de cortante y momento",
     description: "Construcción paso a paso de diagramas V y M en vigas continuas con cargas distribuidas y puntuales.",
     duration: "55 min",
-    gradient: "from-blue-600/40 to-indigo-800/40",
-    accent: "#6366f1",
-    videoUrl: "https://www.youtube.com/watch?v=XF39qDIm7XE&feature=youtu.be", // ← reemplaza con tu URL
+    videoUrl: "https://www.youtube.com/watch?v=XF39qDIm7XE&feature=youtu.be",
   },
   {
     id: 3,
     title: "Diseño de columnas de concreto",
     description: "Dimensionamiento y verificación de columnas bajo carga axial y momento biaxial según ACI 318.",
     duration: "62 min",
-    gradient: "from-violet-600/40 to-purple-900/40",
-    accent: "#a78bfa",
-    videoUrl: "https://www.youtube.com/watch?v=dJiGsCxZC5g&feature=youtu.be", // ← reemplaza con tu URL
+    videoUrl: "https://www.youtube.com/watch?v=dJiGsCxZC5g&feature=youtu.be",
   },
   {
     id: 4,
     title: "Modelo estructural en SAP2000",
     description: "Sesión práctica de modelado, asignación de cargas sísmicas y lectura de resultados en SAP2000.",
     duration: "74 min",
-    gradient: "from-sky-600/40 to-cyan-900/40",
-    accent: "#38bdf8",
-    videoUrl: "https://www.youtube.com/watch?v=-d1HiwvibQM&feature=youtu.be", // ← reemplaza con tu URL
+    videoUrl: "https://www.youtube.com/watch?v=-d1HiwvibQM&feature=youtu.be",
   },
 ];
 
@@ -64,10 +54,7 @@ const BENEFITS = [
   { icon: <Star className="w-5 h-5" />, text: "Instructor con experiencia en proyectos reales" },
 ];
 
-export default async function AsesoriasPage() {
-  const user = await getUser();
-  if (!user) redirect("/login");
-
+export default function AsesoriasPage() {
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -140,7 +127,6 @@ export default async function AsesoriasPage() {
                       />
                     );
                   })()}
-                  {/* Sample badge */}
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-semibold pointer-events-none"
                     style={{ background: "rgba(34,211,238,0.15)", border: "1px solid rgba(34,211,238,0.3)", color: "#22d3ee" }}>
                     Muestra
