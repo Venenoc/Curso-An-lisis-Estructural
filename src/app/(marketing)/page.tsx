@@ -421,7 +421,7 @@ export default function Home() {
                     style={{ border: `1px solid ${palette.slate}88` }}
                   >
                     <Image
-                      src="/images/Albert.jpg"
+                      src="/images/Albert.jpeg"
                       alt="Albert Structural"
                       fill
                       className="object-cover"
