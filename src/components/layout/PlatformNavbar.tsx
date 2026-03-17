@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { signout } from "@/app/actions/auth";
-import { markAllNotificationsRead } from "@/app/actions/notifications";
+import { markAllNotificationsRead, getNotifications } from "@/app/actions/notifications";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { MessageCircle, Bell, GraduationCap, ClipboardCheck, AlertCircle, Info } from "lucide-react";
@@ -195,16 +195,9 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   const fetchNotifications = useCallback(async () => {
-    if (!profileId) return;
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", profileId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setNotifications((data || []) as Notification[]);
-  }, [profileId]);
+    const data = await getNotifications();
+    setNotifications(data);
+  }, []);
 
   useEffect(() => {
     if (!profileId) return;
@@ -235,11 +228,12 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
     };
   }, [profileId, fetchNotifications]);
 
-  async function handleOpenNotif(isOpen: boolean) {
+  function handleOpenNotif(isOpen: boolean) {
     setOpenNotif(isOpen);
     if (isOpen && unreadNotifications > 0) {
-      await markAllNotificationsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      markAllNotificationsRead().then(() => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      }).catch(() => {});
     }
   }
 
@@ -463,7 +457,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
                   {unreadNotifications > 0 && <span className="pn-badge">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0 bg-black/90 border border-white/20 rounded-lg shadow-lg">
+              <PopoverContent align="end" className="w-80 p-0 bg-black/90 border border-white/20 rounded-lg shadow-lg z-[200]">
                 <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
                   <p className="text-white font-semibold text-sm">Notificaciones</p>
                   {notifications.length > 0 && <span className="text-slate-500 text-xs">{notifications.length} total</span>}
@@ -524,7 +518,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
                   {unreadNotifications > 0 && <span className="pn-badge">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-72 p-0 bg-black/90 border border-white/20 rounded-lg shadow-lg">
+              <PopoverContent align="end" className="w-72 p-0 bg-black/90 border border-white/20 rounded-lg shadow-lg z-[200]">
                 <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
                   <p className="text-white font-semibold text-sm">Notificaciones</p>
                   {notifications.length > 0 && <span className="text-slate-500 text-xs">{notifications.length}</span>}

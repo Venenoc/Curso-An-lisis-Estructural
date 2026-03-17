@@ -182,9 +182,6 @@ export default async function CourseSyllabusPage({
           acc + mod.chapters.reduce((a: number, ch: any) => a + ch.lessons.length, 0), 0)
       : (course.total_lessons ?? 0);
 
-  const isFirstCourse =
-    course.title ===
-    "Conceptos Fundamentales en el Comportamiento y Diseño de Vigas";
 
   return (
     <div
@@ -398,12 +395,10 @@ export default async function CourseSyllabusPage({
               <div className="sticky top-24">
                 <div className="bg-slate-800/70 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
                   {/* Thumbnail */}
-                  {isFirstCourse ? (
+                  {course.image_url ? (
                     <div
                       className="h-48 bg-cover bg-center"
-                      style={{
-                        backgroundImage: "url(/images/Fondocurso1.jpg)",
-                      }}
+                      style={{ backgroundImage: `url(${course.image_url})` }}
                     />
                   ) : (
                     <div
