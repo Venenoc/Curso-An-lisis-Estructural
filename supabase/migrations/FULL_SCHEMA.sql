@@ -862,9 +862,33 @@ CREATE TABLE IF NOT EXISTS course_exceptions (
 -- Solo service_role puede operar esta tabla
 ALTER TABLE course_exceptions ENABLE ROW LEVEL SECURITY;
 
+-- 5.6 advisory_videos
+CREATE TABLE IF NOT EXISTS advisory_videos (
+  id           uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  title        text        NOT NULL,
+  description  text,
+  duration     text,
+  video_url    text        NOT NULL,
+  "order"      integer     NOT NULL DEFAULT 0,
+  is_published boolean     NOT NULL DEFAULT true,
+  created_at   timestamptz DEFAULT now()
+);
+
+ALTER TABLE advisory_videos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "advisory_videos_public_read" ON advisory_videos
+  FOR SELECT USING (is_published = true);
+
+CREATE POLICY "advisory_videos_admin_all" ON advisory_videos
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'instructor'))
+  );
+
+CREATE INDEX IF NOT EXISTS idx_advisory_videos_order ON advisory_videos("order");
+
 -- =============================================================================
 -- FIN DEL ESQUEMA
--- Tablas creadas: 28
+-- Tablas creadas: 29
 -- Políticas RLS: 57
 -- Triggers: 4
 -- Índices: ~35

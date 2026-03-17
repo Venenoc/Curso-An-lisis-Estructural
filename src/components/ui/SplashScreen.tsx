@@ -3,68 +3,73 @@
 import { useEffect, useState, useRef } from "react";
 
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !sessionStorage.getItem("splash_shown");
-  });
+  const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
   const videoReadyRef = useRef(false);
   const progressRef = useRef(0);
 
+  // Mostrar siempre al cargar la página
+  useEffect(() => {
+    setVisible(true);
+  }, []);
+
   useEffect(() => {
     if (!visible) return;
 
-    // Escucha el evento del video de home
-    const onVideoReady = () => {
-      videoReadyRef.current = true;
+    // Resetear refs al iniciar (importante en React Strict Mode que corre efectos 2 veces)
+    progressRef.current = 0;
+    videoReadyRef.current = false;
+    setProgress(0);
+
+    let cancelled = false;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const safeTimeout = (fn: () => void, ms: number) => {
+      const id = setTimeout(() => { if (!cancelled) fn(); }, ms);
+      timeouts.push(id);
+      return id;
     };
+
+    const onVideoReady = () => { videoReadyRef.current = true; };
     window.addEventListener("splash:video-ready", onVideoReady);
 
-    // Avanza el progreso hasta 80% rápido, luego espera el video
     const interval = setInterval(() => {
+      if (cancelled) return;
       progressRef.current = progressRef.current + 3;
       const next = progressRef.current;
 
       if (next >= 80 && !videoReadyRef.current) {
-        // Pausa en 80 hasta que el video esté listo
         setProgress(80);
         return;
       }
 
       if (next >= 100 || (next >= 80 && videoReadyRef.current)) {
-        const final = Math.min(next, 100);
-        setProgress(final);
-        if (final >= 100 || videoReadyRef.current) {
-          clearInterval(interval);
-          progressRef.current = 100;
-          setProgress(100);
-          setTimeout(() => {
-            setLeaving(true);
-            setTimeout(() => {
-              sessionStorage.setItem("splash_shown", "1");
-              window.dispatchEvent(new Event("splash:done"));
-              setVisible(false);
-            }, 700);
-          }, 300);
-        }
+        clearInterval(interval);
+        progressRef.current = 100;
+        setProgress(100);
+        safeTimeout(() => {
+          setLeaving(true);
+          safeTimeout(() => {
+            window.dispatchEvent(new Event("splash:done"));
+            setVisible(false);
+          }, 700);
+        }, 300);
         return;
       }
 
       setProgress(next);
     }, 40);
 
-    // Fallback: si el video tarda más de 6s, completar igual
-    const fallback = setTimeout(() => {
-      videoReadyRef.current = true;
-    }, 6000);
+    safeTimeout(() => { videoReadyRef.current = true; }, 6000);
 
     return () => {
+      cancelled = true;
       clearInterval(interval);
-      clearTimeout(fallback);
+      timeouts.forEach(clearTimeout);
       window.removeEventListener("splash:video-ready", onVideoReady);
     };
-  }, []);
+  }, [visible]);
 
   if (!visible) return null;
 

@@ -17,8 +17,8 @@ interface HomeNavbarProps {
 const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/cursos_m", label: "Cursos" },
+  { href: "/asesorias_m", label: "Asesorías" },
   { href: "/community_m", label: "Comunidad" },
-  { href: "/asesorias", label: "Asesorías" },
   { href: "/tools_m", label: "Herramientas" },
 ];
 
@@ -34,7 +34,7 @@ function MobileMenuIcon({ href }: { href: string }) {
   if (href === "/community_m") return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="7" r="3" /><path d="M3 20c0-3.3 2.7-6 6-6" /><circle cx="16" cy="7" r="3" /><path d="M13 14c2.7.4 5 2.7 5 6" /><path d="M9 14h6" /></svg>
   );
-  if (href === "/asesorias") return (
+  if (href === "/asesorias_m") return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
   );
   if (href === "/tools_m") return (
