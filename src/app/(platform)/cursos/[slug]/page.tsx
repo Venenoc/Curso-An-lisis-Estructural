@@ -140,6 +140,21 @@ export default async function CursoDetailPage({
         isPurchased = true;
       }
     }
+
+    // ── Excepción de acceso gratuito ─────────────────────────────────────────
+    if (!isPurchased) {
+      const { data: exception } = await admin
+        .from("course_exceptions")
+        .select("id")
+        .or(`auth_user_id.eq.${user.id},user_id.eq.${profile.id}`)
+        .eq("course_slug", slug)
+        .maybeSingle();
+
+      if (exception) {
+        isPurchased = true;
+        purchasedModuleIds = modules.map((m) => m.id);
+      }
+    }
   }
 
   // ── Pricing ──────────────────────────────────────────────────────────────────

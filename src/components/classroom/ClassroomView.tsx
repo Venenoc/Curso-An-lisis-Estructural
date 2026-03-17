@@ -19,6 +19,7 @@ interface ClassroomViewProps {
   completedLessonIds: string[];
   profileId: string;
   hasFullCourse: boolean;
+  hasException: boolean;
   purchasedModuleIds: number[];
   initialLessonId?: number;
   quizzesByCatalogLessonId?: Record<number, QuizWithQuestions>;
@@ -33,6 +34,7 @@ export default function ClassroomView({
   completedLessonIds: initialCompleted,
   profileId,
   hasFullCourse,
+  hasException,
   purchasedModuleIds,
   initialLessonId,
   quizzesByCatalogLessonId,
@@ -74,8 +76,17 @@ export default function ClassroomView({
   const unlockedLessonIds = useMemo(() => {
     const unlocked = new Set<number>();
 
-    if (hasFullCourse) {
-      // Full course: sequential unlock across modules → chapters → lessons
+    if (hasException) {
+      // Acceso por excepción: todos los módulos y lecciones desbloqueados desde el inicio
+      for (const mod of modules) {
+        for (const ch of (mod.chapters || [])) {
+          for (const lesson of (ch.lessons || [])) {
+            unlocked.add(lesson.id);
+          }
+        }
+      }
+    } else if (hasFullCourse) {
+      // Curso completo: desbloqueo secuencial entre módulos
       let canContinue = true;
       for (const mod of modules) {
         for (const ch of (mod.chapters || [])) {
@@ -90,7 +101,7 @@ export default function ClassroomView({
         }
       }
     } else {
-      // Module purchases: sequential within each purchased module (across chapters)
+      // Compra por módulo: desbloqueo secuencial dentro de cada módulo comprado
       for (const mod of modules) {
         if (!purchasedModuleIds.includes(mod.id)) continue;
         let canContinue = true;
@@ -108,7 +119,7 @@ export default function ClassroomView({
     }
 
     return unlocked;
-  }, [hasFullCourse, modules, purchasedModuleIds, completedIds]);
+  }, [hasException, hasFullCourse, modules, purchasedModuleIds, completedIds]);
 
   const currentIndex = allLessons.findIndex(
     (l) => l.lesson.id === currentLessonId

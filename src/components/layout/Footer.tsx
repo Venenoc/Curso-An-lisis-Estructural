@@ -92,7 +92,7 @@ export default function Footer() {
                 lineHeight: 1,
                 paddingRight: '12px',
               }}>
-                AE
+                AS
               </Link>
               <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.22)', margin: '0 10px', flexShrink: 0 }} />
               <span style={{

@@ -7,6 +7,7 @@ import {
   Search,
   ArrowLeft,
   MessageSquare,
+  ShieldCheck,
   BookOpen,
   Clock,
   DollarSign,
@@ -454,6 +455,12 @@ export default function AdminCoursesClient({ courses: initialCourses }: Props) {
             <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium backdrop-blur-sm transition-all hover:scale-105 active:scale-95">
               <MessageSquare className="w-4 h-4" />
               Testimonios
+            </button>
+          </Link>
+          <Link href="/admin/exceptions">
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium backdrop-blur-sm transition-all hover:scale-105 active:scale-95">
+              <ShieldCheck className="w-4 h-4" />
+              Accesos
             </button>
           </Link>
         </div>

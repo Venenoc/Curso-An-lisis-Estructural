@@ -11,14 +11,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { markLessonComplete } from "@/app/actions/courses";
-import { getCloudflareStreamUrl } from "@/lib/utils";
+import { getCloudflareHlsUrl } from "@/lib/utils";
 import type { CourseLesson } from "@/data/courses-catalog";
-
-declare global {
-  interface Window {
-    Stream?: (el: HTMLIFrameElement) => any;
-  }
-}
 
 interface VideoPlayerProps {
   courseSlug: string;
@@ -47,85 +41,39 @@ export default function VideoPlayer({
   const [error, setError] = useState<string | null>(null);
   const [videoEnded, setVideoEnded] = useState(false);
 
-  const cfIframeRef = useRef<HTMLIFrameElement>(null);
-  const cfPlayerRef = useRef<any>(null);
-  const maxWatchedRef = useRef(0);
-  const sdkReadyRef = useRef(false);
-
-  // HTML5 fallback refs
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<any>(null);
   const maxTimeRef = useRef(0);
 
-  const cfStreamUrl = lesson.videoUrl ? getCloudflareStreamUrl(lesson.videoUrl) : null;
+  const hlsUrl = lesson.videoUrl ? getCloudflareHlsUrl(lesson.videoUrl) : null;
 
   // Reset al cambiar de lección
   useEffect(() => {
     setVideoEnded(false);
-    maxWatchedRef.current = 0;
     maxTimeRef.current = 0;
-    cfPlayerRef.current = null;
   }, [lesson.id]);
 
-  // Cargar SDK de Cloudflare Stream una sola vez
+  // Inicializar HLS.js para videos de Cloudflare Stream
   useEffect(() => {
-    if (document.getElementById("cf-stream-sdk")) {
-      sdkReadyRef.current = true;
-      return;
-    }
-    const script = document.createElement("script");
-    script.id = "cf-stream-sdk";
-    script.src = "https://embed.cloudflarestream.com/embed/sdk.latest.js";
-    script.onload = () => { sdkReadyRef.current = true; };
-    document.head.appendChild(script);
-  }, []);
-
-  // Adjuntar SDK al iframe una vez que cargue (onLoad del iframe)
-  const handleIframeLoad = useCallback(() => {
-    const attach = () => {
-      if (!cfIframeRef.current || !window.Stream) return;
-
-      const player = window.Stream(cfIframeRef.current);
-      cfPlayerRef.current = player;
-
-      // Actualizar máximo visto mientras el video avanza
-      player.addEventListener("timeupdate", () => {
-        const t = player.currentTime;
-        if (t > maxWatchedRef.current) {
-          maxWatchedRef.current = t;
-        }
-      });
-
-      // Bloquear adelanto: seeking se dispara cuando el usuario mueve la barra
-      player.addEventListener("seeking", () => {
-        if (player.currentTime > maxWatchedRef.current) {
-          player.currentTime = maxWatchedRef.current;
-        }
-      });
-
-      // Doble verificación al terminar el seek
-      player.addEventListener("seeked", () => {
-        if (player.currentTime > maxWatchedRef.current) {
-          player.currentTime = maxWatchedRef.current;
-        }
-      });
-
-      player.addEventListener("ended", () => {
-        setVideoEnded(true);
-      });
+    if (!hlsUrl || !videoRef.current) return;
+    let hls: any;
+    const init = async () => {
+      const Hls = (await import("hls.js")).default;
+      const video = videoRef.current;
+      if (!video) return;
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      if (Hls.isSupported()) {
+        hls = new Hls({ maxBufferLength: 30 });
+        hlsRef.current = hls;
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = hlsUrl; // Safari HLS nativo
+      }
     };
-
-    if (window.Stream) {
-      attach();
-    } else {
-      // SDK aún cargando — esperar
-      const interval = setInterval(() => {
-        if (window.Stream) {
-          clearInterval(interval);
-          attach();
-        }
-      }, 50);
-    }
-  }, []);
+    init();
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [hlsUrl]);
 
   // HTML5 fallback: prevención de adelanto
   const handleTimeUpdate = useCallback(() => {
@@ -183,41 +131,20 @@ export default function VideoPlayer({
 
       <div className="relative aspect-video bg-slate-950 w-full max-w-3xl mx-auto">
         {lesson.videoUrl ? (
-          cfStreamUrl ? (
-            <>
-              <div
-                className="absolute inset-0 z-10"
-                onContextMenu={handleContextMenu}
-                style={{ background: "transparent", pointerEvents: "none" }}
-                aria-hidden="true"
-              />
-              <iframe
-                ref={cfIframeRef}
-                src={cfStreamUrl + "?preload=auto&primaryColor=%2306b6d4"}
-                className="w-full h-full"
-                style={{ border: "none" }}
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                allowFullScreen
-                onLoad={handleIframeLoad}
-              />
-            </>
-          ) : (
-            <video
-              ref={videoRef}
-              className="w-full h-full bg-black"
-              controls
-              controlsList="nodownload noplaybackrate"
-              disablePictureInPicture
-              onTimeUpdate={handleTimeUpdate}
-              onSeeking={handleSeeking}
-              onEnded={handleVideoEnded}
-              onContextMenu={handleContextMenu}
-              onDragStart={handleDragStart}
-              preload="metadata"
-            >
-              <source src={lesson.videoUrl} type="video/mp4" />
-            </video>
-          )
+          <video
+            ref={videoRef}
+            className="w-full h-full bg-black"
+            controls
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            onTimeUpdate={handleTimeUpdate}
+            onSeeking={handleSeeking}
+            onEnded={handleVideoEnded}
+            onContextMenu={handleContextMenu}
+            onDragStart={handleDragStart}
+            preload="metadata"
+            {...(!hlsUrl && lesson.videoUrl ? { src: lesson.videoUrl } : {})}
+          />
         ) : (
           <>
             <div

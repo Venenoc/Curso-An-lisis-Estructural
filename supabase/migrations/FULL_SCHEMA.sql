@@ -1,7 +1,7 @@
 -- =============================================================================
 -- FULL_SCHEMA.sql
 -- Esquema completo consolidado — Plataforma Análisis Estructural
--- Generado el 2026-03-01 a partir de 18 migraciones individuales
+-- Actualizado el 2026-03-16 a partir de 24 migraciones individuales
 --
 -- INSTRUCCIONES: Ejecutar este archivo en un proyecto Supabase VACÍO.
 -- Si ya ejecutaste alguna migración individual, NO ejecutes este archivo.
@@ -736,10 +736,137 @@ CREATE POLICY "lesson_comments_delete"
     ON lesson_comments FOR DELETE
     USING (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
 
+-- ── 5. TABLAS ADICIONALES (migraciones post 2026-03-01) ───────────────────────
+
+-- 5.1 notifications
+CREATE TABLE IF NOT EXISTS notifications (
+  id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  title      TEXT        NOT NULL,
+  body       TEXT,
+  type       TEXT        NOT NULL DEFAULT 'info',
+  -- Tipos: 'certificate' | 'quiz_passed' | 'quiz_failed' | 'info'
+  read       BOOLEAN     NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user   ON notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, read) WHERE read = false;
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "notifications_select"
+  ON notifications FOR SELECT
+  USING (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
+
+CREATE POLICY "notifications_update"
+  ON notifications FOR UPDATE
+  USING (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
+-- INSERT solo vía admin client (service role)
+
+-- 5.2 sessions (nivel entre chapters y lessons)
+CREATE TABLE IF NOT EXISTS sessions (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  chapter_id uuid        NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  title      text        NOT NULL,
+  type       text        NOT NULL DEFAULT 'session' CHECK (type IN ('session', 'taller')),
+  video_url  text,
+  "order"    integer     NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "sessions_public_read" ON sessions
+  FOR SELECT USING (true);
+
+CREATE POLICY "sessions_admin_all" ON sessions
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+-- FK de lessons → sessions
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS session_id uuid REFERENCES sessions(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_sessions_chapter_id  ON sessions(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_order       ON sessions("order");
+CREATE INDEX IF NOT EXISTS idx_lessons_session_id   ON lessons(session_id);
+
+-- 5.3 lesson_faqs
+CREATE TABLE IF NOT EXISTS lesson_faqs (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  lesson_id  uuid        NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  question   text        NOT NULL,
+  video_url  text,
+  "order"    integer     NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE lesson_faqs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "lesson_faqs_public_read" ON lesson_faqs
+  FOR SELECT USING (true);
+
+CREATE POLICY "lesson_faqs_admin_all" ON lesson_faqs
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
+
+CREATE INDEX IF NOT EXISTS idx_lesson_faqs_lesson_id ON lesson_faqs(lesson_id);
+
+-- 5.4 testimonials
+CREATE TABLE IF NOT EXISTS testimonials (
+  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  course_id    UUID        NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  course_title TEXT        NOT NULL,
+  author_name  TEXT        NOT NULL,
+  author_role  TEXT        DEFAULT '',
+  content      TEXT        NOT NULL,
+  rating       INTEGER     DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  is_approved  BOOLEAN     DEFAULT false,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, course_id)
+);
+
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "testimonials_select_approved"
+  ON testimonials FOR SELECT
+  USING (is_approved = true);
+
+CREATE POLICY "testimonials_select_own"
+  ON testimonials FOR SELECT
+  USING (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
+
+CREATE POLICY "testimonials_insert_own"
+  ON testimonials FOR INSERT
+  WITH CHECK (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
+
+CREATE POLICY "testimonials_update_own"
+  ON testimonials FOR UPDATE
+  USING (user_id = (SELECT id FROM profiles WHERE user_id = auth.uid()));
+
+-- 5.5 course_exceptions
+CREATE TABLE IF NOT EXISTS course_exceptions (
+  id           UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id      UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  auth_user_id UUID,        -- auth.users.id — check directo sin join
+  course_slug  TEXT        NOT NULL,
+  user_email   TEXT,        -- denormalizado para mostrar en admin
+  note         TEXT,
+  granted_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, course_slug)
+);
+
+-- Solo service_role puede operar esta tabla
+ALTER TABLE course_exceptions ENABLE ROW LEVEL SECURITY;
+
 -- =============================================================================
 -- FIN DEL ESQUEMA
--- Tablas creadas: 23
--- Políticas RLS: 46
+-- Tablas creadas: 28
+-- Políticas RLS: 57
 -- Triggers: 4
--- Índices: ~28
+-- Índices: ~35
+-- Última actualización: 2026-03-16
 -- =============================================================================

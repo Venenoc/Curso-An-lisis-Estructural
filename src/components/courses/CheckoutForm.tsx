@@ -1489,7 +1489,7 @@ export default function CheckoutForm({
               </div>
               <div className="flex justify-between text-base pt-3 border-t border-slate-700/50">
                 <span className="text-white font-bold">Total</span>
-                <span className="text-white font-bold text-cyan-400">
+                <span className="text-white font-bold">
                   S/. {formattedPrice}
                 </span>
               </div>

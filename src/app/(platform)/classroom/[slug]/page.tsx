@@ -254,13 +254,22 @@ export default async function ClassroomPage({
   if (!profile) redirect(`/cursos/${slug}`);
 
   // ── Enrollment check by course_id (reliable, no title matching) ──────────────
-  const { data: enrollments } = await supabase
-    .from("enrollments")
-    .select("id")
-    .eq("user_id", profile.id)
-    .eq("course_id", dbCourse.id);
+  const [{ data: enrollments }, { data: exception }] = await Promise.all([
+    supabase
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", profile.id)
+      .eq("course_id", dbCourse.id),
+    // Checar por auth_user_id (directo, sin indirección) con fallback a profiles.id
+    admin
+      .from("course_exceptions")
+      .select("id")
+      .or(`auth_user_id.eq.${user.id},user_id.eq.${profile.id}`)
+      .eq("course_slug", slug)
+      .maybeSingle(),
+  ]);
 
-  const hasFullCourse = (enrollments?.length ?? 0) > 0;
+  const hasFullCourse = (enrollments?.length ?? 0) > 0 || !!exception;
 
   // ── Module enrollments ────────────────────────────────────────────────────────
   let purchasedModuleIds: number[] = [];
@@ -323,6 +332,7 @@ export default async function ClassroomPage({
       completedLessonIds={completedLessonIds}
       profileId={profile.id}
       hasFullCourse={!!hasFullCourse}
+      hasException={!!exception}
       purchasedModuleIds={purchasedModuleIds}
       initialLessonId={initialLessonId}
       quizzesByCatalogLessonId={quizzesByCatalogLessonId}

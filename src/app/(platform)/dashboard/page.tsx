@@ -42,8 +42,8 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  // ── Fetch enrollments, module-enrollments, progress and published courses in parallel ──
-  const [enrollmentsRes, moduleEnrollmentsRes, progressRes, publishedCoursesRes] = await Promise.all([
+  // ── Fetch enrollments, module-enrollments, progress, published courses and exceptions in parallel ──
+  const [enrollmentsRes, moduleEnrollmentsRes, progressRes, publishedCoursesRes, exceptionsRes] = await Promise.all([
     supabase
       .from("enrollments")
       .select("id, payment_type, enrolled_at, course_id, courses(id, title, description, price, slug, gradient)")
@@ -62,6 +62,12 @@ export default async function DashboardPage() {
       .select("id, slug, title, description, price, gradient", { count: "exact" })
       .eq("status", "published")
       .order("created_at", { ascending: true }),
+    supabaseAdmin
+      .from("course_exceptions")
+      .select("id, course_slug")
+      .or(profile?.id
+        ? `auth_user_id.eq.${user.id},user_id.eq.${profile.id}`
+        : `auth_user_id.eq.${user.id}`),
   ]);
 
   const allPublishedCourses = (publishedCoursesRes.data || []) as Array<{ id: string; slug: string; title: string; description: string; price: number; gradient: string }>;
@@ -69,6 +75,7 @@ export default async function DashboardPage() {
 
   const enrollments = enrollmentsRes.data;
   const moduleEnrollments = moduleEnrollmentsRes.data as any[] | null;
+  const exceptionSlugs = ((exceptionsRes as any).data || []).map((e: any) => e.course_slug as string);
   const progressRows = progressRes.data;
 
   const firstName = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0];
@@ -85,10 +92,24 @@ export default async function DashboardPage() {
 
   const fullEnrollmentCourseIds = new Set((enrollments || []).map((e: any) => e.course_id as string));
 
+  // Fetch exception courses by slug directly (no status filter — classroom also skips it)
+  const { data: exceptionCoursesRaw } = exceptionSlugs.length
+    ? await supabaseAdmin
+        .from("courses")
+        .select("id, slug, title, description, price, gradient")
+        .in("slug", exceptionSlugs)
+    : { data: [] as any[] };
+
+  const exceptionCourses = (exceptionCoursesRaw || []) as Array<{ id: string; slug: string; title: string; description: string; price: number; gradient: string }>;
+
+  // Exception course IDs resolved directly (not gated by published status)
+  const exceptionCourseIds = exceptionCourses.map((c) => c.id);
+
   const allEnrolledCourseIds = [
     ...new Set([
       ...(enrollments || []).map((e: any) => e.course_id as string),
       ...(moduleEnrollments || []).map((me: any) => me.course_id as string),
+      ...exceptionCourseIds,
     ]),
   ].filter(Boolean);
 
@@ -252,6 +273,36 @@ export default async function DashboardPage() {
       dbModules: dbMods,
       progress: courseProgress,
     });
+  });
+
+  // Exception enrollments: upgrade existing entry to full access, or add new entry
+  exceptionCourseIds.forEach((courseId) => {
+    const existing = dashboardCourses.find((dc) => dc.courseId === courseId);
+    const dbMods = dbModulesByCourse.get(courseId) || [];
+    const allModulePos = dbMods.map((m: any) => (m.order as number) + 1);
+    if (existing) {
+      // Upgrade to full access — unlock all modules
+      existing.hasFullCourse = true;
+      existing.purchasedModuleIds = allModulePos;
+    } else {
+      const courseData = exceptionCourses.find((c) => c.id === courseId);
+      if (!courseData) return;
+      const total = totalByCourse.get(courseId) || 0;
+      const completed = completedByCourse.get(courseId) || 0;
+      const courseProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+      dashboardCourses.push({
+        id: `exception-${courseId}`,
+        courseId,
+        dbSlug: courseData.slug,
+        courseTitle: courseData.title,
+        courseDescription: courseData.description,
+        gradient: courseData.gradient || "from-cyan-500 to-blue-600",
+        hasFullCourse: true,
+        purchasedModuleIds: allModulePos,
+        dbModules: dbMods,
+        progress: courseProgress,
+      });
+    }
   });
 
   const enrolledCount = dashboardCourses.length;

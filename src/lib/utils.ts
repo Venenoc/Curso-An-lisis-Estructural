@@ -70,3 +70,29 @@ export function getCloudflareStreamUrl(url: string): string | null {
     return null;
   }
 }
+
+/** Retorna la URL HLS de Cloudflare Stream para reproducir en <video> nativo con hls.js */
+export function getCloudflareHlsUrl(url: string): string | null {
+  try {
+    const trimmed = url.trim()
+    let id: string | null = null
+
+    if (/^[a-f0-9]{32,}$/i.test(trimmed)) {
+      id = trimmed
+    } else {
+      const parsed = new URL(trimmed)
+      const hostname = parsed.hostname.toLowerCase()
+      if (
+        hostname === 'iframe.videodelivery.net' ||
+        hostname === 'videodelivery.net' ||
+        hostname.includes('cloudflarestream.com')
+      ) {
+        id = parsed.pathname.split('/').filter(Boolean)[0] ?? null
+      }
+    }
+
+    return id ? `https://videodelivery.net/${id}/manifest/video.m3u8` : null
+  } catch {
+    return null
+  }
+}
