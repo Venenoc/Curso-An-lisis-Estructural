@@ -42,7 +42,7 @@ export default async function CursosPage() {
     <div
       className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black relative"
       style={{
-        backgroundImage: "url('/images/Fondos%20de%20marketing/Fondo_cm.jpg')",
+        backgroundImage: `url('${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Fondos%20de%20marketing/Fondo_cm.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat',

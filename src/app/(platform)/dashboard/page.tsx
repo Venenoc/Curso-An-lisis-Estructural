@@ -367,7 +367,7 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-cyan-500/50 shrink-0">
                   <img
-                    src={user.user_metadata?.avatar_url || "/images/Ingperfil.png"}
+                    src={user.user_metadata?.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />
@@ -753,7 +753,7 @@ export default async function DashboardPage() {
                 <div className="absolute -bottom-8 left-5">
                   <div className="w-16 h-16 rounded-full border-4 border-slate-900 overflow-hidden">
                     <img
-                      src={user.user_metadata?.avatar_url || "/images/Ingperfil.png"}
+                      src={user.user_metadata?.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
                       alt="Avatar"
                       className="w-full h-full object-cover"
                     />

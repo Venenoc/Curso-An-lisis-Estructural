@@ -2,42 +2,44 @@ import { Search, BookOpen, ExternalLink, Download } from "lucide-react";
 
 export const metadata = { title: "Normas y Códigos" };
 
+const CDN = process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL ?? "";
+
 const NORMS = [
   {
     id: "n1",
     title: "ACI 318-19",
     description: "Building Code Requirements for Structural Concrete and Commentary.",
-    image: "/images/Herramientas/Librería%20Teécnica/1.Normativa.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/1.Normativa.jpg`,
   },
   {
     id: "n2",
     title: "ASCE 7-22",
     description: "Minimum Design Loads for Buildings and Other Structures.",
-    image: "/images/Herramientas/Librería%20Teécnica/2.Manuales%20y%20Guias.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/2.Manuales%20y%20Guias.jpg`,
   },
   {
     id: "n3",
     title: "Eurocode 2",
     description: "EN1992-1-1: Design of concrete structures.",
-    image: "/images/Herramientas/Librería%20Teécnica/3.Tablas%20y%20Formularios.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/3.Tablas%20y%20Formularios.jpg`,
   },
   {
     id: "n4",
     title: "IS 456:2000",
     description: "Indian Standard - Code of Practice for Plain and Reinforced Concrete.",
-    image: "/images/Herramientas/Librería%20Teécnica/4.Plantillas%20Excel.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/4.Plantillas%20Excel.jpg`,
   },
   {
     id: "n5",
     title: "E.060:2017",
     description: "Norma Técnica Peruana para concreto armado.",
-    image: "/images/Herramientas/Librería%20Teécnica/5.Detalles%20estructurales.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/5.Detalles%20estructurales.jpg`,
   },
   {
     id: "n6",
     title: "E.030:2022",
     description: "Diseño Sismorresistente - Reglamento Nacional de Edificaciones.",
-    image: "/images/Herramientas/Librería%20Teécnica/6.Ejemplo%20de%20modelos.jpg",
+    image: `${CDN}/images/Herramientas/Librería%20Teécnica/6.Ejemplo%20de%20modelos.jpg`,
   },
 ];
 

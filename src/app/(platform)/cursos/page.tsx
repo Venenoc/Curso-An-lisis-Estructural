@@ -40,7 +40,7 @@ export default async function CursosPage() {
         width: '100vw',
         height: '100vh',
         zIndex: 0,
-        backgroundImage: 'url(/images/FondoPlataforma/FondoPlatform_c.jpg)',
+        backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoPlataforma/FondoPlatform_c.jpg)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

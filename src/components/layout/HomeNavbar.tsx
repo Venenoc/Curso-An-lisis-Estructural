@@ -56,7 +56,7 @@ function AudioWaveButton() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    audioRef.current = new Audio("/images/intro.mp3");
+    audioRef.current = new Audio(`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/intro.mp3`);
     audioRef.current.loop = true;
     audioRef.current.addEventListener("ended", () => setPlaying(false));
     return () => {
@@ -338,7 +338,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
                       flexShrink: 0,
                     }}>
                       <img
-                        src={profileAvatarUrl || user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                        src={profileAvatarUrl || user.user_metadata.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
                         alt="Foto de perfil"
                         style={{ borderRadius: "8px", display: "block", transition: "opacity 0.2s" }}
                         className="w-9 h-9 object-cover group-hover:opacity-90"
@@ -358,7 +358,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
                   <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(110,189,233,0.10)" }}>
                     <div style={{ padding: "1.5px", borderRadius: "8px", background: "linear-gradient(135deg, #6EBDE9, #3b82f6, #6366f1)", flexShrink: 0 }}>
                       <img
-                        src={profileAvatarUrl || user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                        src={profileAvatarUrl || user.user_metadata.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
                         alt="Perfil"
                         style={{ borderRadius: "6px", display: "block" }}
                         className="w-8 h-8 object-cover"
@@ -491,7 +491,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
             <>
               <Link href="/dashboard" onClick={closeMenu} className="flex items-center justify-center rounded-md border border-white/20 px-4 py-3 transition-colors hover:bg-white/10">
                 <img
-                  src={profileAvatarUrl || user.user_metadata.avatar_url || "/images/Ingperfil.png"}
+                  src={profileAvatarUrl || user.user_metadata.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
                   alt="Perfil"
                   className="w-7 h-7 rounded-full object-cover border-2 border-cyan-400"
                 />

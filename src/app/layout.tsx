@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ['latin'] });
 const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://albertstructural.com';
+const CDN = process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL ?? "";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
       'Aprende análisis estructural, métodos matriciales y diseño sísmico con cursos especializados para ingenieros.',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: `${CDN}/images/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: 'Albert Structural — Cursos de Análisis Estructural',
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     title: 'Albert Structural | Cursos de Análisis Estructural',
     description:
       'Cursos especializados en análisis estructural para ingenieros civiles y estudiantes.',
-    images: ['/images/og-image.jpg'],
+    images: [`${CDN}/images/og-image.jpg`],
     creator: '@Albert_Structural',
   },
   robots: {

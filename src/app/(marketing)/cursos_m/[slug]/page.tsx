@@ -75,13 +75,13 @@ export async function generateMetadata({
       description,
       images: course.image_url
         ? [{ url: course.image_url, width: 1200, height: 630, alt: title }]
-        : [{ url: '/images/og-image.jpg', width: 1200, height: 630, alt: title }],
+        : [{ url: `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/og-image.jpg`, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${title} | Albert Structural`,
       description,
-      images: course.image_url ? [course.image_url] : ['/images/og-image.jpg'],
+      images: course.image_url ? [course.image_url] : [`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/og-image.jpg`],
     },
   };
 }
@@ -187,7 +187,7 @@ export default async function CourseSyllabusPage({
     <div
       className="relative min-h-screen bg-gradient-to-b from-white via-slate-100 to-slate-200"
       style={{
-        backgroundImage: 'url(/images/Fondos%20de%20marketing/Fondo_cslugm.jpg)',
+        backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Fondos%20de%20marketing/Fondo_cslugm.jpg)`,
         backgroundSize: 'cover',
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat',
@@ -346,7 +346,7 @@ export default async function CourseSyllabusPage({
                   {/* Botón temario PDF */}
                   <div className="mt-5">
                     <a
-                      href="/images/Temariodecursos/Curso1tema.pdf"
+                      href={`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Temariodecursos/Curso1tema.pdf`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl border border-cyan-500/40 bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-800 transition-colors"

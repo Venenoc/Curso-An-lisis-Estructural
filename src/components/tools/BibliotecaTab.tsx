@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { Download, BookOpen, FileText, Table2, FileSpreadsheet, BookMarked, Search } from "lucide-react";
 
+const CDN = process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL ?? "";
+
 export interface ToolResource {
   id: string;
   title: string;
@@ -161,17 +163,17 @@ export default function BibliotecaTab({ resources }: Props) {
               {/* Imagen superior */}
               <div className="w-full h-32 overflow-hidden mb-4">
                 {item.id === "p1" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/1.Normativa.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/1.Normativa.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.id === "p2" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/2.Manuales%20y%20Guias.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/2.Manuales%20y%20Guias.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.id === "p3" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/3.Tablas%20y%20Formularios.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/3.Tablas%20y%20Formularios.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.id === "p4" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/4.Plantillas%20Excel.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/4.Plantillas%20Excel.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.id === "p5" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/5.Detalles%20estructurales.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/5.Detalles%20estructurales.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.id === "p6" ? (
-                  <img src="/images/Herramientas/Librería%20Teécnica/6.Ejemplo%20de%20modelos.jpg" alt={item.title} className="object-cover w-full h-full" />
+                  <img src={`${CDN}/images/Herramientas/Librería%20Teécnica/6.Ejemplo%20de%20modelos.jpg`} alt={item.title} className="object-cover w-full h-full" />
                 ) : item.thumbnail_url ? (
                   <img src={item.thumbnail_url} alt={item.title} className="object-cover w-full h-full" />
                 ) : (

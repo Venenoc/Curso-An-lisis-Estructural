@@ -207,7 +207,7 @@ export default function Home() {
                 window.dispatchEvent(new Event("splash:video-ready"));
               }}
             >
-              <source src="https://egeyywlbbckdpoxtmznv.supabase.co/storage/v1/object/public/course-videos/Fondo4.mp4" type="video/mp4" />
+              <source src={`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/Fondo4.mp4`} type="video/mp4" />
             </video>
             <div className="absolute inset-0"
               style={{ background: `rgba(0,0,0,0.10)` }} />
@@ -421,7 +421,7 @@ export default function Home() {
                     style={{ border: `1px solid ${palette.slate}88` }}
                   >
                     <Image
-                      src="/images/Albert.jpeg"
+                      src={`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Albert.jpeg`}
                       alt="Albert Structural"
                       fill
                       className="object-cover"

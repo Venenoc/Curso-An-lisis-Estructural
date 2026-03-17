@@ -47,7 +47,7 @@ export default function LoginForm() {
     <div
       className="fixed inset-0 flex items-center justify-center overflow-hidden"
       style={{
-        backgroundImage: "url('/images/FondoAut/FondoLog.jpg')",
+        backgroundImage: `url('${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoAut/FondoLog.jpg')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"
