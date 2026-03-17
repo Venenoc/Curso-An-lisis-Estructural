@@ -7,7 +7,6 @@ import Link from "next/link";
 import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-// import { coursesCatalog } from "@/data/courses-catalog";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -20,6 +19,7 @@ import {
   Award,
   ChevronLeft,
   Users,
+  FileText,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
@@ -114,7 +114,11 @@ export default async function CourseSyllabusPage({
       id, title, order, price,
       chapters(
         id, title, order,
-        lessons(id, title, order, duration, duration_text, chapter_uuid)
+        sessions(
+          id, title, order,
+          lessons(id, title, order, duration, duration_text)
+        ),
+        lessons(id, title, order, duration, duration_text)
       )
     `)
     .eq("course_id", course.id)
@@ -124,10 +128,17 @@ export default async function CourseSyllabusPage({
     ...m,
     chapters: [...(m.chapters || [])]
       .sort((a: any, b: any) => a.order - b.order)
-      .map((c: any) => ({
-        ...c,
-        lessons: [...(c.lessons || [])].sort((a: any, b: any) => a.order - b.order),
-      })),
+      .map((c: any) => {
+        // Si el capítulo tiene sesiones, aplanar lecciones en orden sesión → lección
+        const sessions = [...(c.sessions || [])].sort((a: any, b: any) => a.order - b.order);
+        const directLessons = [...(c.lessons || [])].sort((a: any, b: any) => a.order - b.order);
+        const flatLessons = sessions.length > 0
+          ? sessions.flatMap((s: any) =>
+              [...(s.lessons || [])].sort((a: any, b: any) => a.order - b.order)
+            )
+          : directLessons;
+        return { ...c, sessions, lessons: flatLessons };
+      }),
   }));
 
   // Testimonials for this course
@@ -308,7 +319,7 @@ export default async function CourseSyllabusPage({
                           )}
                           {mod.chapters?.map((chapter: any) => (
                             <div key={chapter.id} className="mt-4">
-                              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 pl-2">
+                              <div className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider mb-2 pl-2">
                                 {chapter.title}
                               </div>
                               <div className="space-y-0.5">
@@ -333,6 +344,19 @@ export default async function CourseSyllabusPage({
                       </details>
                       </ScrollReveal>
                     ))}
+                  </div>
+
+                  {/* Botón temario PDF */}
+                  <div className="mt-5">
+                    <a
+                      href="/images/Temariodecursos/Curso1tema.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl border border-cyan-500/40 bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-800 transition-colors"
+                    >
+                      <FileText className="w-4 h-4 flex-shrink-0" />
+                      Ver temario completo (PDF)
+                    </a>
                   </div>
                 </div>
               )}

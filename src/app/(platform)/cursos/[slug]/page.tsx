@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import {
   BookOpen, Clock, Signal, ShoppingCart, CheckCircle2,
-  PlayCircle, Lock, ChevronRight, ArrowLeft, Compass, Scale, Landmark, PenTool,
+  PlayCircle, Lock, ChevronRight, ArrowLeft, Compass, Scale, Landmark, PenTool, FileText,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { getYoutubeEmbedUrl } from "@/lib/utils";
@@ -46,6 +46,10 @@ export default async function CursoDetailPage({
       id, title, order, presentation_video_url, price,
       chapters(
         id, title, order,
+        sessions(
+          id, title, order,
+          lessons(id, title, video_url, duration, order)
+        ),
         lessons(id, title, video_url, duration, order)
       )
     `)
@@ -56,11 +60,15 @@ export default async function CursoDetailPage({
   const modules = (rawModules || []).map((m: any) => {
     const sortedChapters = [...(m.chapters || [])].sort((a: any, b: any) => a.order - b.order);
     const chapters = sortedChapters.map((ch: any) => {
-      const sortedLessons = [...(ch.lessons || [])].sort((a: any, b: any) => a.order - b.order);
+      const sessions = [...(ch.sessions || [])].sort((a: any, b: any) => a.order - b.order);
+      const directLessons = [...(ch.lessons || [])].sort((a: any, b: any) => a.order - b.order);
+      const rawLessons = sessions.length > 0
+        ? sessions.flatMap((s: any) => [...(s.lessons || [])].sort((a: any, b: any) => a.order - b.order))
+        : directLessons;
       return {
         id: ch.id as string,
         title: ch.title as string,
-        lessons: sortedLessons.map((l: any) => ({
+        lessons: rawLessons.map((l: any) => ({
           id: l.id as string,
           title: l.title as string,
           videoUrl: (l.video_url as string) || "",
@@ -731,6 +739,19 @@ export default async function CursoDetailPage({
                     ))}
                   </details>
                 ))}
+              </div>
+
+              {/* Botón temario PDF */}
+              <div className="mt-6 flex justify-center">
+                <a
+                  href="/images/Temariodecursos/Curso1tema.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl border border-cyan-500/40 bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 transition-colors"
+                >
+                  <FileText className="w-4 h-4 flex-shrink-0" />
+                  Ver temario completo (PDF)
+                </a>
               </div>
             </div>
             </ScrollReveal>

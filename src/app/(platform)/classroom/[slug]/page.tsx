@@ -8,7 +8,7 @@ import type { QuizWithQuestions } from "@/app/actions/quizzes";
 import { getFaqsByLessonIds } from "@/app/actions/courses";
 import { hasUserSubmittedTestimonial } from "@/app/actions/testimonials";
 import type { LessonFaq } from "@/app/actions/courses";
-import type { CatalogCourse, CourseLesson, CourseChapter, CourseModule, CourseSession } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseLesson, CourseChapter, CourseModule, CourseSession } from "@/types/database.types";
 
 function fmtMin(minutes: number | null): string {
   if (!minutes) return "";

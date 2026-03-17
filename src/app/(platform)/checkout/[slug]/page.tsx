@@ -3,7 +3,7 @@ import { getUser } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import CheckoutForm from "@/components/courses/CheckoutForm";
-import type { CatalogCourse } from "@/data/courses-catalog";
+import type { CatalogCourse } from "@/types/database.types";
 
 export default async function CheckoutPage({
   params,

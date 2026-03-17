@@ -26,9 +26,9 @@ const platformLinks = [
 type SocialName = 'youtube' | 'facebook' | 'instagram' | 'tiktok'
 
 const socialLinks: Array<{ label: SocialName; href: string }> = [
-  { label: 'youtube', href: '#' },
-  { label: 'facebook', href: 'https://www.facebook.com/profile.php?id=61582218750722' },
-  { label: 'instagram', href: '#' },
+  { label: 'youtube', href: 'https://www.youtube.com/@albert_structural' },
+  { label: 'facebook', href: 'https://www.facebook.com/alberto.astorayme.valenzuela.2025' },
+  { label: 'instagram', href: 'https://www.instagram.com/albert_structural' },
   { label: 'tiktok', href: 'https://www.tiktok.com/@albert_structural' },
 ]
 

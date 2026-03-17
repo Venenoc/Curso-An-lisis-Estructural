@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { markLessonComplete } from "@/app/actions/courses";
 import { getCloudflareHlsUrl } from "@/lib/utils";
-import type { CourseLesson } from "@/data/courses-catalog";
+import type { CourseLesson } from "@/types/database.types";
 
 interface VideoPlayerProps {
   courseSlug: string;

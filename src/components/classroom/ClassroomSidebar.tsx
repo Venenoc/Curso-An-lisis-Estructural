@@ -11,7 +11,7 @@ import {
   X,
   Wrench,
 } from "lucide-react";
-import type { CatalogCourse, CourseModule, CourseSession } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseModule, CourseSession } from "@/types/database.types";
 
 interface ClassroomSidebarProps {
   course: CatalogCourse;

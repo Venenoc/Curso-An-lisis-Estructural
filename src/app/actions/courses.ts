@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
 import { courseSchema } from "@/lib/schemas";
-import type { CatalogCourse } from "@/data/courses-catalog";
+import type { CatalogCourse } from "@/types/database.types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fetch the full course catalog from Supabase (ALL courses: published + draft).

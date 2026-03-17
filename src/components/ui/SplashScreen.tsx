@@ -121,7 +121,7 @@ export default function SplashScreen() {
             userSelect: "none",
           }}
         >
-          AE
+          AS
         </div>
 
         {/* Nombre */}
@@ -137,7 +137,7 @@ export default function SplashScreen() {
             textAlign: "center",
           }}
         >
-          Análisis Estructural
+          Análisis y diseño Estructural
         </p>
 
         {/* Barra de progreso */}

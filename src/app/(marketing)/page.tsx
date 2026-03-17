@@ -230,7 +230,7 @@ export default function Home() {
                     backdropFilter: "blur(12px)",
                   }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: palette.cyan, display: "inline-block" }} />
-                  Plataforma de Análisis Estructural
+                  Plataforma de Análisis y Diseño Estructural
                 </div>
               </motion.div>
 
@@ -382,7 +382,7 @@ export default function Home() {
                   >
                     <span className="text-xs font-semibold uppercase tracking-[0.2em] mb-6 block"
                       style={{ color: palette.steel }}>
-                      Sobre Nosotros
+                      <strong>Sobre Nosotros</strong>
                     </span>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold leading-[1.1] mb-0 tracking-tight text-white">
                       Aprender estructuras
@@ -391,10 +391,10 @@ export default function Home() {
                       con quién las vive.
                     </h2>
                     <p className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-white/80">
-                      Soy Albert, ingeniero civil graduado de la UNI con experiencia en proyectos reales. Comencé a enseñar porque descubrí que explicar bien es la forma más poderosa de aprender profundo.
+                      <strong>Soy Albert, ingeniero civil graduado de la UNI con experiencia en proyectos reales. Comencé a enseñar porque descubrí que explicar bien es la forma más poderosa de aprender profundo.</strong>
                     </p>
                     <p className="text-sm sm:text-base leading-relaxed mb-6 sm:mb-10 text-white/80">
-                      Cada curso que creo nace de lo que yo mismo necesité entender. Con lenguaje directo, ejemplos reales y sin rodeos — para que tú avances más rápido de lo que yo lo hice.
+                      <strong>Cada curso que creo nace de lo que yo mismo necesité entender.Con lenguaje directo, ejemplos reales y sin rodeos — para que tú avances más rápido de lo que yo lo hice.</strong>
                     </p>
                     <Link href="/about">
                       <Button
@@ -446,13 +446,13 @@ export default function Home() {
                 className="text-center mb-10"
               >
                 <span className="text-xs font-semibold tracking-widest uppercase mb-3 block" style={{ color: palette.steel }}>
-                  Contenido del programa
+                  <strong>Contenido del programa</strong> 
                 </span>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
                   ¿Qué aprenderás?
                 </h2>
-                <p className="text-base max-w-xl mx-auto" style={{ color: `${palette.ice}88` }}>
-                  Contenido especializado en Análisis Estructural desde lo básico hasta lo avanzado
+                <p className="text-base max-w-xl mx-auto text-white/80">
+                  <strong>Contenido especializado en Análisis y Diseño Estructural desde lo básico hasta lo avanzado, con enfoque práctico y aplicado a casos reales.</strong>
                 </p>
               </motion.div>
 
@@ -502,7 +502,7 @@ export default function Home() {
                 className="text-center mb-10"
               >
                 <span className="text-xs font-semibold tracking-widest uppercase mb-3 block" style={{ color: palette.steel }}>
-                  Lo que dicen mis alumnos
+                  <strong>Lo que dicen mis alumnos</strong>
                 </span>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
                   Testimonios
@@ -577,11 +577,11 @@ export default function Home() {
                     <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-4">
                       Comienza tu Carrera en el<br />
                       <span style={{ background: gradients.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                        Análisis Estructural
+                        Análisis y Diseño Estructural
                       </span>
                     </h2>
-                    <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: `${palette.ice}88` }}>
-                      Únete a cientos de ingenieros y estudiantes que están dominando el análisis estructural
+                    <p className="text-base mb-8 max-w-xl mx-auto text-white/80">
+                      Únete a cientos de ingenieros y estudiantes que están dominando el análisis y diseño estructural
                     </p>
                     <div className="flex flex-row gap-3 justify-center">
                       <Link href="/register">

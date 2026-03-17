@@ -7,7 +7,7 @@ import ClassroomSidebar from "./ClassroomSidebar";
 import VideoPlayer from "./VideoPlayer";
 import ClassroomTabs from "./ClassroomTabs";
 import { getYoutubeEmbedUrl, getCloudflareStreamUrl } from "@/lib/utils";
-import type { CatalogCourse, CourseLesson, CourseSession } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseLesson, CourseSession } from "@/types/database.types";
 import type { QuizWithQuestions } from "@/app/actions/quizzes";
 import TestimonialModal from "@/components/testimonials/TestimonialModal";
 import CfStreamEmbed from "./CfStreamEmbed";

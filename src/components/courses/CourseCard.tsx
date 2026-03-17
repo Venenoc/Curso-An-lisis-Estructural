@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { BookOpen, Clock, Signal, CheckCircle2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CatalogCourse } from "@/data/courses-catalog";
+import type { CatalogCourse } from "@/types/database.types";
 
 interface CourseCardProps {
   course: CatalogCourse;

@@ -3,7 +3,7 @@
 import TouchCarousel from "@/components/ui/touch-carousel";
 import CourseCard from "@/components/courses/CourseCard";
 import { Award } from "lucide-react";
-import type { CatalogCourse } from "@/data/courses-catalog";
+import type { CatalogCourse } from "@/types/database.types";
 
 interface Props {
   courses: CatalogCourse[];

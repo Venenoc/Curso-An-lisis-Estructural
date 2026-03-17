@@ -25,7 +25,7 @@ import {
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CatalogCourse, CourseModule } from "@/data/courses-catalog";
+import type { CatalogCourse, CourseModule } from "@/types/database.types";
 
 declare global {
   interface Window {

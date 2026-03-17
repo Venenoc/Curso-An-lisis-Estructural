@@ -424,7 +424,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
       <nav className="pn-nav hidden lg:flex" aria-label="Navegación plataforma">
         <div className="pn-inner">
 
-          {/* LEFT: AE | divider | wave | divider | @Albert_Structural */}
+          {/* LEFT: AS | divider | wave | divider | @Albert_Structural */}
           <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
             <Link href="/" className="pn-ae" aria-label="Inicio">AS</Link>
             <div className="pn-divider" aria-hidden="true" />
@@ -508,7 +508,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
       }}>
         <div className="h-16 w-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-0">
-            <Link href="/" className="pn-ae" style={{ fontSize: 20 }}>AE</Link>
+            <Link href="/" className="pn-ae" style={{ fontSize: 20 }}>AS</Link>
             <div className="pn-divider" style={{ margin: "0 8px" }} aria-hidden="true" />
             <AudioWaveButton />
           </div>
