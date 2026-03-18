@@ -3,6 +3,7 @@
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
+import { uploadToR2 } from "@/lib/r2";
 
 function getAdmin() {
   return createAdminClient(
@@ -79,19 +80,16 @@ export async function uploadAvatar(formData: FormData) {
   const ext = file.name.split(".").pop();
   const fileName = `avatars/${profile.id}/${Date.now()}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("community-images")
-    .upload(fileName, file, { upsert: true });
-
-  if (uploadError) return { error: "Error al subir imagen" };
-
-  const { data: urlData } = supabase.storage
-    .from("community-images")
-    .getPublicUrl(fileName);
+  let publicUrl: string;
+  try {
+    publicUrl = await uploadToR2({ file, key: fileName, contentType: file.type });
+  } catch {
+    return { error: "Error al subir imagen" };
+  }
 
   const { error: updateError } = await supabase
     .from("profiles")
-    .update({ avatar_url: urlData.publicUrl })
+    .update({ avatar_url: publicUrl })
     .eq("id", profile.id);
 
   if (updateError) return { error: "Error al actualizar avatar" };
@@ -100,5 +98,5 @@ export async function uploadAvatar(formData: FormData) {
   revalidatePath("/community");
   revalidatePath("/dashboard");
 
-  return { success: true, url: urlData.publicUrl };
+  return { success: true, url: publicUrl };
 }

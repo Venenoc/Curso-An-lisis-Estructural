@@ -22,7 +22,7 @@ export default function PricingPage() {
     <div
       className="flex flex-col min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black relative"
       style={{
-        backgroundImage: `url('${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Fondos%20de%20marketing/Fondo_cm.jpg')`,
+        backgroundImage: `url('/images/Fondos%20de%20marketing/Fondo_cm.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'top',
         backgroundRepeat: 'no-repeat',

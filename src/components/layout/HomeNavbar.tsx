@@ -338,7 +338,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
                       flexShrink: 0,
                     }}>
                       <img
-                        src={profileAvatarUrl || user.user_metadata.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`}
+                        src={profileAvatarUrl || user.user_metadata.avatar_url || `/images/Ingperfil.webp`}
                         alt="Foto de perfil"
                         style={{ borderRadius: "8px", display: "block", transition: "opacity 0.2s" }}
                         className="w-9 h-9 object-cover group-hover:opacity-90"

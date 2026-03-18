@@ -3,6 +3,7 @@
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { getUser } from "./auth";
+import { uploadToR2 } from "@/lib/r2";
 
 function getAdmin() {
   return createAdminClient(
@@ -225,19 +226,19 @@ export async function uploadPostImage(formData: FormData) {
     return { error: "La imagen no debe superar 5MB" };
   }
 
-  const supabase = getAdmin();
   const ext = file.name.split(".").pop();
   const fileName = `${profile.id}/${Date.now()}.${ext}`;
 
-  const { error } = await supabase.storage
-    .from("community-images")
-    .upload(fileName, file);
+  let publicUrl: string;
+  try {
+    publicUrl = await uploadToR2({
+      file,
+      key: `posts/${fileName}`,
+      contentType: file.type,
+    });
+  } catch {
+    return { error: "Error al subir imagen" };
+  }
 
-  if (error) return { error: "Error al subir imagen" };
-
-  const { data: urlData } = supabase.storage
-    .from("community-images")
-    .getPublicUrl(fileName);
-
-  return { success: true, url: urlData.publicUrl };
+  return { success: true, url: publicUrl };
 }

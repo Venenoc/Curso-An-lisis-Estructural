@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       'Aprende análisis estructural, métodos matriciales y diseño sísmico con cursos especializados para ingenieros.',
     images: [
       {
-        url: `${CDN}/images/og-image.jpg`,
+        url: `/images/og-image.webp`,
         width: 1200,
         height: 630,
         alt: 'Albert Structural — Cursos de Análisis Estructural',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: 'Albert Structural | Cursos de Análisis Estructural',
     description:
       'Cursos especializados en análisis estructural para ingenieros civiles y estudiantes.',
-    images: [`${CDN}/images/og-image.jpg`],
+    images: [`/images/og-image.webp`],
     creator: '@Albert_Structural',
   },
   robots: {

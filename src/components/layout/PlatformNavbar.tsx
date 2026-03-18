@@ -241,7 +241,7 @@ const PlatformNavbar = ({ user, profileAvatarUrl, profileName, profileId }: Plat
     (profileName || user?.user_metadata?.full_name || "").split(" ")[0] ||
     user?.email?.split("@")[0] || "";
 
-  const avatarSrc = profileAvatarUrl || user.user_metadata?.avatar_url || `${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Ingperfil.png`;
+  const avatarSrc = profileAvatarUrl || user.user_metadata?.avatar_url || `/images/Ingperfil.webp`;
 
   return (
     <>

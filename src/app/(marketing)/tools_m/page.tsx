@@ -10,7 +10,7 @@ export default function ToolsPage() {
       <section
         className="w-full relative py-16 px-4 text-center shadow-lg flex items-center justify-center min-h-[400px]"
         style={{
-          backgroundImage: `url('${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Fondos%20de%20marketing/Fondo_hm.jpg')`,
+          backgroundImage: `url('/images/Fondos%20de%20marketing/Fondo_hm.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

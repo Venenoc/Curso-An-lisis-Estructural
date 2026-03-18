@@ -7,6 +7,34 @@ La sección de herramientas ofrece calculadoras estructurales impulsadas por un 
 
 ---
 
+## Arquitectura de infraestructura
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                        VERCEL                           │
+│  Next.js 15 (App Router)                                │
+│  - Páginas, animaciones, lógica frontend                │
+│  - Server Actions, API Routes                           │
+│  - Imágenes estáticas locales (public/images/)          │
+└──────────────┬──────────────────────┬───────────────────┘
+               │                      │
+               ▼                      ▼
+┌──────────────────────┐   ┌─────────────────────────────┐
+│      SUPABASE        │   │       CLOUDFLARE R2          │
+│  - PostgreSQL DB     │   │  - Videos de lecciones       │
+│  - Auth              │   │  - Avatares de usuario       │
+│  - Realtime          │   │  - Imágenes de posts         │
+│  (sin Storage)       │   │  - MP3 (intro, platform)     │
+└──────────────────────┘   └─────────────────────────────┘
+```
+
+### Regla de oro
+- **Supabase**: solo texto (DB + Auth + Realtime). Cero archivos.
+- **Cloudflare R2**: todos los archivos subidos por usuarios (avatares, imágenes de posts).
+- **Vercel `public/`**: imágenes estáticas del sitio (fondos, logos, PDF de temario). Se sirven con caché de 1 año en el navegador.
+
+---
+
 ## Stack tecnológico
 
 | Capa | Tecnología |
@@ -16,7 +44,10 @@ La sección de herramientas ofrece calculadoras estructurales impulsadas por un 
 | Estilos | Tailwind CSS + Shadcn/ui |
 | Base de datos | Supabase (PostgreSQL) |
 | Autenticación | Supabase Auth |
-| Storage | Supabase Storage |
+| Realtime | Supabase Realtime (notificaciones) |
+| Storage de archivos | Cloudflare R2 |
+| Videos de lecciones | Cloudflare (embed en classroom) |
+| Pagos | MercadoPago Checkout API |
 | Cálculo estructural | Python 3 + FastAPI + NumPy + SciPy |
 | Despliegue | Vercel (Next.js) + Railway/Render (Python) |
 
@@ -28,57 +59,71 @@ La sección de herramientas ofrece calculadoras estructurales impulsadas por un 
 Curso-Análisis-Estructural/
 ├── src/
 │   ├── app/
-│   │   ├── (home)/               ← Landing page pública
-│   │   ├── (marketing)/          ← Páginas de marketing (sin autenticación)
+│   │   ├── (marketing)/          ← Páginas públicas (sin autenticación)
+│   │   │   ├── page.tsx          ← Landing / Home
 │   │   │   ├── cursos_m/         ← Catálogo público de cursos + syllabus
 │   │   │   ├── testimonials/
 │   │   │   ├── pricing/
 │   │   │   ├── about/
 │   │   │   ├── contact/
-│   │   │   └── community_m/
+│   │   │   ├── asesorias_m/
+│   │   │   ├── community_m/
+│   │   │   └── tools_m/
 │   │   ├── (auth)/               ← Login / Registro / Reset password
 │   │   ├── (platform)/           ← Área autenticada de estudiantes
 │   │   │   ├── dashboard/        ← Dashboard con progreso y certificados
 │   │   │   ├── cursos/           ← Catálogo autenticado
 │   │   │   ├── classroom/[slug]/ ← Reproductor de video + progreso + quizzes
-│   │   │   ├── checkout/[slug]/  ← Pago de cursos/módulos
+│   │   │   ├── checkout/[slug]/  ← Pago de cursos/módulos (MercadoPago)
 │   │   │   ├── community/        ← Comunidad (posts, DMs, leaderboard)
-│   │   │   ├── tools/            ← Herramientas estructurales (5 secciones)
+│   │   │   ├── asesorias/        ← Página de asesorías
 │   │   │   ├── certificados/[id]/← Vista e impresión del certificado
 │   │   │   ├── profile/
 │   │   │   └── settings/
+│   │   ├── (tools)/tools/        ← Herramientas estructurales
+│   │   │   ├── calculos/
+│   │   │   ├── biblioteca/normatividad/
+│   │   │   ├── simuladores/
+│   │   │   ├── asistente/
+│   │   │   └── recursos/
 │   │   ├── (admin)/admin/        ← Panel de instructor/admin
 │   │   │   ├── page.tsx          ← Dashboard admin con stats
-│   │   │   └── courses/          ← CRUD de cursos, módulos, capítulos y lecciones
+│   │   │   ├── courses/          ← CRUD de cursos, módulos, capítulos y lecciones
+│   │   │   └── testimonials/
 │   │   ├── actions/              ← Server Actions (lógica de negocio)
 │   │   └── api/
 │   │       ├── contact/          ← Envío de formulario de contacto
+│   │       ├── payments/         ← MercadoPago (create-payment, webhook)
 │   │       └── tools/calculate/  ← Proxy al servidor Python
 │   ├── components/
-│   │   ├── admin/                ← AdminCourseClient.tsx
-│   │   ├── auth/                 ← RegisterForm, LoginForm
-│   │   ├── classroom/            ← VideoPlayer, ClassroomView, ClassroomTabs
-│   │   ├── community/            ← Feed, DMs, Leaderboard
+│   │   ├── admin/                ← AdminCourseClient.tsx, AdminCoursesClient.tsx
+│   │   ├── auth/                 ← RegisterForm, LoginForm, ResetPasswordForm
+│   │   ├── classroom/            ← VideoPlayer, ClassroomView, ClassroomTabs, LessonComments
+│   │   ├── community/            ← CommunityFeed, PostCard, ReplySection, DirectMessages, ChatWindow
 │   │   ├── courses/              ← CourseCard, CheckoutForm
 │   │   ├── layout/               ← HomeNavbar, MarketingNavbar, PlatformNavbar, Footer
 │   │   ├── profile/              ← ProfilePageClient
-│   │   ├── tools/                ← ToolsNav, CalculosTab, CalculatorModal, etc.
+│   │   ├── tools/                ← ToolsNav, CalculosTab, CalculatorModal, BibliotecaTab, etc.
 │   │   └── ui/                   ← Shadcn/ui (Button, Card, Input, etc.)
 │   ├── data/
-│   │   └── courses-catalog.ts    ← Tipos TypeScript (array vacío; datos en Supabase)
+│   │   └── courses-catalog.ts    ← Array vacío; todos los datos viven en Supabase
 │   └── lib/
 │       ├── supabase/             ← Clientes server/browser de Supabase
+│       ├── r2.ts                 ← Cliente AWS S3 compatible con Cloudflare R2
 │       └── schemas.ts            ← Esquemas Zod
 ├── python_server/                ← Servidor de cálculo estructural
-│   ├── main.py                   ← FastAPI app + CORS + rutas de salud
+│   ├── main.py
 │   ├── requirements.txt
 │   └── routers/
 │       ├── concrete.py           ← Cálculos ACI 318-19 (concreto)
-│       ├── steel.py              ← Cálculos AISC 360-22 (acero)
+│       ├── steel.py              ← AISC 360-22 (acero)
 │       └── structural.py         ← Propiedades de sección y análisis
 ├── supabase/
-│   └── migrations/               ← 17 migraciones SQL en orden cronológico
-└── public/images/                ← Imágenes y videos estáticos
+│   └── migrations/               ← Migraciones SQL en orden cronológico
+├── public/
+│   ├── favicon.svg
+│   └── images/                   ← Estáticos del sitio (fondos, logos, PDF temario, MP3)
+└── next.config.ts                ← Cache headers + remotePatterns R2
 ```
 
 ---
@@ -89,21 +134,22 @@ Curso-Análisis-Estructural/
 
 | Tabla | Descripción |
 |---|---|
-| `profiles` | Perfil extendido del usuario (full_name, role, bio, avatar_url, redes sociales) |
+| `profiles` | Perfil extendido (full_name, role, bio, avatar_url → URL de R2) |
 | `courses` | Cursos publicados (slug, title, price, gradient, status, total_lessons) |
 | `modules` | Módulos de un curso (order 0-based, price, title) |
 | `chapters` | Capítulos dentro de un módulo |
-| `lessons` | Lecciones con video URL, duration, duration_text, chapter_uuid, materials (JSON) |
+| `lessons` | Lecciones: video_url (Cloudflare embed), duration, chapter_uuid, materials (JSON) |
 | `enrollments` | Inscripción completa a un curso (payment_type: full/free) |
-| `module_enrollments` | Inscripción a módulos individuales (user_id, course_id, module_id) |
+| `module_enrollments` | Inscripción a módulos individuales |
 | `progress` | PK compuesta (user_id, lesson_id) + campo `completed` |
-| `certificates` | Certificados emitidos automáticamente al completar el 100% del curso |
-| `posts` | Posts de comunidad (title, body, likes, user_id) |
+| `certificates` | Emitidos automáticamente al completar el 100% del curso |
+| `posts` | Posts de comunidad (image_url → URL de R2) |
 | `replies` | Respuestas a posts |
 | `direct_messages` | Mensajes directos entre usuarios |
 | `quizzes` | Preguntas con opciones[] y respuesta correcta (catalog_lesson_id) |
 | `quiz_attempts` | Intentos de quiz por usuario |
-| `tools` | Herramientas del catálogo (tabla base con RLS corregida) |
+| `notifications` | Notificaciones en tiempo real (Supabase Realtime) |
+| `payments` | Registro de pagos MercadoPago |
 | `tool_resources` | Recursos descargables — Biblioteca Técnica y Productividad |
 | `contact_messages` | Mensajes del formulario de contacto público |
 
@@ -111,24 +157,78 @@ Curso-Análisis-Estructural/
 
 ```
 supabase/migrations/
-├── 20260212_initial_schema.sql            ← Tablas base: profiles, courses, enrollments, progress, quizzes, posts
-├── 20260212_complete_rls_policies.sql     ← Políticas RLS completas iniciales
-├── 20260212_disable_trigger.sql           ← Desactiva trigger de auto-creación de profile
-├── 20260212_fix_profiles_rls.sql          ← Corrección de RLS en profiles
-├── 20260215_create_contact_messages.sql   ← Tabla contact_messages
+├── 20260212_initial_schema.sql
+├── 20260212_complete_rls_policies.sql
+├── 20260212_disable_trigger.sql
+├── 20260212_fix_profiles_rls.sql
+├── 20260215_create_contact_messages.sql
 ├── 20260215_contact_messages_rls_policy.sql
-├── 20260216_module_enrollments.sql        ← Tabla module_enrollments para compra por módulo
-├── 20260217_profile_extra_fields.sql      ← bio, website, linkedin, expertise, years_experience
-├── 20260227_direct_messages.sql           ← Mensajes directos entre usuarios
-├── 20260227_quiz_catalog_columns.sql      ← Columna catalog_lesson_id en quizzes
-├── 20260227_certificates.sql              ← Tabla certificates con auto-emisión
-├── 20260227_extend_catalog_schema.sql     ← Campos extra en courses (gradient, level, etc.)
-├── 20260228_modules_chapters.sql          ← Tablas modules y chapters
-├── 20260228_fix_chapter_fk.sql            ← FK chapter_uuid (UUID) en lessons
-├── 20260228_add_total_lessons.sql         ← Columna total_lessons en courses
-├── 20260228_lesson_materials.sql          ← Columna materials JSONB en lessons
-└── 20260301_tools_resources.sql           ← Tabla tool_resources + corrección RLS de tools
+├── 20260216_module_enrollments.sql
+├── 20260217_profile_extra_fields.sql
+├── 20260227_direct_messages.sql
+├── 20260227_quiz_catalog_columns.sql
+├── 20260227_certificates.sql
+├── 20260227_extend_catalog_schema.sql
+├── 20260228_modules_chapters.sql
+├── 20260228_fix_chapter_fk.sql
+├── 20260228_add_total_lessons.sql
+├── 20260228_lesson_materials.sql
+├── 20260301_tools_resources.sql
+├── 20260301_notifications.sql
+└── 20260301_payments.sql
 ```
+
+---
+
+## Cloudflare R2 — Gestión de archivos
+
+### Configuración
+
+```typescript
+// src/lib/r2.ts
+// Cliente S3-compatible con Cloudflare R2
+// Credenciales en .env.local:
+// CF_R2_ACCOUNT_ID, CF_R2_ACCESS_KEY_ID, CF_R2_SECRET_ACCESS_KEY
+// CF_R2_BUCKET_NAME, NEXT_PUBLIC_CF_R2_PUBLIC_URL
+```
+
+### Estructura de carpetas en el bucket
+
+```
+curso-media/
+└── public/
+    ├── avatars/{profile_id}/{timestamp}.{ext}   ← Avatares de usuario
+    ├── community/{user_id}/{timestamp}.{ext}    ← Imágenes de posts
+    └── images/                                  ← (Legacy — ya no se usa)
+```
+
+### Flujo de subida
+
+- **Avatares** — `src/app/actions/profile.ts` → `uploadToR2()` → guarda URL en `profiles.avatar_url`
+- **Imágenes de posts** — `src/app/actions/community.ts` → `uploadToR2()` → guarda URL en `posts.image_url`
+- **Videos** — subidos directamente a Cloudflare (no pasan por la app)
+
+### Regla crítica
+La URL pública incluye `/public/` en la ruta porque los archivos están bajo `curso-media/public/`.
+La `NEXT_PUBLIC_CF_R2_PUBLIC_URL` debe apuntar a `https://pub-xxx.r2.dev/public`.
+
+---
+
+## Caché del navegador
+
+Configurado en `next.config.ts` con la función `headers()`:
+
+| Recurso | Cache-Control | Duración |
+|---|---|---|
+| `/images/*` (fondos, PDF, webp, mp3) | `public, max-age=31536000, immutable` | 1 año |
+| `/_next/static/*` (JS, CSS) | `public, max-age=31536000, immutable` | 1 año |
+| `/_next/static/media/*` (fuentes) | `public, max-age=31536000, immutable` | 1 año |
+| `/favicon.svg` | `public, max-age=86400` | 1 día |
+| Páginas HTML | `public, max-age=0, must-revalidate` | Revalida en cada visita |
+
+Los archivos JS/CSS llevan hash en el nombre (ej. `main-abc123.js`). Al hacer un nuevo deploy en Vercel, Next.js genera hashes nuevos y el navegador descarga automáticamente la versión actualizada.
+
+**Importante:** si se reemplaza una imagen manteniendo el mismo nombre de archivo, renombrarla o agregar sufijo (ej. `Fondo_ATm_v2.webp`) para invalidar el caché del navegador.
 
 ---
 
@@ -140,7 +240,7 @@ supabase/migrations/
 - Los instructores/admins acceden al panel `/admin`.
 
 ### Patrón de cliente admin (bypass de RLS)
-Para leer datos restringidos en Server Components y Server Actions se usa el service role key:
+
 ```typescript
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 const supabase = createAdminClient(
@@ -149,74 +249,62 @@ const supabase = createAdminClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 ```
-Este patrón se usa en: dashboard, classroom (progreso), marketplace de cursos (lecciones en marketing), certificados, herramientas.
+
+Usado en: dashboard, classroom, marketplace, certificados, herramientas, perfil.
 
 ---
 
 ## Funcionalidades por sección
 
-### Landing page `/(home)`
-- Hero con video de fondo (FondoPlatform)
-- Secciones: propuesta de valor, cursos destacados, testimonios, CTA de registro
-
-### Marketing `/(marketing)`
-- `/cursos_m` — catálogo público de todos los cursos con filtros
-- `/cursos_m/[slug]` — detalle con syllabus desplegable (módulos → capítulos → lecciones)
-  - Usa admin client para leer lecciones (RLS las bloquea para usuarios anónimos)
-  - Título, descripción y stats envueltos en box `bg-white/80 backdrop-blur-sm`
-- `/pricing` — planes de precios
-- `/testimonials`, `/about`, `/contact` — páginas informativas
-
-### Autenticación `/(auth)`
-- Login, registro, reset de contraseña
-- Formularios con React Hook Form + Zod
-- Redirect post-login al dashboard
+### Landing / Marketing `/(marketing)`
+- Hero con video de fondo (`Fondo4.mp4` — local en `public/images/`)
+- `/cursos_m/[slug]` — detalle con syllabus completo (módulos → capítulos → lecciones)
+- PDF de temario: `/images/Temariodecursos/Curso1tema.pdf` (local, caché 1 año)
+- Fondos: imágenes `.webp` locales en `public/images/Fondos de marketing/`
 
 ### Dashboard `/(platform)/dashboard`
-- Cursos inscritos (completos y por módulo) con progreso por módulo
-- Stats: lecciones completadas, tiempo de estudio, certificados obtenidos
-- **Auto-emite certificados** cuando el progreso llega al 100%
-- Cursos recomendados: publicados en Supabase y no inscritos aún
-- Acciones rápidas: Explorar Cursos, Comunidad, Herramientas
+- Cursos inscritos con progreso por módulo
+- Stats: lecciones completadas, tiempo de estudio, certificados
+- Auto-emite certificados cuando progreso llega al 100%
 
 ### Classroom `/(platform)/classroom/[slug]`
-- Reproductor de video (Vimeo / YouTube embed)
-- Sidebar con árbol de navegación: módulos → capítulos → lecciones
-- Marcado de lección como completada (`upsert` a tabla `progress`)
-- Navegación secuencial bloqueada: no se puede saltar sin completar la anterior
-- Tab **Ejercicios**: quizzes con React Hook Form y feedback inmediato
-- Tab **Recursos**: materiales descargables (columna `materials` JSON de la lección)
+- Video player (Cloudflare embed vía `video_url` de la lección)
+- Sidebar: módulos → capítulos → lecciones
+- Progreso secuencial bloqueado
+- Tab **Ejercicios**: quizzes con feedback inmediato
+- Tab **Materiales**: archivos descargables (columna `materials` JSON de la lección — URLs manuales)
+- Tab **Comentarios**: por lección
+
+### Comunidad `/(platform)/community`
+- Feed de posts con likes, respuestas anidadas
+- Imágenes en posts → subidas a Cloudflare R2
+- Mensajes directos (tabla `direct_messages`)
+- Leaderboard de usuarios más activos
+- Notificaciones en tiempo real (Supabase Realtime en PlatformNavbar)
 
 ### Checkout `/(platform)/checkout/[slug]`
 - Selección de módulos individuales o curso completo
-- Pago simulado (sin pasarela real integrada)
-- Crea `enrollment` (curso completo) o `module_enrollment` en Supabase
-
-### Comunidad `/(platform)/community`
-- Feed de posts con likes y respuestas anidadas
-- Leaderboard de usuarios más activos
-- Mensajes directos (tabla `direct_messages`, separada de `chat_messages`)
-
-### Herramientas `/(platform)/tools`
-5 secciones con navegación por tabs:
-- **Cálculo**: 10 calculadoras (concreto ACI 318-19 + acero AISC 360-22 + propiedades de sección)
-- **Biblioteca Técnica**: recursos descargables desde Supabase (normas, formularios, plantillas Excel, manuales)
-- **Simuladores Visuales**: 5 simuladores interactivos (placeholder "Próximamente")
-- **Asistente IA**: chat UI placeholder (sin motor IA aún)
-- **Recursos de Productividad**: checklists, plantillas de memoria y presupuesto
-Ver [README-tools.md](README-tools.md) para la documentación completa de implementación.
+- Integración MercadoPago Checkout API
+- Webhook: `POST /api/payments/webhook`
+- Crea `enrollment` o `module_enrollment` en Supabase tras pago exitoso
 
 ### Certificados `/(platform)/certificados/[id]`
-- Vista imprimible del certificado de finalización
-- Datos: nombre, título del curso, fecha de emisión, ID de verificación
-- `PrintButton.tsx` como Client Component separado para `window.print()`
+- Vista imprimible
+- Auto-emitidos en dashboard al llegar al 100%
+
+### Herramientas `/(tools)/tools`
+Ver [README-tools.md](README-tools.md) para documentación completa.
+- **Cálculo**: 10 calculadoras (concreto ACI 318-19 + acero AISC 360-22 + secciones)
+- **Biblioteca Técnica**: recursos descargables
+- **Simuladores**: placeholder
+- **Asistente IA**: placeholder
+- **Recursos de Productividad**: checklists y plantillas
 
 ### Panel Admin `/(admin)/admin`
-- Dashboard con estadísticas globales
-- CRUD completo de cursos (título, descripción, precio, gradient, status)
-- Gestión anidada: curso → módulos → capítulos → lecciones
+- Estadísticas globales
+- CRUD completo: cursos → módulos → capítulos → lecciones
 - Gestión de quizzes por lección
-- Gestión de materiales descargables por lección
+- Gestión de materiales (URLs externas) por lección
 
 ---
 
@@ -225,13 +313,13 @@ Ver [README-tools.md](README-tools.md) para la documentación completa de implem
 | Archivo | Funciones principales |
 |---|---|
 | `auth.ts` | `getUser()`, `signOut()` |
-| `courses.ts` | `getCourses()`, `enrollCourse()`, `getEnrollment()`, `getModuleEnrollment()` |
-| `certificates.ts` | `getUserCertificates()`, `getCertificate()`, `checkAndIssueCertificate()` |
+| `courses.ts` | `getCourses()`, `enrollCourse()`, `getEnrollment()`, `updateLessonMaterials()` |
+| `certificates.ts` | `getUserCertificates()`, `checkAndIssueCertificate()` |
 | `quizzes.ts` | `getQuizzes()`, `submitQuizAttempt()` |
-| `community.ts` | `getPosts()`, `createPost()`, `likePost()`, `getReplies()`, `getDirectMessages()`, `sendMessage()` |
-| `admin.ts` | `createCourse()`, `updateCourse()`, `deleteCourse()`, `createLesson()`, `updateLesson()`, `deleteLesson()`, `createQuiz()` |
-| `profile.ts` | `updateProfile()`, `getProfile()` |
-| `settings.ts` | `updateSettings()` |
+| `community.ts` | `getPosts()`, `createPost()`, `likePost()`, `uploadCommunityImage()`, `sendMessage()` |
+| `profile.ts` | `updateProfile()`, `uploadAvatar()` — avatar sube a R2 |
+| `admin.ts` | CRUD cursos / módulos / capítulos / lecciones / quizzes |
+| `notifications.ts` | `getNotifications()`, `markAsRead()` |
 
 ---
 
@@ -239,9 +327,11 @@ Ver [README-tools.md](README-tools.md) para la documentación completa de implem
 
 | Ruta | Método | Descripción |
 |---|---|---|
-| `/api/contact` | POST | Guarda mensaje de contacto en Supabase |
-| `/api/tools/calculate` | POST | Proxy al servidor Python (estructural) |
-| `/api/tools/calculate` | GET | Verificación de estado del servidor Python |
+| `/api/contact` | POST | Guarda mensaje en Supabase |
+| `/api/payments/create-payment` | POST | Crea preferencia MercadoPago |
+| `/api/payments/webhook` | POST | Webhook MercadoPago → crea enrollment |
+| `/api/tools/calculate` | POST | Proxy al servidor Python |
+| `/api/tools/calculate` | GET | Verifica estado del servidor Python |
 
 ---
 
@@ -253,114 +343,128 @@ NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Cloudflare R2
+CF_R2_ACCOUNT_ID=<account-id>
+CF_R2_ACCESS_KEY_ID=<access-key-id>
+CF_R2_SECRET_ACCESS_KEY=<secret-access-key>
+CF_R2_BUCKET_NAME=curso-media
+NEXT_PUBLIC_CF_R2_PUBLIC_URL=https://pub-xxx.r2.dev/public
 
-# Servidor Python de cálculo estructural
+# MercadoPago
+MP_ACCESS_TOKEN=<access-token>
+NEXT_PUBLIC_MP_PUBLIC_KEY=<public-key>
+
+# App
+NEXT_PUBLIC_APP_URL=https://tu-dominio.com
+
+# Servidor Python
 PYTHON_API_URL=http://localhost:8000
 ```
 
-> **Importante**: `SUPABASE_SERVICE_ROLE_KEY` solo se usa en el servidor (Server Components, Server Actions, API Routes). Nunca en código client-side.
+> `SUPABASE_SERVICE_ROLE_KEY`, `CF_R2_SECRET_ACCESS_KEY` y `MP_ACCESS_TOKEN` son secretos de servidor. Nunca en código client-side.
 
 ---
 
 ## Instalación y ejecución local
 
-### 1. Clonar e instalar dependencias
+### 1. Instalar dependencias
 ```bash
-git clone <repo-url>
-cd Curso-Análisis-Estructural
 npm install
 ```
 
 ### 2. Configurar Supabase
 1. Crear proyecto en https://supabase.com/dashboard
-2. Ir a **SQL Editor** y ejecutar cada archivo de `supabase/migrations/` en orden cronológico
-3. Copiar las keys al archivo `.env.local`
+2. Ejecutar cada archivo de `supabase/migrations/` en orden en el SQL Editor
+3. Copiar las keys al `.env.local`
 
-### 3. Configurar Storage (Supabase)
-Crear los siguientes buckets públicos en Storage:
-- `course-videos`
-- `course-materials`
-- `tool-files`
-- `avatars`
+### 3. Configurar Cloudflare R2
+1. Crear bucket `curso-media` en Cloudflare R2
+2. Habilitar acceso público (Public URL)
+3. Crear API Token con permisos de lectura/escritura
+4. Copiar credenciales al `.env.local`
+5. Subir la carpeta `public/images/` al bucket bajo la ruta `public/images/`
 
 ### 4. Ejecutar Next.js
 ```bash
 npm run dev          # http://localhost:3000
 ```
 
-### 5. Ejecutar servidor Python (para herramientas de cálculo)
+### 5. Ejecutar servidor Python (herramientas de cálculo)
 ```bash
 cd python_server
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
-# Verificar: GET http://localhost:8000/health → {"status":"ok"}
 ```
 
 ---
 
-## Decisiones de arquitectura importantes
+## Decisiones de arquitectura
+
+### Sin Supabase Storage
+Supabase Storage genera "Cached Egress" que consume el plan gratuito rápidamente.
+**Todos los archivos van a Cloudflare R2**, que tiene egress gratuito ilimitado hacia Internet.
+Supabase solo almacena texto (URLs de R2 en los campos `avatar_url`, `image_url`).
+
+### Imágenes estáticas locales
+Los fondos de página (`.webp`) y archivos del sitio (PDF de temario, MP3) están en `public/images/` y se sirven desde Vercel con caché de 1 año en el navegador. Esto evita latencia de red y costo de egress de R2 para archivos que nunca cambian.
 
 ### Progreso y certificados
-- La tabla `progress` tiene **PK compuesta** `(user_id, lesson_id)` — sin columna `id` propia.
-- Solo se cuentan lecciones con `chapter_uuid IS NOT NULL` para el cálculo de progreso (coincide exactamente con lo visible en classroom).
-- Los certificados se **auto-emiten** en el dashboard mediante `checkAndIssueCertificate(slug)` cuando `progress === 100`.
+- La tabla `progress` tiene PK compuesta `(user_id, lesson_id)`.
+- Solo se cuentan lecciones con `chapter_uuid IS NOT NULL`.
+- Los certificados se auto-emiten en el dashboard al llegar al 100%.
 
-### Catálogo de cursos
-- El catálogo estático fue eliminado. Todos los cursos se leen directamente desde Supabase.
-- El array `coursesCatalog` en `courses-catalog.ts` queda vacío por compatibilidad de importaciones.
-
-### Client vs Server Components (Next.js 15)
-- Por defecto, todas las páginas son **Server Components** (sin `"use client"`).
-- Se usa `"use client"` solo cuando se requieren: event handlers (`onClick`), hooks de React (`useState`, `useEffect`), APIs del navegador (`window`, `document`).
-- **Los event handlers nunca van en Server Components** — se extraen a componentes Client separados (ejemplo: `PrintButton.tsx`).
+### Client vs Server Components
+- Por defecto todas las páginas son Server Components.
+- `"use client"` solo para: event handlers, hooks de React, APIs del navegador.
 
 ### Módulos y order
-- `modules.order` es **0-based** en la DB. La posición visible para el usuario es `order + 1`.
-- Los `module_enrollments` almacenan `module_id` como el `order` del módulo, no el UUID.
+- `modules.order` es 0-based en DB. La posición visible es `order + 1`.
 
 ---
 
 ## Estado de implementación (Marzo 2026)
 
 ### Completo
-- Autenticación (login / registro / logout / reset de contraseña)
-- Catálogo de cursos completo (datos en Supabase)
-- Dashboard con progreso real por módulo y certificados
-- Classroom con video, progreso secuencial, quizzes y materiales
-- Comunidad: posts, likes, replies, mensajes directos, leaderboard
-- Panel admin: CRUD cursos / módulos / capítulos / lecciones / quizzes
-- Certificados de finalización imprimibles
+- Auth (login / registro / logout / reset)
+- Catálogo de cursos (datos en Supabase)
+- Dashboard con progreso real y certificados
+- Classroom: video, progreso secuencial, quizzes, materiales, comentarios
+- Comunidad: posts, likes, replies, DMs, leaderboard
+- Notificaciones en tiempo real (Supabase Realtime)
+- Panel admin: CRUD completo cursos / módulos / capítulos / lecciones / quizzes
+- Certificados imprimibles
+- MercadoPago Checkout API Phase 1 (cursos y módulos)
+- Herramientas de cálculo (10 calculadoras + Biblioteca + Recursos)
+- Cloudflare R2 para avatares e imágenes de posts
+- Caché del navegador configurado (1 año para estáticos)
 - API `/api/contact` funcional
-- Herramientas de cálculo estructural (10 calculadoras + Biblioteca + Simuladores + Asistente + Recursos)
-- Profile y Settings
 
 ### Pendiente
-- Pagos reales (Stripe / MercadoPago) — actualmente simulados
-- Asistente IA en `/tools/asistente` — UI placeholder lista, falta motor IA
-- Simuladores visuales en `/tools/simuladores` — UI placeholder lista, falta lógica interactiva
-- Notificaciones en tiempo real (Supabase Realtime)
+- MercadoPago Phase 2: suscripciones
+- Asistente IA en `/tools/asistente` — UI lista, falta motor IA
+- Simuladores visuales — UI lista, falta lógica interactiva
+- Materiales de lecciones con subida a R2 (actualmente URLs manuales)
 
 ---
 
 ## Solución de problemas frecuentes
 
 ### Las lecciones no aparecen en la página de marketing
-El RLS de `lessons` bloquea usuarios anónimos. Usar `createAdminClient` (service role) para esa query.
+RLS bloquea usuarios anónimos. Usar `createAdminClient` (service role) para esa query.
 
 ### Los certificados no se emiten aunque el progreso es 100%
-Verificar que:
-1. Las lecciones tienen `chapter_uuid IS NOT NULL`
-2. La query de progreso usa `.select("lesson_id", { count: "exact", head: true })` (no `"id"`)
+Verificar que las lecciones tengan `chapter_uuid IS NOT NULL` y que la query de progreso use `lesson_id` (no `id`).
+
+### Avatar subido a R2 devuelve 404
+Verificar que `NEXT_PUBLIC_CF_R2_PUBLIC_URL` termine en `/public` (ej. `https://pub-xxx.r2.dev/public`).
+El archivo se sube a `avatars/{id}/...` y la URL pública resulta en `https://pub-xxx.r2.dev/public/avatars/{id}/...`.
 
 ### El servidor Python no responde
 Verificar que `uvicorn main:app --reload --port 8000` esté corriendo desde `/python_server/`.
-La API route Next.js devuelve 503 con mensaje descriptivo si `ECONNREFUSED`.
+La API route devuelve 503 si `ECONNREFUSED`.
 
-### Footer no visible / transparencia no funciona
-El `backdrop-filter` requiere contexto de apilamiento. El footer debe tener `relative z-10`.
-El body debe tener `background-color: #020617` (slate-950) en `globals.css`.
+### Imagen de fondo no se actualiza tras reemplazarla
+El navegador tiene la imagen en caché 1 año por su nombre. Renombrar el archivo o agregar sufijo de versión (ej. `Fondo_ATm_v2.webp`) y actualizar la referencia en el código.
 
 ---
 

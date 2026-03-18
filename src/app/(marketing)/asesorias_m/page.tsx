@@ -38,7 +38,13 @@ export default async function AsesoriasMarketingPage() {
   }>;
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8" style={{
+      backgroundImage: "url('/images/Fondos%20de%20marketing/Fondo_comm.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }}>
       <div className="max-w-6xl mx-auto">
 
         {/* Hero */}

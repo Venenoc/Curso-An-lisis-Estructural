@@ -191,7 +191,7 @@ export default async function CursoDetailPage({
           width: "100vw",
           height: "100vh",
           zIndex: -1,
-          backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoPlataforma/FondoPlatform_slugc.jpg)`,
+          backgroundImage: `url('/images/FondoPlataforma/FondoPlatform_slugc.webp')`,
           backgroundSize: "cover",
           backgroundPosition: "top center",
           backgroundRepeat: "no-repeat",
@@ -744,7 +744,7 @@ export default async function CursoDetailPage({
               {/* Botón temario PDF */}
               <div className="mt-6 flex justify-center">
                 <a
-                  href={`${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Temariodecursos/Curso1tema.pdf`}
+                  href={`/images/Temariodecursos/Curso1tema.pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl border border-cyan-500/40 bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 transition-colors"

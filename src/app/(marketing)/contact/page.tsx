@@ -38,7 +38,13 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100 py-40">
+    <div className="flex flex-col min-h-screen py-40" style={{
+      backgroundImage: "url('/images/Fondos%20de%20marketing/Fondo_ATm.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }}>
       <ScrollReveal delay={0.1} className="mx-auto max-w-2xl w-full px-4">
         <div className="bg-slate-800/80 border border-cyan-500/20 rounded-2xl p-10 shadow-lg">
           <ScrollReveal delay={0.15}>

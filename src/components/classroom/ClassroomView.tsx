@@ -195,7 +195,7 @@ export default function ClassroomView({
         <div
           className="absolute z-0 bg-cover bg-center hidden lg:block"
           style={{
-            backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoPlataforma/FondoClassroom.jpg)`,
+            backgroundImage: `url('/images/FondoPlataforma/FondoClassroom.webp')`,
             opacity: 0.60,
             pointerEvents: "none",
             top: 0,
@@ -208,7 +208,7 @@ export default function ClassroomView({
         <div
           className="absolute inset-0 z-0 bg-cover bg-center lg:hidden"
           style={{
-            backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoPlataforma/FondoClassroom.jpg)`,
+            backgroundImage: `url('/images/FondoPlataforma/FondoClassroom.webp')`,
             opacity: 0.30,
             pointerEvents: "none",
           }}

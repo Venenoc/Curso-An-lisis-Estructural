@@ -52,7 +52,7 @@ export default function RegisterForm() {
     <div
       className="fixed inset-0 flex items-center justify-center overflow-y-auto sm:overflow-hidden py-4 sm:py-0"
       style={{
-        backgroundImage: `url('${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoAut/FondoReg.jpg')`,
+        backgroundImage: `url('/images/FondoAut/FondoReg.webp')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"

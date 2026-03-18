@@ -168,7 +168,7 @@ export default async function ProfilePage() {
         width: '100vw',
         height: '100vh',
         zIndex: 0,
-        backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/FondoPlataforma/FondoPlatform_p.jpg)`,
+        backgroundImage: `url('/images/FondoPlataforma/FondoPlatform_p.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

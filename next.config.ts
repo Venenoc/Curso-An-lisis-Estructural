@@ -24,16 +24,39 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      // Imágenes locales — 1 año, inmutable
       {
-        source: '/images/:file*.mp3',
+        source: '/images/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-          { key: 'Accept-Ranges', value: 'bytes' },
         ],
       },
+      // Fuentes
+      {
+        source: '/_next/static/media/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // JS/CSS de Next.js — ya llevan hash, son inmutables
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // favicon
+      {
+        source: '/favicon.svg',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
+      },
+      // Páginas HTML — revalidar cada visita pero usar caché si no cambió
       {
         source: '/(.*)',
         headers: [
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
           { key: 'Permissions-Policy', value: 'compute-pressure=*, camera=(), microphone=(), geolocation=()' },
         ],
       },

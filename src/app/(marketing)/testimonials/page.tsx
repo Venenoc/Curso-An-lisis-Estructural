@@ -41,7 +41,7 @@ export default async function TestimonialsPage() {
     <div
       className="relative flex flex-col min-h-screen bg-gradient-to-b from-cyan-50 via-white to-cyan-100"
       style={{
-        backgroundImage: `url(${process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL}/images/Fondos%20de%20marketing/Fondo_ATm.jpg)`,
+        backgroundImage: `url('/images/Fondos%20de%20marketing/Fondo_ATm.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
