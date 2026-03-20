@@ -678,7 +678,8 @@ export async function createModule(
   courseId: string,
   title: string,
   presentationVideoUrl?: string,
-  price?: number
+  price?: number,
+  presentationUrl?: string
 ): Promise<{ module?: { id: string; course_id: string; title: string; order: number; presentation_video_url: string | null; price: number }; error?: string }> {
   try {
     const profile = await getInstructorProfile();
@@ -701,7 +702,7 @@ export async function createModule(
 
     const { data: mod, error } = await supabase
       .from("modules")
-      .insert({ course_id: courseId, title: title.trim(), order, presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0 })
+      .insert({ course_id: courseId, title: title.trim(), order, presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0, presentation_url: presentationUrl?.trim() || null })
       .select("id, course_id, title, order, presentation_video_url, price")
       .single();
 
@@ -717,7 +718,8 @@ export async function updateModule(
   moduleId: string,
   title: string,
   presentationVideoUrl?: string,
-  price?: number
+  price?: number,
+  presentationUrl?: string
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const profile = await getInstructorProfile();
@@ -725,7 +727,7 @@ export async function updateModule(
     const supabase = await createClient();
     const { error } = await supabase
       .from("modules")
-      .update({ title: title.trim(), presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0 })
+      .update({ title: title.trim(), presentation_video_url: presentationVideoUrl?.trim() || null, price: price ?? 0, presentation_url: presentationUrl?.trim() || null })
       .eq("id", moduleId);
     if (error) return { error: "Error al actualizar el módulo" };
     return { success: true };

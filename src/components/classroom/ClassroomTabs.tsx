@@ -38,7 +38,7 @@ export default function ClassroomTabs({
     { id: "materiales", label: "Materiales", icon: <FileText className="w-4 h-4" /> },
     { id: "ejercicios", label: "Ejercicios", icon: <PenTool className="w-4 h-4" /> },
     { id: "comentarios", label: "Comentarios", icon: <MessageSquare className="w-4 h-4" /> },
-    { id: "preguntas", label: "Preguntas Frecuentes", icon: <HelpCircle className="w-4 h-4" /> },
+    { id: "preguntas", label: "Preguntas en Vivo", icon: <HelpCircle className="w-4 h-4" /> },
   ];
 
   return (
@@ -136,14 +136,14 @@ export default function ClassroomTabs({
               <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
                 <HelpCircle className="w-8 h-8 text-slate-600" />
               </div>
-              <p className="text-slate-400 text-sm font-medium">Sin preguntas frecuentes</p>
+              <p className="text-slate-400 text-sm font-medium">Sin preguntas en vivo</p>
               <p className="text-slate-500 text-xs text-center mt-1 max-w-xs">
-                El instructor aún no ha agregado preguntas para esta lección.
+                El instructor aún no ha agregado preguntas en vivo para esta lección.
               </p>
             </div>
           ) : (
             <div className="space-y-6">
-              <h3 className="text-white font-semibold">Preguntas Frecuentes</h3>
+              <h3 className="text-white font-semibold">Preguntas en Vivo</h3>
               {faqs.map((faq, i) => (
                 <div key={faq.id} className="space-y-3">
                   {/* Pregunta */}

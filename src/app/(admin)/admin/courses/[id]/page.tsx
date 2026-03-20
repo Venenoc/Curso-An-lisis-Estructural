@@ -30,7 +30,7 @@ export default async function CourseDetailPage({
   const [courseResult, modulesResult] = await Promise.all([
     supabase
       .from("courses")
-      .select("id, title, description, price, status, slug, level, total_duration, subscription_only, image_url, gradient, presentation_video_url")
+      .select("id, title, description, price, status, slug, level, total_duration, subscription_only, image_url, gradient, presentation_video_url, presentation_url")
       .eq("id", id)
       .eq("instructor_id", profile.id)
       .single(),

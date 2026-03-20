@@ -17,7 +17,6 @@ import type { LessonFaq } from "@/app/actions/courses";
 interface ClassroomViewProps {
   course: CatalogCourse;
   completedLessonIds: string[];
-  profileId: string;
   hasFullCourse: boolean;
   hasException: boolean;
   purchasedModuleIds: number[];
@@ -32,7 +31,6 @@ interface ClassroomViewProps {
 export default function ClassroomView({
   course,
   completedLessonIds: initialCompleted,
-  profileId,
   hasFullCourse,
   hasException,
   purchasedModuleIds,

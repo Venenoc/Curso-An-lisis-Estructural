@@ -886,6 +886,16 @@ CREATE POLICY "advisory_videos_admin_all" ON advisory_videos
 
 CREATE INDEX IF NOT EXISTS idx_advisory_videos_order ON advisory_videos("order");
 
+
+-- Agrega presentation_url a la tabla modules (por módulo, no por curso)
+-- Ejecutar en Supabase SQL Editor
+
+ALTER TABLE modules
+ADD COLUMN IF NOT EXISTS presentation_url TEXT DEFAULT NULL;
+
+COMMENT ON COLUMN modules.presentation_url IS 'URL del archivo de presentación descargable del módulo (PDF, PPTX, etc.)';
+
+
 -- =============================================================================
 -- FIN DEL ESQUEMA
 -- Tablas creadas: 29
@@ -894,3 +904,4 @@ CREATE INDEX IF NOT EXISTS idx_advisory_videos_order ON advisory_videos("order")
 -- Índices: ~35
 -- Última actualización: 2026-03-16
 -- =============================================================================
+

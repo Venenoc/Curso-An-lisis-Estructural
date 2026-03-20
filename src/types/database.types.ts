@@ -878,6 +878,7 @@ export interface CourseModule {
   duration: string;
   price: number;
   chapters?: CourseChapter[];
+  presentationUrl?: string;
 }
 
 export interface CatalogCourse {

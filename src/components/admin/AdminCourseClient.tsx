@@ -95,6 +95,7 @@ interface ModuleData {
   order: number;
   price?: number;
   presentation_video_url?: string | null;
+  presentation_url?: string | null;
   chapters: ChapterData[];
 }
 
@@ -256,8 +257,9 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
     const title = fd.get("title") as string;
     const videoUrl = (fd.get("presentation_video_url") as string) || undefined;
     const price = fd.get("price") ? parseFloat(fd.get("price") as string) : 0;
+    const presentationUrl = (fd.get("presentation_url") as string) || undefined;
     startTransition(async () => {
-      const res = await createModule(course.id, title, videoUrl, price);
+      const res = await createModule(course.id, title, videoUrl, price, presentationUrl);
       if (res?.error) {
         showMsg(res.error, true);
       } else if (res?.module) {
@@ -276,15 +278,16 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
     const title = fd.get("title") as string;
     const videoUrl = (fd.get("presentation_video_url") as string) || undefined;
     const price = fd.get("price") ? parseFloat(fd.get("price") as string) : 0;
+    const presentationUrl = (fd.get("presentation_url") as string) || undefined;
     const id = modal.module.id;
     startTransition(async () => {
-      const res = await updateModule(id, title, videoUrl, price);
+      const res = await updateModule(id, title, videoUrl, price, presentationUrl);
       if (res?.error) {
         showMsg(res.error, true);
       } else {
         setModules((prev) =>
           prev.map((m) =>
-            m.id === id ? { ...m, title, presentation_video_url: videoUrl || null, price } : m
+            m.id === id ? { ...m, title, presentation_video_url: videoUrl || null, price, presentation_url: presentationUrl || null } : m
           )
         );
         setModal(null);
@@ -842,6 +845,7 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
                     placeholder="Video de presentación (https://...)"
                     className="text-xs mt-2"
                   />
+
                 </div>
 
                 {/* Campos de texto */}
@@ -1293,6 +1297,9 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
             <Field label="Video de presentación (opcional)">
               <Input name="presentation_video_url" type="url" placeholder="https://..." />
             </Field>
+            <Field label="Presentación descargable (PDF, PPTX — opcional)">
+              <Input name="presentation_url" type="url" placeholder="https://..." />
+            </Field>
             <Field label="Precio del módulo (S/.)">
               <Input name="price" type="number" step="0.01" min="0" defaultValue={0} required />
             </Field>
@@ -1312,6 +1319,14 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
                 name="presentation_video_url"
                 type="url"
                 defaultValue={modal.module.presentation_video_url || ""}
+                placeholder="https://..."
+              />
+            </Field>
+            <Field label="Presentación descargable (PDF, PPTX — opcional)">
+              <Input
+                name="presentation_url"
+                type="url"
+                defaultValue={modal.module.presentation_url || ""}
                 placeholder="https://..."
               />
             </Field>

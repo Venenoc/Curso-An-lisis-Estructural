@@ -10,6 +10,7 @@ import {
   BookOpen,
   X,
   Wrench,
+  Download,
 } from "lucide-react";
 import type { CatalogCourse, CourseModule, CourseSession } from "@/types/database.types";
 
@@ -117,6 +118,35 @@ export default function ClassroomSidebar({
             </button>
           </div>
         </div>
+
+        {/* Download presentation button */}
+        {activeModule?.presentationUrl && (
+          <div className="px-4 py-3 border-b border-slate-700/50 shrink-0">
+            <a
+              href={activeModule.presentationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="flex items-center justify-center gap-2 w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors"
+              style={{
+                background: "rgba(34,211,238,0.12)",
+                border: "1px solid rgba(34,211,238,0.25)",
+                color: "#22d3ee",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(34,211,238,0.20)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,211,238,0.45)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(34,211,238,0.12)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,211,238,0.25)";
+              }}
+            >
+              <Download className="w-4 h-4 shrink-0" />
+              Descargar presentación
+            </a>
+          </div>
+        )}
 
         {/* Single active module */}
         <div className="flex-1 overflow-y-auto">

@@ -43,7 +43,7 @@ export default async function ClassroomPage({
   // ── Fetch modules, chapters, lessons (flat queries — no FK dependency) ─────────
   const { data: rawModules } = await admin
     .from("modules")
-    .select("id, title, order, price")
+    .select("id, title, order, price, presentation_url")
     .eq("course_id", dbCourse.id)
     .order("order");
 
@@ -221,6 +221,7 @@ export default async function ClassroomPage({
       lessonsCount: allLessons.length,
       duration: "",
       chapters,
+      presentationUrl: (m.presentation_url as string) || undefined,
     };
   });
 
@@ -330,7 +331,6 @@ export default async function ClassroomPage({
     <ClassroomView
       course={course}
       completedLessonIds={completedLessonIds}
-      profileId={profile.id}
       hasFullCourse={!!hasFullCourse}
       hasException={!!exception}
       purchasedModuleIds={purchasedModuleIds}
