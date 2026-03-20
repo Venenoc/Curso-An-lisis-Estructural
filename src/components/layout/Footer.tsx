@@ -107,7 +107,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm leading-relaxed text-white/35">
-              Aprende análisis estructural con cursos prácticos y herramientas especializadas.
+              Aprende análisis y diseño estructural con cursos prácticos y herramientas especializadas.
             </p>
           </div>
 
@@ -164,7 +164,7 @@ export default function Footer() {
               ))}
             </div>
             <p className="text-xs text-white/35">Lima, Perú</p>
-            <p className="text-xs mt-1 text-white/35">contacto@albertstructural.com</p>
+            <p className="text-xs mt-1 text-white/35">aastoraymev@uni.pe</p>
           </div>
         </div>
 

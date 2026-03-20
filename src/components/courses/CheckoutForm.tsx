@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ import type { CatalogCourse, CourseModule } from "@/types/database.types";
 declare global {
   interface Window {
     MercadoPago: any;
+    paypal: any;
   }
 }
 
@@ -49,7 +51,7 @@ interface CheckoutFormProps {
   } | null;
 }
 
-type PaymentMethod = "card" | "yape" | "cash";
+type PaymentMethod = "card" | "yape" | "cash" | "paypal";
 type CheckoutStatus =
   | "idle"
   | "processing"
@@ -88,9 +90,19 @@ const STEPS = [
   { num: 3, label: "Pago" },
 ] as const;
 
+/* ─── PayPal SVG icon ────────────────────────────────────────────────────────── */
+
+function PayPalIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.566-5.946.36-1.847.174-3.388-.778-4.471z" />
+    </svg>
+  );
+}
+
 const PAYMENT_METHODS: {
   id: PaymentMethod;
-  icon: typeof CreditCard;
+  icon: typeof CreditCard | ((p: { className?: string }) => React.ReactElement);
   title: string;
   desc: string;
 }[] = [
@@ -105,6 +117,12 @@ const PAYMENT_METHODS: {
     icon: Smartphone,
     title: "Yape / MercadoPago",
     desc: "Paga con Yape o tu cuenta de MercadoPago",
+  },
+  {
+    id: "paypal",
+    icon: PayPalIcon,
+    title: "PayPal",
+    desc: "Paga de forma segura con tu cuenta PayPal",
   },
   {
     id: "cash",
@@ -189,6 +207,10 @@ export default function CheckoutForm({
   const [mpMountError, setMpMountError] = useState(false);
   const cardFormRef = useRef<any>(null);
 
+  // PayPal SDK
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
+  const paypalExternalRefRef = useRef<string>("");
+
   // Yape
   const [yapePhone, setYapePhone] = useState("");
   const [yapeLoading, setYapeLoading] = useState(false);
@@ -229,6 +251,16 @@ export default function CheckoutForm({
     typeof process.env.NEXT_PUBLIC_MP_PUBLIC_KEY === "string" &&
     (process.env.NEXT_PUBLIC_MP_PUBLIC_KEY.startsWith("TEST-") ||
       process.env.NEXT_PUBLIC_MP_PUBLIC_KEY.startsWith("APP_USR-"));
+
+  const paypalConfigured =
+    typeof process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID === "string" &&
+    process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID.length > 0;
+
+  // Can continue from step 2 based on selected method + available providers
+  const canContinue =
+    paymentMethod !== null &&
+    ((paymentMethod === "paypal" && paypalConfigured) ||
+      (paymentMethod !== "paypal" && mpConfigured));
 
   /* ── Handle wallet return (from MP redirect) ─────────────────────────────── */
   useEffect(() => {
@@ -419,6 +451,91 @@ export default function CheckoutForm({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, paymentMethod, mpLoaded]);
+
+  /* ── PayPal: render SDK buttons ──────────────────────────────────────────── */
+  useEffect(() => {
+    if (step !== 3 || paymentMethod !== "paypal" || !paypalLoaded) return;
+    if (!window.paypal) return;
+
+    const container = document.getElementById("paypal-button-container");
+    if (!container) return;
+
+    container.innerHTML = ""; // clear any previous render
+
+    const buttons = window.paypal.Buttons({
+      style: {
+        layout: "vertical",
+        color: "gold",
+        shape: "rect",
+        label: "pay",
+        height: 48,
+      },
+      createOrder: async () => {
+        setError(null);
+        const res = await fetch("/api/payments/create-paypal-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseSlug: course.slug,
+            moduleId: selectedModule?.id ?? null,
+            isModulePurchase,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          setError(data.error);
+          throw new Error(data.error);
+        }
+        paypalExternalRefRef.current = data.externalRef;
+        return data.orderId;
+      },
+      onApprove: async (data: any) => {
+        setStatus("processing");
+        try {
+          const res = await fetch("/api/payments/capture-paypal-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: data.orderID,
+              externalRef: paypalExternalRefRef.current,
+              courseSlug: course.slug,
+              moduleId: selectedModule?.id ?? null,
+              isModulePurchase,
+            }),
+          });
+          const result = await res.json();
+          if (result.status === "approved") {
+            setStatus("success");
+          } else {
+            setError(result.error || "Error al procesar el pago.");
+            setStatus("idle");
+          }
+        } catch {
+          setError("Error de conexión. Intenta nuevamente.");
+          setStatus("idle");
+        }
+      },
+      onCancel: () => {
+        setError("Pago cancelado. Puedes intentarlo nuevamente.");
+      },
+      onError: (err: any) => {
+        console.error("PayPal error:", err);
+        setError("Error al procesar el pago con PayPal. Intenta nuevamente.");
+        setStatus("idle");
+      },
+    });
+
+    if (buttons.isEligible()) {
+      buttons.render("#paypal-button-container");
+    } else {
+      setError("PayPal no está disponible. Intenta con otro método de pago.");
+    }
+
+    return () => {
+      container.innerHTML = "";
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, paymentMethod, paypalLoaded]);
 
   /* ── Yape: phone + OTP → token → payment ─────────────────────────────────── */
   const [yapeOtp, setYapeOtp] = useState("");
@@ -815,6 +932,13 @@ export default function CheckoutForm({
           onLoad={() => setMpLoaded(true)}
         />
       )}
+      {paypalConfigured && (
+        <Script
+          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=${process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || "USD"}&locale=es_PE&intent=capture`}
+          strategy="afterInteractive"
+          onLoad={() => setPaypalLoaded(true)}
+        />
+      )}
 
       <Link
         href={`/cursos/${course.slug}`}
@@ -1041,7 +1165,7 @@ export default function CheckoutForm({
                   </Button>
                   <Button
                     onClick={goToStep3}
-                    disabled={!paymentMethod || !mpConfigured}
+                    disabled={!canContinue}
                     className="flex-[2] h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold disabled:opacity-50"
                   >
                     Continuar <ArrowRight className="w-4 h-4 ml-2" />
@@ -1060,6 +1184,8 @@ export default function CheckoutForm({
                         ? "bg-cyan-500"
                         : paymentMethod === "yape"
                         ? "bg-purple-500"
+                        : paymentMethod === "paypal"
+                        ? "bg-blue-600"
                         : "bg-amber-500"
                     }`}
                   >
@@ -1068,6 +1194,9 @@ export default function CheckoutForm({
                     )}
                     {paymentMethod === "yape" && (
                       <Smartphone className="w-5 h-5 text-white" />
+                    )}
+                    {paymentMethod === "paypal" && (
+                      <PayPalIcon className="w-5 h-5 text-white" />
                     )}
                     {paymentMethod === "cash" && (
                       <Banknote className="w-5 h-5 text-white" />
@@ -1078,6 +1207,7 @@ export default function CheckoutForm({
                       {paymentMethod === "card" && "Pagar con tarjeta"}
                       {paymentMethod === "yape" &&
                         "Pagar con Yape / MercadoPago"}
+                      {paymentMethod === "paypal" && "Pagar con PayPal"}
                       {paymentMethod === "cash" && "Pago en efectivo"}
                     </h1>
                     <p className="text-slate-400 text-sm">
@@ -1085,6 +1215,8 @@ export default function CheckoutForm({
                         "Ingresa los datos de tu tarjeta"}
                       {paymentMethod === "yape" &&
                         "Serás redirigido a MercadoPago para completar el pago"}
+                      {paymentMethod === "paypal" &&
+                        "Haz clic en el botón para continuar con PayPal"}
                       {paymentMethod === "cash" &&
                         "Genera tu código CIP para pagar en agentes"}
                     </p>
@@ -1247,6 +1379,48 @@ export default function CheckoutForm({
                       </button>
                     </div>
                   </form>
+                )}
+
+                {/* ── PayPal ─────────────────────────────────────────────── */}
+                {paymentMethod === "paypal" && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 space-y-1">
+                      <p className="text-white text-sm font-semibold flex items-center gap-2">
+                        <PayPalIcon className="w-4 h-4 text-blue-400" />
+                        Pago seguro con PayPal
+                      </p>
+                      <p className="text-slate-300 text-sm">
+                        Haz clic en el botón de PayPal. Se abrirá una ventana
+                        para que inicies sesión o pagues con tarjeta a través de
+                        PayPal. Tu acceso se activará automáticamente.
+                      </p>
+                    </div>
+
+                    {error && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <p className="text-red-400 text-sm">{error}</p>
+                      </div>
+                    )}
+
+                    {/* PayPal SDK renders buttons here */}
+                    <div id="paypal-button-container" className="min-h-[56px]">
+                      {!paypalLoaded && (
+                        <div className="flex items-center justify-center gap-2 h-14 text-slate-400 text-sm">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Cargando PayPal...
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={goBack}
+                      variant="outline"
+                      className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold border-0"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" /> Volver
+                    </Button>
+                  </div>
                 )}
 
                 {/* ── Yape ───────────────────────────────────────────────── */}
@@ -1445,7 +1619,7 @@ export default function CheckoutForm({
           {/* Security badge */}
           <p className="text-xs text-slate-500 text-center mt-4 flex items-center justify-center gap-1.5">
             <Shield className="w-3.5 h-3.5" />
-            Pago seguro encriptado con SSL de 256 bits vía MercadoPago
+            Pago seguro encriptado con SSL de 256 bits
           </p>
         </div>
 
@@ -1509,6 +1683,12 @@ export default function CheckoutForm({
                     <>
                       <Smartphone className="w-3.5 h-3.5" />
                       Yape / MercadoPago
+                    </>
+                  )}
+                  {paymentMethod === "paypal" && (
+                    <>
+                      <PayPalIcon className="w-3.5 h-3.5" />
+                      PayPal
                     </>
                   )}
                   {paymentMethod === "cash" && (

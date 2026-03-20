@@ -39,7 +39,7 @@ export default async function AsesoriasMarketingPage() {
 
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8" style={{
-      backgroundImage: "url('/images/Fondos%20de%20marketing/Fondo_comm.webp')",
+      backgroundImage: "url('/images/FondoPlataforma/FondoPlatform_d.webp')",
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
@@ -63,19 +63,19 @@ export default async function AsesoriasMarketingPage() {
               Personalizadas
             </span>
           </h1>
-          <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            Resuelve tus dudas de análisis estructural en sesiones 1 a 1 con el instructor.
-            Trabajamos directamente sobre tu proyecto o ejercicio.
+          <p className="text-white text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            <strong>Resuelve tus dudas de análisis y diseño estructural en sesiones 1 a 1 con el instructor.
+            Trabajamos directamente sobre tu proyecto o ejercicio.</strong>
           </p>
         </div>
 
         {/* Beneficios */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-14">
           {BENEFITS.map((b, i) => (
-            <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#242A37]/[0.6] border border-[#ffffff]/[0.08]"
+              >
               <span className="text-cyan-400 shrink-0">{b.icon}</span>
-              <span className="text-slate-300 text-sm">{b.text}</span>
+              <span className="text-white/80 text-sm">{b.text}</span>
             </div>
           ))}
         </div>
@@ -83,8 +83,8 @@ export default async function AsesoriasMarketingPage() {
         {/* Videos */}
         {videos.length > 0 && (
           <div className="mb-14">
-            <h2 className="text-white text-xl sm:text-2xl font-bold mb-2">Ejemplos de asesorías</h2>
-            <p className="text-slate-500 text-sm mb-7">Así son las sesiones — mira cómo trabajamos antes de agendar la tuya.</p>
+            <h2 className="text-cyan-400 text-xl sm:text-2xl font-bold mb-2">Ejemplos de asesorías</h2>
+            <p className="text-white/80 text-sm mb-7">Así son las sesiones — mira cómo trabajamos antes de agendar la tuya.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {videos.map((video) => {
                 const embedUrl = getYouTubeEmbedUrl(video.video_url);
@@ -124,11 +124,11 @@ export default async function AsesoriasMarketingPage() {
         )}
 
         {/* CTA */}
-        <div className="rounded-3xl p-8 sm:p-12 text-center"
-          style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.08) 0%, rgba(99,102,241,0.08) 100%)", border: "1px solid rgba(34,211,238,0.18)" }}>
+        <div className="rounded-3xl p-8 sm:p-12 text-center bg-[#242A37]/[0.6] border border-[#ffffff]/[0.08]"
+          >
           <Calendar className="w-10 h-10 text-cyan-400 mx-auto mb-4" />
           <h2 className="text-white text-2xl sm:text-3xl font-extrabold mb-3">¿Listo para tu asesoría?</h2>
-          <p className="text-slate-400 text-base max-w-lg mx-auto mb-8">
+          <p className="text-white/80 text-base max-w-lg mx-auto mb-8">
             Agenda una sesión personalizada y resuelve exactamente lo que necesitas con atención directa del instructor.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

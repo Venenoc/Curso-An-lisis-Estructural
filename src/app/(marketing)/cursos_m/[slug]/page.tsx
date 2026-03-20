@@ -115,7 +115,7 @@ export default async function CourseSyllabusPage({
       chapters(
         id, title, order,
         sessions(
-          id, title, order,
+          id, title, order, type,
           lessons(id, title, order, duration, duration_text)
         ),
         lessons(id, title, order, duration, duration_text)
@@ -135,6 +135,7 @@ export default async function CourseSyllabusPage({
         const flatLessons = sessions.length > 0
           ? sessions.flatMap((s: any) =>
               [...(s.lessons || [])].sort((a: any, b: any) => a.order - b.order)
+                .map((l: any) => ({ ...l, isTaller: s.type === 'taller' }))
             )
           : directLessons;
         return { ...c, sessions, lessons: flatLessons };
@@ -326,7 +327,7 @@ export default async function CourseSyllabusPage({
                                     className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-slate-700/25 transition-colors"
                                   >
                                     <Lock className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                                    <span className="text-sm text-slate-300 flex-1 leading-snug">
+                                    <span className={`text-sm flex-1 leading-snug ${lesson.isTaller ? 'text-amber-500/80' : 'text-slate-300'}`}>
                                       {lesson.title}
                                     </span>
                                     <span className="text-xs text-slate-600 flex-shrink-0">
