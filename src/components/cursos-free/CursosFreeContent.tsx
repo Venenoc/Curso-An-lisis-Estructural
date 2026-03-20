@@ -116,7 +116,7 @@ export default function CursosFreeContent() {
             background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.30)",
             borderRadius: "50px", padding: "6px 16px", marginBottom: "24px",
           }}>
-            <YoutubeIcon className="w-4 h-4" style={{ color: "#ef4444" }} />
+            <YoutubeIcon className="w-4 h-4 text-red-500" />
             <span style={{ color: "#ef4444", fontSize: "13px", fontWeight: 600, letterSpacing: "0.05em" }}>
               100% GRATIS EN YOUTUBE
             </span>

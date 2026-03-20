@@ -256,6 +256,9 @@ export default function CheckoutForm({
     typeof process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID === "string" &&
     process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID.length > 0;
 
+  const paypalRate = parseFloat(process.env.NEXT_PUBLIC_PAYPAL_EXCHANGE_RATE || "0.27");
+  const usdEquivalent = (displayPrice * paypalRate).toFixed(2);
+
   // Can continue from step 2 based on selected method + available providers
   const canContinue =
     paymentMethod !== null &&
@@ -1393,6 +1396,25 @@ export default function CheckoutForm({
                         Haz clic en el botón de PayPal. Se abrirá una ventana
                         para que inicies sesión o pagues con tarjeta a través de
                         PayPal. Tu acceso se activará automáticamente.
+                      </p>
+                    </div>
+
+                    {/* Precio en USD */}
+                    <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
+                      <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">
+                        Resumen del cobro
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-300 text-sm">Precio en soles</span>
+                        <span className="text-white font-semibold">S/. {formattedPrice}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-slate-300 text-sm">PayPal cobra en USD</span>
+                        <span className="text-blue-300 font-bold text-base">${usdEquivalent} USD</span>
+                      </div>
+                      <p className="text-slate-500 text-xs mt-2">
+                        Tipo de cambio referencial: 1 PEN ≈ {paypalRate} USD. El monto exacto puede
+                        variar según tu banco o la tasa de PayPal al momento del pago.
                       </p>
                     </div>
 
