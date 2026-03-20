@@ -270,7 +270,7 @@ function CourseCard({ course }: { course: FreeCourse }) {
             background: "rgba(0,0,0,0.75)", borderRadius: "6px",
             padding: "3px 8px", display: "flex", alignItems: "center", gap: "5px",
           }}>
-            <YoutubeIcon className="w-3.5 h-3.5" style={{ color: "#ef4444" }} />
+            <YoutubeIcon className="w-3.5 h-3.5 text-red-500" />
             <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>YouTube</span>
           </div>
         </div>
