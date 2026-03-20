@@ -63,10 +63,21 @@ export default function VideoPlayer({
       if (!video) return;
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       if (Hls.isSupported()) {
-        hls = new Hls({ maxBufferLength: 30 });
+        hls = new Hls({
+          maxBufferLength: 60,
+          maxMaxBufferLength: 120,
+          startLevel: -1, // ABR elige el nivel inicial
+          abrEwmaDefaultEstimate: 20_000_000, // Sugiere ancho de banda alto para empezar en máxima calidad
+        });
         hlsRef.current = hls;
         hls.loadSource(hlsUrl);
         hls.attachMedia(video);
+        // Cuando el manifest esté listo, forzar el nivel más alto disponible
+        hls.on(Hls.Events.MANIFEST_PARSED, (_evt: any, data: any) => {
+          if (data.levels && data.levels.length > 0) {
+            hls.startLevel = data.levels.length - 1; // nivel más alto (mayor resolución)
+          }
+        });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = hlsUrl; // Safari HLS nativo
       }
@@ -75,24 +86,24 @@ export default function VideoPlayer({
     return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
   }, [hlsUrl]);
 
-  // HTML5 fallback: prevención de adelanto
+  // HTML5 fallback: prevención de adelanto (solo si la lección no está completada)
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isCompleted) return;
     if (video.currentTime > maxTimeRef.current + 1) {
       video.currentTime = maxTimeRef.current;
     } else if (video.currentTime > maxTimeRef.current) {
       maxTimeRef.current = video.currentTime;
     }
-  }, []);
+  }, [isCompleted]);
 
   const handleSeeking = useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isCompleted) return;
     if (video.currentTime > maxTimeRef.current + 1) {
       video.currentTime = maxTimeRef.current;
     }
-  }, []);
+  }, [isCompleted]);
 
   const handleVideoEnded = useCallback(() => { setVideoEnded(true); }, []);
 

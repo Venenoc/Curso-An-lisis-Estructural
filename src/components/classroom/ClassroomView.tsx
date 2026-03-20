@@ -276,7 +276,7 @@ export default function ClassroomView({
                   <div className="aspect-video bg-black rounded-xl overflow-hidden w-full max-w-3xl">
                     {getCloudflareStreamUrl(currentSession.videoUrl!) ? (
                       <CfStreamEmbed
-                        src={getCloudflareStreamUrl(currentSession.videoUrl!)! + "?preload=auto&primaryColor=%2306b6d4"}
+                        src={currentSession.videoUrl!}
                         className="w-full h-full"
                       />
                     ) : getYoutubeEmbedUrl(currentSession.videoUrl!) ? (

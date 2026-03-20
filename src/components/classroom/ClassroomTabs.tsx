@@ -163,7 +163,7 @@ export default function ClassroomTabs({
                       <div className="aspect-video bg-black rounded-xl overflow-hidden max-w-xl">
                         {getCloudflareStreamUrl(faq.video_url) ? (
                           <CfStreamEmbed
-                            src={getCloudflareStreamUrl(faq.video_url)! + "?preload=auto&primaryColor=%2306b6d4"}
+                            src={faq.video_url}
                             className="w-full h-full"
                           />
                         ) : getYoutubeEmbedUrl(faq.video_url) ? (

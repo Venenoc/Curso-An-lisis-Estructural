@@ -1,10 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
-
-declare global {
-  interface Window { Stream?: (el: HTMLIFrameElement) => any; }
-}
+import { getCloudflareHlsUrl } from "@/lib/utils";
 
 interface CfStreamEmbedProps {
   src: string;
@@ -13,68 +10,108 @@ interface CfStreamEmbedProps {
   preventSeeking?: boolean;
 }
 
-/** Embedded Cloudflare Stream player with optional seek prevention. */
+/**
+ * Reproductor HLS nativo para videos de Cloudflare Stream.
+ * Usa hls.js (igual que VideoPlayer) para arrancar en la máxima calidad disponible.
+ * El prop `src` acepta cualquier formato que reconozca getCloudflareHlsUrl:
+ *   - ID desnudo (32+ hex)
+ *   - https://iframe.videodelivery.net/ID?...
+ *   - https://customer-xxx.cloudflarestream.com/ID/iframe
+ */
 export default function CfStreamEmbed({
   src,
   className = "w-full h-full",
   onEnded,
   preventSeeking = false,
 }: CfStreamEmbedProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<any>(null);
   const maxWatchedRef = useRef(0);
 
-  // Load CF Stream SDK once
+  // Extraer la URL HLS del manifest a partir del src (iframe URL o ID)
+  const hlsUrl = getCloudflareHlsUrl(src);
+
+  // Reiniciar seek-guard al cambiar de video
   useEffect(() => {
-    if (document.getElementById("cf-stream-sdk")) return;
-    const script = document.createElement("script");
-    script.id = "cf-stream-sdk";
-    script.src = "https://embed.cloudflarestream.com/embed/sdk.latest.js";
-    document.head.appendChild(script);
-  }, []);
+    maxWatchedRef.current = 0;
+  }, [src]);
 
-  const handleLoad = useCallback(() => {
-    const attach = () => {
-      if (!iframeRef.current || !window.Stream) return;
-      const player = window.Stream(iframeRef.current);
+  // Inicializar HLS.js
+  useEffect(() => {
+    if (!hlsUrl || !videoRef.current) return;
+    let hls: any;
 
-      if (preventSeeking) {
-        player.addEventListener("timeupdate", () => {
-          const t = player.currentTime;
-          if (t > maxWatchedRef.current) maxWatchedRef.current = t;
-        });
-        player.addEventListener("seeking", () => {
-          if (player.currentTime > maxWatchedRef.current)
-            player.currentTime = maxWatchedRef.current;
-        });
-        player.addEventListener("seeked", () => {
-          if (player.currentTime > maxWatchedRef.current)
-            player.currentTime = maxWatchedRef.current;
-        });
+    const init = async () => {
+      const Hls = (await import("hls.js")).default;
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
 
-      if (onEnded) {
-        player.addEventListener("ended", onEnded);
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          maxBufferLength: 60,
+          maxMaxBufferLength: 120,
+          startLevel: -1,
+          abrEwmaDefaultEstimate: 20_000_000, // sugiere ~20 Mbps → arranca en máxima calidad
+        });
+        hlsRef.current = hls;
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+        // Forzar el nivel más alto una vez que el manifest está disponible
+        hls.on(Hls.Events.MANIFEST_PARSED, (_evt: any, data: any) => {
+          if (data.levels && data.levels.length > 0) {
+            hls.startLevel = data.levels.length - 1;
+          }
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // Safari: HLS nativo
+        video.src = hlsUrl;
       }
     };
 
-    if (window.Stream) {
-      attach();
-    } else {
-      const iv = setInterval(() => {
-        if (window.Stream) { clearInterval(iv); attach(); }
-      }, 50);
+    init();
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [hlsUrl]);
+
+  // Prevención de adelanto (opcional)
+  const handleTimeUpdate = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !preventSeeking) return;
+    if (video.currentTime > maxWatchedRef.current + 1) {
+      video.currentTime = maxWatchedRef.current;
+    } else if (video.currentTime > maxWatchedRef.current) {
+      maxWatchedRef.current = video.currentTime;
     }
-  }, [onEnded, preventSeeking]);
+  }, [preventSeeking]);
+
+  const handleSeeking = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !preventSeeking) return;
+    if (video.currentTime > maxWatchedRef.current + 1) {
+      video.currentTime = maxWatchedRef.current;
+    }
+  }, [preventSeeking]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      src={src}
+    <video
+      ref={videoRef}
       className={className}
-      style={{ border: "none" }}
-      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-      allowFullScreen
-      onLoad={handleLoad}
+      controls
+      controlsList="nodownload noplaybackrate"
+      disablePictureInPicture
+      onTimeUpdate={handleTimeUpdate}
+      onSeeking={handleSeeking}
+      onEnded={onEnded}
+      preload="metadata"
     />
   );
 }
