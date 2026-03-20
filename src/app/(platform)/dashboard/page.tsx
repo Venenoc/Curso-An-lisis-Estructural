@@ -23,6 +23,7 @@ import {
   Award,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import TestimonialButton from "@/components/dashboard/TestimonialButton";
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -497,15 +498,20 @@ export default async function DashboardPage() {
                               </div>
                             </div>
                             {dbSlug && dc.hasFullCourse && (
-                              <Link href={`/classroom/${dbSlug}`}>
-                                <Button
-                                  size="sm"
-                                  className="bg-white/20 hover:bg-white/30 text-white border-none text-xs sm:text-sm h-8"
-                                >
-                                  Continuar
-                                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1" />
-                                </Button>
-                              </Link>
+                              <div className="flex items-center gap-2">
+                                {(exceptionSlugs.includes(dc.dbSlug) || dc.progress === 100) && (
+                                  <TestimonialButton courseId={dc.courseId} courseTitle={dc.courseTitle} />
+                                )}
+                                <Link href={`/classroom/${dbSlug}`}>
+                                  <Button
+                                    size="sm"
+                                    className="bg-white/20 hover:bg-white/30 text-white border-none text-xs sm:text-sm h-8"
+                                  >
+                                    Continuar
+                                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1" />
+                                  </Button>
+                                </Link>
+                              </div>
                             )}
                           </div>
                           {/* Progress bar */}

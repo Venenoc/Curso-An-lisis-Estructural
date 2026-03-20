@@ -156,6 +156,7 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
           display: flex;
           align-items: center;
           gap: 0;
+          position: relative;
         }
 
         /* ── Left brand cluster ── */
@@ -190,9 +191,16 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
 
         /* ── Center pill container ── */
         .hn-center-wrap {
-          flex: 1;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
           display: flex;
           justify-content: center;
+          pointer-events: none;
+        }
+
+        .hn-center-wrap > * {
+          pointer-events: auto;
         }
 
         .hn-center {
@@ -321,6 +329,36 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
               ))}
             </ul>
           </div>
+
+          {/* FREE COURSES BUTTON */}
+          <Link href="/cursos_free" style={{ marginLeft: "auto", marginRight: "20px" }}>
+            <button style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              background: "linear-gradient(135deg, rgba(239,68,68,0.70) 0%, rgba(185,28,28,0.60) 100%)",
+              border: "1px solid rgba(239,68,68,0.55)",
+              borderRadius: "10px",
+              padding: "7px 14px",
+              color: "#ffffff",
+              fontSize: "13px", fontWeight: 600,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              transition: "background 0.2s, border-color 0.2s",
+            }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = "linear-gradient(135deg, rgba(239,68,68,0.90) 0%, rgba(185,28,28,0.80) 100%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(239,68,68,0.80)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = "linear-gradient(135deg, rgba(239,68,68,0.70) 0%, rgba(185,28,28,0.60) 100%)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(239,68,68,0.55)";
+              }}
+            >
+              <svg viewBox="0 0 24 24" style={{ width: 14, height: 14 }} fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+              Cursos Free
+            </button>
+          </Link>
 
           {/* RIGHT: nombre + foto */}
           <div className="hn-right">
@@ -466,6 +504,16 @@ export default function HomeNavbar({ user, profileAvatarUrl, profileName }: Home
         aria-hidden={!menuOpen}
       >
         <div className="flex flex-col gap-3 flex-1">
+          <Link
+            href="/cursos_free"
+            onClick={closeMenu}
+            className="flex items-center justify-center gap-2 rounded-md border px-4 py-4 transition-colors text-red-400 border-red-500/40 hover:bg-red-500/10"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+              <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+            </svg>
+            <span className="text-sm font-semibold">Cursos Free</span>
+          </Link>
           {mobileMenuLinks.map((link) => {
             const active = isActive(link.href);
             return (
