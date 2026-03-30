@@ -12,6 +12,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CursosFreeMarketingPage() {
-  return <CursosFreeContent />;
+async function getPlaylistThumbnail(playlistId: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${playlistId}&format=json`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.thumbnail_url as string) ?? null;
+  } catch { return null; }
+}
+
+export default async function CursosFreeMarketingPage() {
+  const thumbnail = await getPlaylistThumbnail("PLVALQwAjVSqVPjCpY-ybviIaQoqMqy0jF");
+  return <CursosFreeContent courseThumbnails={{ "1": thumbnail ?? "" }} />;
 }

@@ -263,11 +263,28 @@ export default async function CourseSyllabusPage({
                     Video de introducción
                   </h2>
                   <div className="rounded-2xl overflow-hidden bg-slate-800 shadow-xl shadow-black/40 aspect-video">
-                    <video
-                      src={introVideoUrl}
-                      controls
-                      className="w-full h-full object-cover"
-                    />
+                    {(() => {
+                      const ytMatch = introVideoUrl.match(
+                        /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+                      );
+                      if (ytMatch) {
+                        return (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full"
+                          />
+                        );
+                      }
+                      return (
+                        <video
+                          src={introVideoUrl}
+                          controls
+                          className="w-full h-full object-cover"
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
                 </ScrollReveal>

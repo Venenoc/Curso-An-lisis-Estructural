@@ -296,6 +296,7 @@ export default function ClassroomSidebar({
                                   return (
                                     <button
                                       key={`${chapter.id}-${session.dbId}-${lesson.id}`}
+                                      title={lesson.title}
                                       onClick={() => {
                                         if (!isUnlocked) return;
                                         onSelectLesson(module.id, lesson.id);
@@ -355,6 +356,7 @@ export default function ClassroomSidebar({
                           return (
                             <button
                               key={`${chapter.id}-${lesson.id}`}
+                              title={lesson.title}
                               onClick={() => {
                                 if (!isUnlocked) return;
                                 onSelectLesson(module.id, lesson.id);

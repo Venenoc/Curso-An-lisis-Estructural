@@ -35,22 +35,20 @@ export default function AboutPage() {
           <div className="prose prose-gray max-w-none text-slate-700">
             <ScrollReveal delay={0.2}>
               <p className="text-lg mb-6">
-                Soy Albert, ingeniero civil graduado de la UNI con experiencia en proyectos reales.
-                Comencé a enseñar porque descubrí que explicar bien es la forma más poderosa de aprender profundo.
+              Hola que tal, te saluda Albert_Structural, B.Sc de la carrera de Ingeniería Civil por la Universidad Nacional de Ingeniería. Tuve la oportunidad de ser parte de proyectos de investigación por el vicerrectorado de investigación UNI y llevar estos proyectos  a  diversos  congresos  nacionales  e  internacionales,  desarrollando  habilidades  de comunicación efectiva.
+              Mi persona presenta interés en la rama de estructuras, por el cual voy desarrollándome en el ámbito del análisis, diseño y reforzamiento estructural, con el fin de seguir aprendiendo y aportando conocimientos y soluciones a las diversas situaciones que se presentan en la carrera profesional.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.25}>
               <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Misión</h2>
               <p>
-                Enseñar análisis estructural con lenguaje directo, ejemplos reales y sin rodeos.
-                Quiero que tú avances más rápido de lo que yo lo hice, con formación práctica aplicable desde el primer día.
+                Siempre he creído que la mejor manera de aprender algo es enseñándolo, es por eso que soy un apasionado por compartir información al detalle, combinando la teoría que es importante en esta rama de las estructuras, así como la parte practica con ejemplos reales, creyendo que la persona que me escucha sabe poco o nada del tema, con el fin de brindarle una mejor experiencia académica.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.3}>
               <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Metodología</h2>
               <p>
-                Cada curso que creo nace de lo que yo mismo necesité entender en la práctica.
-                Rigor técnico, lenguaje accesible y casos reales — para estudiantes e ingenieros que buscan resultados concretos.
+                El poder crear un espacio donde pueda compartir todo loa prendido en las aulas y en el trabajo, en donde te muestre una ruta de aprendizaje en el área de las estructuras, por medio de un contenido didáctico y de muy buena calidad. El poder dejar una huella en el tiempo con lo que he podido aprender y con los que seguiré aprendiendo con los años.
               </p>
             </ScrollReveal>
           </div>

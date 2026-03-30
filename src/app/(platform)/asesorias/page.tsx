@@ -57,9 +57,8 @@ export default async function AsesoriasPage() {
               Personalizadas
             </span>
           </h1>
-          <p className="text-white text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            <strong>Resuelve tus dudas de análisis y diseño estructural en sesiones 1 a 1 con el instructor.
-            Trabajamos directamente sobre tu proyecto o ejercicio.</strong>
+          <p className="text-white text-base sm:text-lg max-w-2xl mx-auto leading-relaxed text-center">
+            Resuelve tus dudas de análisis y diseño estructural en sesiones 1 a 1 con el instructor. Trabajamos directamente sobre tu proyecto o ejercicio.
           </p>
         </div>
 
@@ -77,8 +76,8 @@ export default async function AsesoriasPage() {
         {/* Videos */}
         {videos.length > 0 && (
           <div className="mb-14">
-            <h2 className="text-cyan-400 text-xl sm:text-2xl font-bold mb-2">Ejemplos de asesorías</h2>
-            <p className="text-white/80 text-sm mb-7">Así son las sesiones — mira cómo trabajamos antes de agendar la tuya.</p>
+            <h2 className="text-cyan-400 text-xl sm:text-2xl font-bold mb-2 text-center">Ejemplos de asesorías</h2>
+            <p className="text-white/80 text-sm mb-7 text-center">Hola que tal estructurales, les comparto unas clases personalizadas a las comunidades creadas sobre distintos temas de la carrera de ingeniería civil en la rama de estructuras, espero pueda ayudarles en su formación.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {videos.map((video) => {
                 const embedUrl = getYouTubeEmbedUrl(video.video_url);

@@ -17,64 +17,13 @@ interface FreeCourse {
 const FREE_COURSES: FreeCourse[] = [
   {
     id: "1",
-    title: "Análisis Matricial de Estructuras",
-    description: "Fundamentos del método de rigidez, ensamblaje de matrices y resolución de sistemas estructurales desde cero.",
-    videoId: "dQw4w9WgXcQ",
-    duration: "2h 45min",
-    lessons: 12,
-    tag: "Fundamentos",
-    tagColor: "#3b82f6",
-  },
-  {
-    id: "2",
-    title: "SAP2000 para Principiantes",
-    description: "Aprende a modelar, analizar y diseñar estructuras en SAP2000 con ejercicios prácticos paso a paso.",
-    videoId: "dQw4w9WgXcQ",
-    playlistId: "PLxxxxxx",
-    duration: "3h 20min",
-    lessons: 15,
-    tag: "SAP2000",
-    tagColor: "#10b981",
-  },
-  {
-    id: "3",
-    title: "Diseño Sísmico Basado en Norma",
-    description: "Espectros de respuesta, análisis modal espectral y verificación por desplazamientos según norma sísmica.",
-    videoId: "dQw4w9WgXcQ",
-    duration: "1h 55min",
-    lessons: 8,
-    tag: "Sísmica",
-    tagColor: "#f59e0b",
-  },
-  {
-    id: "4",
-    title: "ETABS: Edificios de Concreto Armado",
-    description: "Modelado de edificios multipiso, asignación de cargas sísmicas y verificación de derivas con ETABS.",
-    videoId: "dQw4w9WgXcQ",
-    playlistId: "PLyyyyyy",
-    duration: "4h 10min",
-    lessons: 18,
-    tag: "ETABS",
-    tagColor: "#8b5cf6",
-  },
-  {
-    id: "5",
-    title: "Método de Elementos Finitos",
-    description: "Teoría y aplicación del MEF: elementos tipo barra, viga y placa con ejemplos numéricos detallados.",
-    videoId: "dQw4w9WgXcQ",
-    duration: "2h 30min",
-    lessons: 10,
-    tag: "MEF",
-    tagColor: "#ef4444",
-  },
-  {
-    id: "6",
-    title: "Análisis de Pórticos Planos",
-    description: "Resolución de pórticos por el método de rigidez directo, diagramas de esfuerzos y deformaciones.",
-    videoId: "dQw4w9WgXcQ",
-    duration: "1h 40min",
-    lessons: 7,
-    tag: "Fundamentos",
+    title: "Análisis Sísmico de Edificaciones de Concreto Armado con ETABS",
+    description: "Hola que tal comunidad, mi nombre es Alberto Astorayme Valenzuela, soy Ingeniero Civil por la Universidad Nacional de Ingeniería (UNI), hemos ACTUALIZADO uno de los cursos que más ayuda ha dado en mi canal de YouTube, mejorando el TEMARIO y la calidad de la explicación. En este TALLER, explico desde lo básico hasta lo avanzado, todo lo concerniente al Análisis y Diseño de una estructura con ETABS. Espero les pueda servir. \"La Mejor Manera de Aprender es Enseñando\"",
+    videoId: "",
+    playlistId: "PLVALQwAjVSqVPjCpY-ybviIaQoqMqy0jF",
+    duration: "6h 01min",
+    lessons: 23,
+    tag: "Análisis Sísmico",
     tagColor: "#3b82f6",
   },
 ];
@@ -95,7 +44,7 @@ function PlayIcon() {
   );
 }
 
-export default function CursosFreeContent() {
+export default function CursosFreeContent({ courseThumbnails = {} }: { courseThumbnails?: Record<string, string> }) {
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #070f1e 0%, #0a1628 60%, #070f1e 100%)" }}>
 
@@ -133,11 +82,11 @@ export default function CursosFreeContent() {
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}>
-            Cursos Gratuitos de<br />Análisis Estructural
+            Cursos Gratuitos de<br />Análisis y Diseño Estructural
           </h1>
 
           <p style={{ color: "rgba(255,255,255,0.60)", fontSize: "17px", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto 40px" }}>
-            Aprende análisis estructural con estos recursos gratuitos directamente en YouTube.
+            Aprende análisis y diseño estructural con estos recursos gratuitos directamente en YouTube.
             Sin registro, sin costo, a tu propio ritmo.
           </p>
 
@@ -165,7 +114,7 @@ export default function CursosFreeContent() {
           gap: "24px",
         }}>
           {FREE_COURSES.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard key={course.id} course={course} thumbnailUrl={courseThumbnails[course.id]} />
           ))}
         </div>
       </section>
@@ -209,8 +158,10 @@ export default function CursosFreeContent() {
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-function CourseCard({ course }: { course: FreeCourse }) {
-  const thumbUrl = `https://img.youtube.com/vi/${course.videoId}/maxresdefault.jpg`;
+function CourseCard({ course, thumbnailUrl }: { course: FreeCourse; thumbnailUrl?: string }) {
+  const thumbUrl = thumbnailUrl || (course.videoId
+    ? `https://img.youtube.com/vi/${course.videoId}/maxresdefault.jpg`
+    : null);
   const youtubeUrl = course.playlistId
     ? `https://www.youtube.com/playlist?list=${course.playlistId}`
     : `https://www.youtube.com/watch?v=${course.videoId}`;
@@ -242,13 +193,18 @@ function CourseCard({ course }: { course: FreeCourse }) {
         }}
       >
         {/* Thumbnail */}
-        <div style={{ position: "relative", aspectRatio: "16/9", background: "#0f1e38", overflow: "hidden" }}>
-          <img
-            src={thumbUrl}
-            alt={course.title}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-          />
+        <div style={{
+          position: "relative", aspectRatio: "16/9", overflow: "hidden",
+          background: "linear-gradient(135deg, #0f1e38 0%, #0d2545 50%, #0a1a35 100%)",
+        }}>
+          {thumbUrl && (
+            <img
+              src={thumbUrl}
+              alt={course.title}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
           {/* Play overlay */}
           <div style={{
             position: "absolute", inset: 0,
