@@ -42,13 +42,13 @@ export default function AboutPage() {
             <ScrollReveal delay={0.25}>
               <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Misión</h2>
               <p>
-                Siempre he creído que la mejor manera de aprender algo es enseñándolo, es por eso que soy un apasionado por compartir información al detalle, combinando la teoría que es importante en esta rama de las estructuras, así como la parte practica con ejemplos reales, creyendo que la persona que me escucha sabe poco o nada del tema, con el fin de brindarle una mejor experiencia académica.
+                El poder crear un espacio donde pueda compartir todo loa prendido en las aulas y en el trabajo, en donde te muestre una ruta de aprendizaje en el área de las estructuras, por medio de un contenido didáctico y de muy buena calidad. El poder dejar una huella en el tiempo con lo que he podido aprender y con los que seguiré aprendiendo con los años.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.3}>
               <h2 className="text-2xl font-semibold mt-8 mb-4 text-cyan-600">Mi Metodología</h2>
               <p>
-                El poder crear un espacio donde pueda compartir todo loa prendido en las aulas y en el trabajo, en donde te muestre una ruta de aprendizaje en el área de las estructuras, por medio de un contenido didáctico y de muy buena calidad. El poder dejar una huella en el tiempo con lo que he podido aprender y con los que seguiré aprendiendo con los años.
+                Siempre he creído que la mejor manera de aprender algo es enseñándolo, es por eso que soy un apasionado por compartir información al detalle, combinando la teoría que es importante en esta rama de las estructuras, así como la parte practica con ejemplos reales, creyendo que la persona que me escucha sabe poco o nada del tema, con el fin de brindarle una mejor experiencia académica.
               </p>
             </ScrollReveal>
           </div>

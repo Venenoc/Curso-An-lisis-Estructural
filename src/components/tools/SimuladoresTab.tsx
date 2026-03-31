@@ -1,112 +1,121 @@
 "use client";
 
-import { ExternalLink, Clock } from "lucide-react";
+import { useState } from "react";
+import { Clock, Search, Cpu, GitBranch, Box, Layers, Activity, Sliders } from "lucide-react";
 
 const SIMULADORES = [
   {
     id: "portales",
     title: "Pórticos Planos",
-    description:
-      "Análisis estático de pórticos 2D. Ingresa nodos, barras y cargas para obtener diagramas de momento, cortante y axial.",
-    status: "coming-soon",
-    badge: "Próximamente",
-    gradient: "from-blue-50 to-cyan-50",
-    border: "border-blue-200",
-    accent: "text-blue-700",
+    description: "Análisis estático de pórticos 2D. Ingresa nodos, barras y cargas para obtener diagramas de momento, cortante y axial.",
+    tag: "Análisis Estructural",
+    tagColor: "bg-emerald-100 text-emerald-700",
+    color: "#065f46",
+    icon: <GitBranch className="w-6 h-6 text-white" />,
   },
   {
     id: "vigas",
     title: "Vigas Continuas",
-    description:
-      "Método de rigidez para vigas continuas con múltiples apoyos y cargas. Diagramas de esfuerzos interactivos.",
-    status: "coming-soon",
-    badge: "Próximamente",
-    gradient: "from-violet-50 to-purple-50",
-    border: "border-violet-200",
-    accent: "text-violet-700",
+    description: "Método de rigidez para vigas continuas con múltiples apoyos y cargas. Diagramas de esfuerzos interactivos.",
+    tag: "Análisis Estructural",
+    tagColor: "bg-emerald-100 text-emerald-700",
+    color: "#0f766e",
+    icon: <Activity className="w-6 h-6 text-white" />,
   },
   {
     id: "armaduras",
     title: "Armaduras (Trusses)",
-    description:
-      "Análisis matricial de armaduras planas. Calcula deformaciones y fuerzas en cada barra bajo cargas nodales.",
-    status: "coming-soon",
-    badge: "Próximamente",
-    gradient: "from-emerald-50 to-teal-50",
-    border: "border-emerald-200",
-    accent: "text-emerald-700",
+    description: "Análisis matricial de armaduras planas. Calcula deformaciones y fuerzas en cada barra bajo cargas nodales.",
+    tag: "Análisis Estructural",
+    tagColor: "bg-emerald-100 text-emerald-700",
+    color: "#047857",
+    icon: <Box className="w-6 h-6 text-white" />,
   },
   {
     id: "seccion-interactiva",
     title: "Constructor de Secciones",
-    description:
-      "Crea secciones transversales compuestas y obtén sus propiedades geométricas (A, Ix, Iy, Sx, centroide).",
-    status: "coming-soon",
-    badge: "Próximamente",
-    gradient: "from-orange-50 to-amber-50",
-    border: "border-orange-200",
-    accent: "text-orange-700",
+    description: "Crea secciones transversales compuestas y obtén sus propiedades geométricas (A, Ix, Iy, Sx, centroide).",
+    tag: "Propiedades de Sección",
+    tagColor: "bg-orange-100 text-orange-700",
+    color: "#c2410c",
+    icon: <Layers className="w-6 h-6 text-white" />,
   },
   {
     id: "carga-lateral",
     title: "Distribución de Carga Sísmica",
-    description:
-      "Método estático equivalente para distribución de fuerzas sísmicas en altura según NTC o ASCE 7.",
-    status: "coming-soon",
-    badge: "Próximamente",
-    gradient: "from-rose-50 to-pink-50",
-    border: "border-rose-200",
-    accent: "text-rose-700",
+    description: "Método estático equivalente para distribución de fuerzas sísmicas en altura según E.030 o ASCE 7.",
+    tag: "Diseño Sísmico",
+    tagColor: "bg-red-100 text-red-700",
+    color: "#9f1239",
+    icon: <Sliders className="w-6 h-6 text-white" />,
+  },
+  {
+    id: "espectro",
+    title: "Espectro de Diseño",
+    description: "Generación del espectro de respuesta Sa(T) según E.030 (zonas sísmicas peruanas) y ASCE 7-22.",
+    tag: "Diseño Sísmico",
+    tagColor: "bg-red-100 text-red-700",
+    color: "#be123c",
+    icon: <Activity className="w-6 h-6 text-white" />,
   },
 ];
 
 export default function SimuladoresTab() {
+  const [search, setSearch] = useState("");
+
+  const filtered = SIMULADORES.filter((s) => {
+    const q = search.toLowerCase();
+    return !q || s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || s.tag.toLowerCase().includes(q);
+  });
+
   return (
-    <div className="space-y-8">
-      {/* Hero */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-slate-800">Simuladores Visuales</h1>
-        <p className="text-slate-500 max-w-2xl mx-auto">
-          Herramientas interactivas de análisis estructural con visualización en tiempo real.
-          Actualmente en desarrollo.
-        </p>
+    <div className="min-h-screen py-2 px-2 sm:px-6 lg:px-16">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Cpu className="w-7 h-7 text-blue-400" />
+          <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Simuladores <span className="font-light">Visuales</span></h1>
+        </div>
+        <div className="relative w-full max-w-md md:w-96">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar simulador..."
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 text-slate-700 placeholder-slate-400"
+          />
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+        </div>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {SIMULADORES.map((sim) => (
-          <div
-            key={sim.id}
-            className={`relative flex flex-col bg-gradient-to-br ${sim.gradient} border ${sim.border} rounded-2xl p-6 overflow-hidden shadow-sm`}
-          >
-            {/* Badge */}
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-white/80 border border-slate-300 text-slate-600">
-              <Clock className="w-3 h-3" />
-              {sim.badge}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.map((sim) => (
+          <div key={sim.id} className="flex flex-col bg-[#F0F3FA] border border-slate-100 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-200 transition-all duration-200 group p-6">
+            {/* Thumbnail */}
+            <div className="w-full h-32 overflow-hidden mb-4 rounded-md flex items-center justify-center" style={{ backgroundColor: sim.color }}>
+              <div className="flex flex-col items-center gap-2 opacity-90">
+                {sim.icon}
+                <span className="text-white text-xs font-semibold opacity-70">{sim.tag}</span>
+              </div>
             </div>
-
-            {/* Content */}
-            <div className="space-y-3 flex-1">
-              <h3 className={`text-xl font-semibold ${sim.accent}`}>{sim.title}</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">{sim.description}</p>
+            {/* Title */}
+            <h3 className="text-lg font-bold text-slate-800 leading-tight mb-1">{sim.title}</h3>
+            {/* Description */}
+            <p className="text-slate-500 text-sm mb-4 min-h-[40px]">{sim.description}</p>
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className={`text-xs rounded-full px-3 py-1 font-medium ${sim.tagColor}`}>{sim.tag}</span>
             </div>
-
-            {/* CTA placeholder */}
-            <div className="mt-6">
-              <div className="flex items-center gap-2 text-slate-400 text-xs">
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Disponible en próxima actualización</span>
+            {/* Button */}
+            <div className="mt-auto">
+              <div className="flex items-center justify-center gap-2 w-full py-2 bg-slate-100 border border-slate-200 text-slate-400 text-xs rounded-lg cursor-not-allowed select-none">
+                <Clock className="w-3.5 h-3.5" />
+                Próximamente
               </div>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Footer note */}
-      <div className="text-center py-4">
-        <p className="text-slate-500 text-sm">
-          ¿Tienes sugerencias de simuladores? Compártelas en la sección de Comunidad.
-        </p>
       </div>
     </div>
   );

@@ -1,25 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import CalculatorModal, {
-  CalculatorConfig,
-} from "@/components/tools/CalculatorModal";
+import CalculatorModal, { CalculatorConfig } from "@/components/tools/CalculatorModal";
 import {
-  ChevronRight,
-  Square,
-  Triangle,
-  BarChart3,
-  Layers,
-  HardHat,
-  Ruler,
-  LayoutGrid,
-  FlaskConical,
+  ChevronRight, Square, Triangle, BarChart3, Layers, HardHat,
+  Ruler, LayoutGrid, FlaskConical, Calculator, Search,
 } from "lucide-react";
 
-// ─── Definición de calculadoras ───────────────────────────────────────────────
-
 const CALCULATORS: CalculatorConfig[] = [
-  // ── Concreto ──────────────────────────────────────────────────────────────
   {
     id: "concreto-minmax",
     title: "Mínimos y Máximos de Acero",
@@ -73,7 +61,6 @@ const CALCULATORS: CalculatorConfig[] = [
       { name: "Vu", label: "Cortante último Vu", unit: "kN", defaultValue: 120 },
     ],
   },
-  // ── Acero ─────────────────────────────────────────────────────────────────
   {
     id: "acero-viga-i",
     title: "Vigas I & RHM — Flexión + Cortante",
@@ -113,7 +100,7 @@ const CALCULATORS: CalculatorConfig[] = [
   },
   {
     id: "acero-deflexion",
-    title: "Deflexión de Viga",
+    title: "Deflexión de Viga de Acero",
     description: "Verificación de deflexión máxima vs. límite L/n",
     endpoint: "acero/deflexion",
     fields: [
@@ -123,7 +110,6 @@ const CALCULATORS: CalculatorConfig[] = [
       { name: "P_kN", label: "Carga puntual P", unit: "kN", defaultValue: 0 },
     ],
   },
-  // ── Análisis Estructural ───────────────────────────────────────────────────
   {
     id: "seccion-rect",
     title: "Propiedades de Sección — Rectángulo",
@@ -160,41 +146,24 @@ const CALCULATORS: CalculatorConfig[] = [
   },
 ];
 
-// ─── Secciones del grid ───────────────────────────────────────────────────────
-
-const GROUPS = [
-  {
-    title: "Diseño en Concreto",
-    color: "from-blue-50 to-cyan-50 border-blue-200",
-    accent: "text-blue-700",
-    icon: Square,
-    ids: ["concreto-minmax", "concreto-refuerzo", "concreto-columna-pm", "concreto-viga"],
-  },
-  {
-    title: "Diseño en Acero",
-    color: "from-orange-50 to-amber-50 border-orange-200",
-    accent: "text-orange-700",
-    icon: Triangle,
-    ids: ["acero-viga-i", "acero-pandeo", "acero-deflexion"],
-  },
-  {
-    title: "Análisis Estructural",
-    color: "from-emerald-50 to-teal-50 border-emerald-200",
-    accent: "text-emerald-700",
-    icon: BarChart3,
-    ids: ["seccion-rect", "seccion-i", "viga-simple"],
-  },
-];
+const CARD_META: Record<string, { color: string; tag: string; tagColor: string; icon: React.ReactNode }> = {
+  "concreto-minmax":    { color: "#1e40af", tag: "Concreto",           tagColor: "bg-blue-100 text-blue-700",    icon: <Layers className="w-6 h-6 text-white" /> },
+  "concreto-refuerzo":  { color: "#1d4ed8", tag: "Concreto",           tagColor: "bg-blue-100 text-blue-700",    icon: <Ruler className="w-6 h-6 text-white" /> },
+  "concreto-columna-pm":{ color: "#1e3a8a", tag: "Concreto",           tagColor: "bg-blue-100 text-blue-700",    icon: <LayoutGrid className="w-6 h-6 text-white" /> },
+  "concreto-viga":      { color: "#2563eb", tag: "Concreto",           tagColor: "bg-blue-100 text-blue-700",    icon: <HardHat className="w-6 h-6 text-white" /> },
+  "acero-viga-i":       { color: "#7f1d1d", tag: "Acero",              tagColor: "bg-red-100 text-red-700",      icon: <FlaskConical className="w-6 h-6 text-white" /> },
+  "acero-pandeo":       { color: "#991b1b", tag: "Acero",              tagColor: "bg-red-100 text-red-700",      icon: <BarChart3 className="w-6 h-6 text-white" /> },
+  "acero-deflexion":    { color: "#b91c1c", tag: "Acero",              tagColor: "bg-red-100 text-red-700",      icon: <Ruler className="w-6 h-6 text-white" /> },
+  "seccion-rect":       { color: "#065f46", tag: "Análisis Estructural", tagColor: "bg-emerald-100 text-emerald-700", icon: <Square className="w-6 h-6 text-white" /> },
+  "seccion-i":          { color: "#047857", tag: "Análisis Estructural", tagColor: "bg-emerald-100 text-emerald-700", icon: <Triangle className="w-6 h-6 text-white" /> },
+  "viga-simple":        { color: "#0f766e", tag: "Análisis Estructural", tagColor: "bg-emerald-100 text-emerald-700", icon: <BarChart3 className="w-6 h-6 text-white" /> },
+};
 
 const calcMap = Object.fromEntries(CALCULATORS.map((c) => [c.id, c]));
 
 function buildConfig(config: CalculatorConfig): CalculatorConfig {
-  if (config.id === "seccion-rect") {
-    return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "rectangulo", type: "select", options: [{ value: "rectangulo", label: "rectangulo" }] }, ...config.fields] };
-  }
-  if (config.id === "seccion-i") {
-    return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "I", type: "select", options: [{ value: "I", label: "I" }] }, ...config.fields] };
-  }
+  if (config.id === "seccion-rect") return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "rectangulo", type: "select", options: [{ value: "rectangulo", label: "rectangulo" }] }, ...config.fields] };
+  if (config.id === "seccion-i") return { ...config, fields: [{ name: "tipo", label: "tipo", defaultValue: "I", type: "select", options: [{ value: "I", label: "I" }] }, ...config.fields] };
   return config;
 }
 
@@ -233,7 +202,7 @@ function VigaSimpleModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            {[["L_m", "Longitud L (m)", L, setL], ["EI_kNm2", "EI (kN·m²)", EI, setEI], ["w_kNm", "Carga dist. w (kN/m)", w, setW], ["P_kN", "Puntual P centro (kN)", P, setP]].map(([, label, val, setter]) => (
+            {[["L_m","Longitud L (m)",L,setL],["EI_kNm2","EI (kN·m²)",EI,setEI],["w_kNm","Carga dist. w (kN/m)",w,setW],["P_kN","Puntual P centro (kN)",P,setP]].map(([,label,val,setter]) => (
               <div key={label as string}>
                 <label className="text-xs font-medium text-slate-700">{label as string}</label>
                 <input type="number" value={val as string} onChange={e => (setter as any)(e.target.value)} className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-blue-500" />
@@ -258,72 +227,68 @@ function VigaSimpleModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
-
 export default function CalculosTab() {
   const [active, setActive] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
-  const icons: Record<string, React.ReactNode> = {
-    "concreto-minmax": <Layers className="w-5 h-5" />,
-    "concreto-refuerzo": <Ruler className="w-5 h-5" />,
-    "concreto-columna-pm": <LayoutGrid className="w-5 h-5" />,
-    "concreto-viga": <HardHat className="w-5 h-5" />,
-    "acero-viga-i": <FlaskConical className="w-5 h-5" />,
-    "acero-pandeo": <BarChart3 className="w-5 h-5" />,
-    "acero-deflexion": <Ruler className="w-5 h-5" />,
-    "seccion-rect": <Square className="w-5 h-5" />,
-    "seccion-i": <Triangle className="w-5 h-5" />,
-    "viga-simple": <BarChart3 className="w-5 h-5" />,
-  };
+  const filtered = CALCULATORS.filter((c) => {
+    const q = search.toLowerCase();
+    return !q || c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || (CARD_META[c.id]?.tag ?? "").toLowerCase().includes(q);
+  });
 
   const activeConfig = active ? calcMap[active] : null;
 
-  // Separar grupos
-  const gruposSinAnalisis = GROUPS.filter(g => g.title !== "Análisis Estructural");
-  const grupoAnalisis = GROUPS.find(g => g.title === "Análisis Estructural");
-
   return (
     <>
-      <div className="space-y-8">
-        {/* Aviso de implementación */}
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-2 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-full px-4 py-2 text-sm font-semibold shadow-sm">
-            <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12A9 9 0 1 1 3 12a9 9 0 0 1 18 0Z" /></svg>
-            Herramientas en implementación
+      <div className="min-h-screen py-2 px-2 sm:px-6 lg:px-16">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <Calculator className="w-7 h-7 text-blue-400" />
+            <h1 className="text-3xl font-bold text-blue-900 tracking-tight">Herramientas de <span className="font-light">Cálculo</span></h1>
+          </div>
+          <div className="relative w-full max-w-md md:w-96">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar calculadora..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 text-slate-700 placeholder-slate-400"
+            />
+            <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
           </div>
         </div>
-        {/* Grupos principales */}
-        <div className="mb-2">
-          <h2 className="text-xl font-bold text-[#6096CE] mb-4 text-left">HERRAMIENTAS DE CÁLCULO</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-          {gruposSinAnalisis.map((group) => {
-            const GroupIcon = group.icon;
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((calc) => {
+            const meta = CARD_META[calc.id];
             return (
-              <div key={group.title} className={`rounded-2xl border bg-gradient-to-br ${group.color} p-6 shadow-sm`}>
-                <div className="flex items-center gap-3 mb-5">
-                  <GroupIcon className={`w-6 h-6 ${group.accent}`} />
-                  <h2 className={`text-lg font-semibold ${group.accent}`}>{group.title}</h2>
+              <div key={calc.id} className="flex flex-col bg-[#F0F3FA] border border-slate-100 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-200 transition-all duration-200 group p-6">
+                {/* Thumbnail */}
+                <div className="w-full h-32 overflow-hidden mb-4 rounded-md flex items-center justify-center" style={{ backgroundColor: meta?.color ?? "#1e40af" }}>
+                  <div className="flex flex-col items-center gap-2 opacity-90">
+                    {meta?.icon}
+                    <span className="text-white text-xs font-semibold opacity-70">{meta?.tag}</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {group.ids.map((id) => {
-                    const calc = calcMap[id];
-                    if (!calc) return null;
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => setActive(id)}
-                        className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
-                      >
-                        <span className={`mt-0.5 ${group.accent} shrink-0`}>{icons[id]}</span>
-                        <div className="min-w-0">
-                          <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
-                          <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
-                      </button>
-                    );
-                  })}
+                {/* Title */}
+                <h3 className="text-lg font-bold text-slate-800 leading-tight mb-1">{calc.title}</h3>
+                {/* Description */}
+                <p className="text-slate-500 text-sm mb-4 min-h-[40px]">{calc.description}</p>
+                {/* Tag */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className={`text-xs rounded-full px-3 py-1 font-medium ${meta?.tagColor ?? "bg-blue-100 text-blue-700"}`}>{meta?.tag}</span>
+                </div>
+                {/* Button */}
+                <div className="mt-auto">
+                  <button
+                    onClick={() => setActive(calc.id)}
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                    Abrir Calculadora
+                  </button>
                 </div>
               </div>
             );
@@ -331,50 +296,9 @@ export default function CalculosTab() {
         </div>
       </div>
 
-      {/* Sección separada para Análisis Estructural */}
-      {grupoAnalisis && (
-        <div className="mt-12">
-          <div className="mb-2">
-            <h2 className="text-xl font-bold text-[#6096CE] mb-4 text-left uppercase tracking-widest">ANÁLISIS ESTRUCTURAL</h2>
-          </div>
-          <div className={`rounded-2xl border bg-gradient-to-br ${grupoAnalisis.color} p-6 shadow-sm`}>
-            <div className="flex items-center gap-3 mb-5">
-              <grupoAnalisis.icon className={`w-6 h-6 ${grupoAnalisis.accent}`} />
-              <h2 className={`text-lg font-semibold ${grupoAnalisis.accent}`}>{grupoAnalisis.title}</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {grupoAnalisis.ids.map((id) => {
-                const calc = calcMap[id];
-                if (!calc) return null;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActive(id)}
-                    className="group flex items-start gap-3 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-xl p-4 text-left transition-all duration-200 shadow-sm"
-                  >
-                    <span className={`mt-0.5 ${grupoAnalisis.accent} shrink-0`}>{icons[id]}</span>
-                    <div className="min-w-0">
-                      <p className="text-slate-800 text-sm font-medium leading-tight">{calc.title}</p>
-                      <p className="text-slate-500 text-xs mt-1 leading-snug line-clamp-2">{calc.description}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 shrink-0 mt-0.5 transition-colors" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modals */}
-      {active === "viga-simple" && (
-        <VigaSimpleModal onClose={() => setActive(null)} />
-      )}
+      {active === "viga-simple" && <VigaSimpleModal onClose={() => setActive(null)} />}
       {active && active !== "viga-simple" && activeConfig && (
-        <CalculatorModal
-          config={buildConfig(activeConfig)}
-          onClose={() => setActive(null)}
-        />
+        <CalculatorModal config={buildConfig(activeConfig)} onClose={() => setActive(null)} />
       )}
     </>
   );

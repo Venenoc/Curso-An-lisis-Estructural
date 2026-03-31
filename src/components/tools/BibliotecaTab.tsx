@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Download, BookOpen, FileText, Table2, FileSpreadsheet, BookMarked, Search } from "lucide-react";
 
-const CDN = process.env.NEXT_PUBLIC_CF_R2_PUBLIC_URL ?? "";
 
 export interface ToolResource {
   id: string;
@@ -122,7 +121,6 @@ const PLACEHOLDER_ITEMS: ToolResource[] = [
 export default function BibliotecaTab({ resources }: Props) {
   const router = useRouter();
   const displayItems = resources.length > 0 ? resources : PLACEHOLDER_ITEMS;
-  const isEmpty = resources.length === 0;
 
   return (
     <div className="min-h-screen py-2 px-2 sm:px-6 lg:px-16">
@@ -146,19 +144,22 @@ export default function BibliotecaTab({ resources }: Props) {
       {/* Grid de tarjetas tipo biblioteca */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {displayItems.map((item) => {
-          const meta = CATEGORY_META[item.category] ?? {
-            label: item.category,
-            icon: <FileText className="w-5 h-5" />,
-            color: "text-slate-600 bg-slate-50 border-slate-200",
-          };
+          void (CATEGORY_META[item.category]);
           const canDownload = Boolean(item.file_url);
           const isNormatividadCard = item.id === "p1" || item.title.toLowerCase().includes("normativ");
+          const isManualesCard = item.id === "p2" || item.title.toLowerCase().includes("manual");
+          const isNavigable = isNormatividadCard || isManualesCard;
+          const navTarget = isNormatividadCard
+            ? "/tools/biblioteca/normatividad"
+            : isManualesCard
+            ? "/tools/biblioteca/manuales"
+            : undefined;
 
           return (
             <div
               key={item.id}
-              className={`flex flex-col bg-[#F0F3FA] border border-slate-100 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-200 transition-all duration-200 group p-6 ${isNormatividadCard ? "cursor-pointer" : ""}`}
-              onClick={isNormatividadCard ? () => router.push("/tools/biblioteca/normatividad") : undefined}
+              className={`flex flex-col bg-[#F0F3FA] border border-slate-100 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-200 transition-all duration-200 group p-6 ${isNavigable ? "cursor-pointer" : ""}`}
+              onClick={isNavigable && navTarget ? () => router.push(navTarget) : undefined}
             >
               {/* Imagen superior */}
               <div className="w-full h-32 overflow-hidden mb-4">
@@ -194,7 +195,7 @@ export default function BibliotecaTab({ resources }: Props) {
                 <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 font-medium cursor-pointer">Most Popular</span>
                 <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 font-medium cursor-pointer">Codes Map</span>
               </div>
-              {/* Botón de descarga o próximamente */}
+              {/* Botón de descarga, navegar o próximamente */}
               <div className="mt-auto">
                 {canDownload ? (
                   <a
@@ -205,6 +206,22 @@ export default function BibliotecaTab({ resources }: Props) {
                     <Download className="w-3.5 h-3.5" />
                     Descargar
                   </a>
+                ) : isNormatividadCard ? (
+                  <button
+                    onClick={() => router.push("/tools/biblioteca/normatividad")}
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    <BookMarked className="w-3.5 h-3.5" />
+                    Ver normas y códigos
+                  </button>
+                ) : isManualesCard ? (
+                  <button
+                    onClick={() => router.push("/tools/biblioteca/manuales")}
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    <BookMarked className="w-3.5 h-3.5" />
+                    Ver manuales y guías
+                  </button>
                 ) : (
                   <div className="flex items-center justify-center gap-2 w-full py-2 bg-slate-50 border border-slate-200 text-slate-400 text-xs rounded-lg cursor-not-allowed">
                     <Download className="w-3.5 h-3.5" />
