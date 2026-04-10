@@ -64,7 +64,7 @@ export default async function CursosPage() {
                 Nuestros Cursos
               </h1>
               <p className="text-sm sm:text-xl text-white leading-relaxed">
-                Domina el análisis estructural con cursos creados por ingenieros
+                Domina el análisis y diseño estructural con cursos creados por ingenieros
                 expertos. Desde los fundamentos hasta técnicas avanzadas de modelado.
               </p>
             </div>

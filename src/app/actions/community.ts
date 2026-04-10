@@ -208,6 +208,45 @@ export async function markMessagesRead(otherUserId: string) {
   return { success: true };
 }
 
+// ── Admin Messages ──
+
+export async function getAdminMessages() {
+  const supabase = getAdmin();
+  const { data: posts, error } = await supabase
+    .from("community_posts")
+    .select(`
+      id, title, content, created_at,
+      profiles(id, full_name),
+      community_replies(
+        id, content, created_at,
+        profiles(id, full_name, role)
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error) return { data: [] };
+  return { data: posts ?? [] };
+}
+
+export async function createAdminReply(postId: string, content: string) {
+  const profile = await getProfile();
+  if (!profile) return { error: "No autenticado" };
+  if (profile.role !== "instructor" && profile.role !== "admin") {
+    return { error: "No autorizado" };
+  }
+  if (!content.trim()) return { error: "El contenido no puede estar vacío" };
+
+  const supabase = getAdmin();
+  const { error } = await supabase
+    .from("community_replies")
+    .insert({ post_id: postId, user_id: profile.id, content: content.trim() });
+
+  if (error) return { error: "Error al responder" };
+  revalidatePath("/community");
+  revalidatePath("/admin/mensajes");
+  return { success: true };
+}
+
 // ── Image Upload ──
 
 export async function uploadPostImage(formData: FormData) {

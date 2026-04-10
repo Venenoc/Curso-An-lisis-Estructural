@@ -5,9 +5,6 @@ import Link from "next/link";
 import {
   Plus,
   Search,
-  ArrowLeft,
-  MessageSquare,
-  ShieldCheck,
   BookOpen,
   Clock,
   DollarSign,
@@ -400,19 +397,7 @@ export default function AdminCoursesClient({ courses: initialCourses }: Props) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{
-        backgroundImage: `url('/images/Fondos%20de%20marketing/Fondo_ATm.webp')`,
-        backgroundSize: "cover",
-        backgroundPosition: "top",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      {/* Frosted-glass overlay */}
-      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] pointer-events-none" />
-
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Toast */}
       {toast && (
         <div
@@ -426,41 +411,20 @@ export default function AdminCoursesClient({ courses: initialCourses }: Props) {
         </div>
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* ─── Header ──────────────────────────────────────────────────────────── */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 bg-clip-text text-transparent drop-shadow-lg">
-            Mis Cursos
-          </h1>
-          <p className="text-slate-200 text-lg font-light">
-            Panel de gestión de contenido educativo
-          </p>
-        </div>
-
-        {/* ─── Nav actions ─────────────────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link href="/dashboard">
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium backdrop-blur-sm transition-all hover:scale-105 active:scale-95">
-              <ArrowLeft className="w-4 h-4" />
-              Dashboard
-            </button>
-          </Link>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 bg-clip-text text-transparent">
+              Mis Cursos
+            </h1>
+            <p className="text-slate-300 text-sm mt-1">
+              Panel de gestión de contenido educativo
+            </p>
+          </div>
           <Link href="/admin/courses/new">
             <button className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-sm font-semibold shadow-lg hover:shadow-cyan-500/30 transition-all hover:scale-105 active:scale-95">
               <Plus className="w-4 h-4" />
               Crear Curso
-            </button>
-          </Link>
-          <Link href="/admin/testimonials">
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium backdrop-blur-sm transition-all hover:scale-105 active:scale-95">
-              <MessageSquare className="w-4 h-4" />
-              Testimonios
-            </button>
-          </Link>
-          <Link href="/admin/exceptions">
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium backdrop-blur-sm transition-all hover:scale-105 active:scale-95">
-              <ShieldCheck className="w-4 h-4" />
-              Accesos
             </button>
           </Link>
         </div>
@@ -624,6 +588,5 @@ export default function AdminCoursesClient({ courses: initialCourses }: Props) {
           </div>
         )}
       </div>
-    </div>
   );
 }

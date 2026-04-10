@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   updateCourse,
@@ -1287,6 +1288,7 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
       </div>
 
       {/* ─── Modals ───────────────────────────────────────────────────────────── */}
+      <Portal>
 
       {modal?.type === "createModule" && (
         <Modal title="Crear Módulo" onClose={() => setModal(null)} wide>
@@ -1435,7 +1437,8 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
 
       {/* ─── Quiz Panel ───────────────────────────────────────────────────── */}
       {quizPanel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60">
+          <div className="flex min-h-full items-center justify-center p-4">
           <div className="bg-background border rounded-xl shadow-xl w-full max-w-2xl p-6 my-4">
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
@@ -1633,12 +1636,14 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
               </div>
             )}
           </div>
+          </div>
         </div>
       )}
 
       {/* ─── Materials Panel ──────────────────────────────────────────────── */}
       {materialsPanel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60">
+          <div className="flex min-h-full items-center justify-center p-4">
           <div className="bg-background border rounded-xl shadow-xl w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold flex items-center gap-2">
@@ -1719,11 +1724,13 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
               </Button>
             </div>
           </div>
+          </div>
         </div>
       )}
       {/* ─── FAQ Panel ────────────────────────────────────────────────────── */}
       {faqPanel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60">
+          <div className="flex min-h-full items-center justify-center p-4">
           <div className="bg-background border rounded-xl shadow-xl w-full max-w-2xl p-6 my-4">
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
@@ -1853,13 +1860,20 @@ export default function AdminCourseClient({ course: initialCourse, modules: init
               </div>
             )}
           </div>
+          </div>
         </div>
       )}
+      </Portal>
     </div>
   );
 }
 
 // ── Helper components ─────────────────────────────────────────────────────────
+
+function Portal({ children }: { children: React.ReactNode }) {
+  if (typeof window === "undefined") return null;
+  return createPortal(<>{children}</>, document.body);
+}
 
 function Modal({
   title,

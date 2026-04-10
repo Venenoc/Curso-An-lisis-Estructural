@@ -66,45 +66,32 @@ export default async function CourseDetailPage({
   }));
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center relative py-12"
-      style={{
-        backgroundImage: `url('/images/Fondos%20de%20marketing/Fondo_ATm.webp')`,
-        backgroundSize: "cover",
-        backgroundPosition: "top",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="pt-8">
-          <Link
-            href="/admin/courses"
-            className="flex items-center gap-2 text-muted-black hover:text-foreground mb-2 text-sm"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Volver a Mis Cursos
-          </Link>
-        </div>
-        <div className="bg-white/60 dark:bg-slate-900/40 rounded-2xl shadow-2xl p-6 md:p-10 backdrop-blur-md">
-          <AdminCourseClient
-            course={{
-              id: course.id,
-              title: course.title,
-              description: course.description || "",
-              price: course.price,
-              status: course.status,
-              slug: course.slug,
-              level: course.level || "Principiante",
-              total_duration: course.total_duration || "",
-              subscription_only: course.subscription_only ?? false,
-              image_url: course.image_url || "",
-              gradient: course.gradient || "from-cyan-500 to-blue-600",
-              presentation_video_url: course.presentation_video_url || "",
-            }}
-            modules={modules}
-          />
-        </div>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <Link
+        href="/admin/courses"
+        className="flex items-center gap-2 text-slate-300 hover:text-white mb-6 text-sm transition-colors"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Volver a Mis Cursos
+      </Link>
+      <div className="bg-white/60 dark:bg-slate-900/40 rounded-2xl shadow-2xl p-6 md:p-10 backdrop-blur-md">
+        <AdminCourseClient
+          course={{
+            id: course.id,
+            title: course.title,
+            description: course.description || "",
+            price: course.price,
+            status: course.status,
+            slug: course.slug,
+            level: course.level || "Principiante",
+            total_duration: course.total_duration || "",
+            subscription_only: course.subscription_only ?? false,
+            image_url: course.image_url || "",
+            gradient: course.gradient || "from-cyan-500 to-blue-600",
+            presentation_video_url: course.presentation_video_url || "",
+          }}
+          modules={modules}
+        />
       </div>
     </div>
   );

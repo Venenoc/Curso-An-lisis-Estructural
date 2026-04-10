@@ -29,7 +29,7 @@ const socialLinks: Array<{ label: SocialName; href: string }> = [
   { label: 'youtube', href: 'https://www.youtube.com/@albert_structural' },
   { label: 'facebook', href: 'https://www.facebook.com/alberto.astorayme.valenzuela.2025' },
   { label: 'instagram', href: 'https://www.instagram.com/albert_structural' },
-  { label: 'tiktok', href: 'https://www.tiktok.com/@albert_structural' },
+  { label: 'tiktok', href: 'https://www.tiktok.com/@_albert_structural' },
 ]
 
 function SocialIcon({ name }: { name: SocialName }) {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const PHONE = "51930308067"; // Reemplaza con tu número (código país + código área + número, sin + ni espacios)
-const MESSAGE = encodeURIComponent("Quisiera más información de los cursos");
+const PHONE = "51987440424"; // Reemplaza con tu número (código país + código área + número, sin + ni espacios)
+const MESSAGE = encodeURIComponent("Hola, vengo de la pagina web y quisiera más información de los cursos");
 const WHATSAPP_URL = `https://wa.me/${PHONE}?text=${MESSAGE}`;
 
 export default function WhatsAppButton() {

@@ -65,8 +65,7 @@ export default function AdminExceptionsClient({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pt-8 pb-16 px-4 sm:px-8 lg:px-12">
-      <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-white">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
@@ -200,6 +199,5 @@ export default function AdminExceptionsClient({
         </div>
 
       </div>
-    </div>
   );
 }
